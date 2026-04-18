@@ -29,6 +29,10 @@
 - [x] Fase 0.4 do plano de performance: remover SharpRaven (deprecated).
   Enum `BreadcrumbLevel` próprio em CrashBreadcrumbs.cs; `LogSentryBreadcrumb` agora escreve também no ring-buffer do CrashBreadcrumbs (antes só no Console). Referências a `SharpRaven.Data.BreadcrumbLevel` trocadas em 6 arquivos. Reference removida do csproj, entrada tirada do packages.config. Dependência morta há anos, corta 1 lib.
 
+- [x] Fase 1.1 do plano de performance (pivotado): parallel chunk rebuild.
+  ChunkManager.RebuildVoxelsThread drenava 1 chunk por vez e chamava `chunk.Rebuild(device)` sequencial. Agora dreno TODOS os chunks visíveis pendentes pro scratch reutilizado e uso `Parallel.ForEach` com `MaxDegreeOfParallelism=cores-1`. Cada rebuild é CPU-heavy (mesh gen) e GPU upload é marshalizado pelo FNA3D, então contention é mínima. Post-drain bookkeeping (liveChunks list, eviction) segue serial.
+  **NOTA**: O 1.1 original era "parallel entity update" — skipei porque Component.Update toca shared state (TaskManager, Factions, Zones) sem locks e paralelização precisava de redesign completo do sistema de componentes. Parallel chunk rebuild dá ROI similar sem o risco de race conditions em game state.
+
 - [x] Fase 1.2 do plano de performance: A* data structures pooled per pathing thread.
   AStarPlanner.cs: HashSet<MoveState> closedSet/openSet, Dictionary<MoveState,MoveAction> cameFrom, Dictionary<MoveState,float> gScore, PriorityQueue<MoveState> fScore, MoveActionTempStorage, List<GameComponent> playerObjects/teleportObjects viraram **[ThreadStatic]** — um set por worker thread (PlanService já roda NumPathingThreads). Cada Path() faz `.Clear()` no início em vez de `new HashSet/Dictionary/PQ`. Pathfinding já era async, faltava eliminar a tempestade de GC por request. LINQ `.Where().ToList()` do teleportObjects substituído por loop explícito.
 
