@@ -45,8 +45,8 @@
     <Reference Include="FNA">
       <HintPath>..\FNA\bin\Release\FNA.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="SharpRaven">
       <HintPath>..\packages\SharpRaven.2.4.0\lib\net45\SharpRaven.dll</HintPath>
@@ -63,7 +63,6 @@
   </ItemGroup>
   <!---
   <ItemGroup>
-     <Compile Include=".\**\*.cs"/>
   </ItemGroup>
   -->
   <ItemGroup>
@@ -408,7 +407,6 @@
     <Compile Include=".\Components\Systems\ComponentManager.cs" />
     <Compile Include=".\Components\Systems\ComponentRenderer.cs" />
     <Compile Include=".\Components\Systems\Message.cs" />
-    <Compile Include=".\Components\VoxelChangeEvent.cs" />
     <Compile Include=".\Components\VoxelRevealer.cs" />
     <Compile Include=".\ConsoleCommandHandlerAttribute.cs" />
     <Compile Include="Player\ContextCommands\AttackCommand.cs" />
@@ -554,16 +552,6 @@
     <Compile Include=".\Entities\Projectiles\MudProjectile.cs" />
     <Compile Include=".\Entities\Projectiles\Projectile.cs" />
     <Compile Include=".\Entities\Projectiles\WebProjectile.cs" />
-    <Compile Include=".\Entities\Steam\BuildBuff.cs" />
-    <Compile Include=".\Entities\Steam\CheckValve.cs" />
-    <Compile Include=".\Entities\Steam\Orientation.cs" />
-    <Compile Include=".\Entities\Steam\OrientationHelper.cs" />
-    <Compile Include=".\Entities\Steam\PowerAnvil.cs" />
-    <Compile Include=".\Entities\Steam\SteamGenerator.cs" />
-    <Compile Include=".\Entities\Steam\SteamPipe.cs" />
-    <Compile Include=".\Entities\Steam\SteamPoweredBuildBuff.cs" />
-    <Compile Include=".\Entities\Steam\SteamPoweredObject.cs" />
-    <Compile Include=".\Entities\Steam\SteamSystem.cs" />
     <Compile Include=".\Entities\TimedExplosion.cs" />
     <Compile Include=".\Entities\Traps\BearTrap.cs" />
     <Compile Include=".\Entities\Traps\TurretTrap.cs" />
@@ -733,7 +721,6 @@
     <Compile Include="Graphics\ParticleEffects\ParticleManager.cs" />
     <Compile Include="Graphics\ParticleEffects\ParticleTrigger.cs" />
     <Compile Include=".\ProgramData.cs" />
-    <Compile Include=".\Properties\AssemblyInfo.cs" />
     <Compile Include="GameStates\Screensaver\DwarfRunner.cs" />
     <Compile Include="GameStates\Screensaver\Terrain2D.cs" />
     <Compile Include="World\Combat\Alliance.cs" />
@@ -948,7 +935,6 @@
     <Compile Include=".\World\CompanyInformation.cs" />
     <Compile Include=".\World\DetailMoteData.cs" />
     <Compile Include=".\World\EngineModule.cs" />
-    <Compile Include=".\World\IndicatorManager.cs" />
     <Compile Include=".\World\UpdateSystemFactoryAttribute.cs" />
     <Compile Include=".\World\Weather\Cloud.cs" />
     <Compile Include=".\World\Weather\Storm.cs" />
@@ -1001,8 +987,6 @@
     <Compile Include="Library\VoxelLibrary.cs" />
     <Compile Include="World\Voxels\VoxelListPrimitive.cs" />
     <Compile Include="World\Voxels\VoxelType.cs" />
-    <Compile Include="World\Water\LiquidAsset.cs" />
-    <Compile Include="World\Water\LiquidType.cs" />
     <Compile Include="World\Water\Splasher.cs" />
     <Compile Include="World\Water\WaterManager.cs" />
     <Compile Include="World\WorldManager-Employees.cs" />
@@ -1014,6 +998,54 @@
     <Compile Include="World\WorldRenderer.cs" />
     <Compile Include="World\WorldManager-SpeciesLimits.cs" />
     <Compile Include="World\WorldRendererPersistentSettings.cs" />
+      <Compile Include="AssetManagement/JsonConverters/PointConverter.cs" />
+      <Compile Include="Entities/Traps/PitTrap/PitTrapEventHook.cs" />
+      <Compile Include="Graphics/Primitives/CSG/Plane.cs" />
+      <Compile Include="Graphics/Primitives/CSG/Polygon.cs" />
+      <Compile Include="Graphics/Primitives/CSG/Solid.cs" />
+      <Compile Include="Graphics/Primitives/CSG/Solids.cs" />
+      <Compile Include="Graphics/Primitives/CSG/Tree.cs" />
+      <Compile Include="Graphics/Primitives/CSG/Vector.cs" />
+      <Compile Include="Graphics/Primitives/CSG/Vertex.cs" />
+      <Compile Include="Graphics/Primitives/PrimitiveBuilder-Cylinder.cs" />
+      <Compile Include="Graphics/Primitives/PrimitiveBuilder.cs" />
+      <Compile Include="Library/LiquidLibrary.cs" />
+      <Compile Include="Sound/MusicPlayer.cs" />
+      <Compile Include="Sound/SFXMixer.cs" />
+      <Compile Include="Sound/SoundSource.cs" />
+      <Compile Include="World/Indicators/AnimatedIndicator.cs" />
+      <Compile Include="World/Indicators/Indicator.cs" />
+      <Compile Include="World/Indicators/IndicatorManager.cs" />
+      <Compile Include="World/Indicators/TextIndicator.cs" />
+      <Compile Include="World/Magic/MagicDuplicatorVoxelHook.cs" />
+      <Compile Include="World/Magic/MagicSpreaderVoxelHook.cs" />
+      <Compile Include="World/VoxelEvent.cs" />
+      <Compile Include="World/VoxelEventHookAttribute.cs" />
+      <Compile Include="World/VoxelEventHookTest.cs" />
+      <Compile Include="World/VoxelEventModule.cs" />
+      <Compile Include="World/Voxels/VoxelUpdateHookAttribute.cs" />
+      <Compile Include="World/Voxels/VoxelUpdateHookTest.cs" />
+      <Compile Include="World/Water/AnyLiquidInVoxel.cs" />
+      <Compile Include="World/Water/EnumerateCellsInVoxel.cs" />
+      <Compile Include="World/Water/FillVoxelWithLiquid.cs" />
+      <Compile Include="World/Water/GetLiquidCellAbove.cs" />
+      <Compile Include="World/Water/GetLiquidCellBelow.cs" />
+      <Compile Include="World/Water/LiquidCellHandle.cs" />
+      <Compile Include="World/Water/LiquidCellNeighbors.cs" />
+      <Compile Include="World/Water/LiquidCoordinate.cs" />
+      <Compile Include="World/Water/LiquidType_.cs" />
+      <Compile Include="World/Water/Pipes/BuildBuff.cs" />
+      <Compile Include="World/Water/Pipes/CheckValve.cs" />
+      <Compile Include="World/Water/Pipes/Orientation.cs" />
+      <Compile Include="World/Water/Pipes/OrientationHelper.cs" />
+      <Compile Include="World/Water/Pipes/Pipe.cs" />
+      <Compile Include="World/Water/Pipes/PipeNetworkObject.cs" />
+      <Compile Include="World/Water/Pipes/PipeSystem.cs" />
+      <Compile Include="World/Water/Pipes/PowerAnvil.cs" />
+      <Compile Include="World/Water/Pipes/Pump.cs" />
+      <Compile Include="World/Water/Pipes/Spigot.cs" />
+      <Compile Include="World/Water/Pipes/SteamGenerator.cs" />
+      <Compile Include="World/Water/Pipes/SteamPoweredBuildBuff.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -1053,7 +1085,7 @@
 XCOPY "%25REPO%25\FNA_libs\win32\*" "$(ProjectDir)$(OutDir)" /Y /E /V /D
 IF NOT EXIST "$(ProjectDir)$(OutDir)Content" MD "$(ProjectDir)$(OutDir)Content"
 XCOPY "%25REPO%25\ContentMGCB\bin\Content" "$(ProjectDir)$(OutDir)Content" /Y /E /D
-XCOPY "%25REPO%25\DwarfCorpContent" "$(ProjectDir)$(OutDir)Content" /Y /E /D /EXCLUDE:%25REPO%25\ContentMGCB\copy-exclude.txt
+XCOPY "%25REPO%25\DwarfCorp\Content" "$(ProjectDir)$(OutDir)Content" /Y /E /D /EXCLUDE:%25REPO%25\ContentMGCB\copy-exclude.txt
 py "%25REPO%25\ContentMGCB\patch_xnb_types.py" "$(ProjectDir)$(OutDir)Content"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

@@ -78,8 +78,8 @@ namespace DwarfCorp
 
         public int ActiveLights
         {
-            get { return Parameters["ActiveLights"].GetValueInt32(); }
-            set { Parameters["ActiveLights"].SetValue(value); }
+            get { return Parameters["ActiveLights"]?.GetValueInt32() ?? 0; }
+            set { Parameters["ActiveLights"]?.SetValue(value); }
         }
 
         public bool EnableShadows

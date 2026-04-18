@@ -172,7 +172,7 @@ namespace DwarfCorp
             foreach (var pass in BackgroundEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, BackgroundIndex.IndexCount / 3);
+                device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, BackgroundMesh.VertexCount, 0, BackgroundIndex.IndexCount / 3);
             }
         }
 

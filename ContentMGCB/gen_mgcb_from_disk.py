@@ -6,7 +6,7 @@ old .contentproj are preserved via a hard-coded hint list.
 """
 import os
 
-ROOT = "D:/Workspace/dwarfcorp/DwarfCorpContent"
+ROOT = "D:/Workspace/dwarfcorp/DwarfCorp/Content"
 OUT = os.path.join(ROOT, "Content.mgcb")
 
 # Copy-paste from the original .contentproj — textures that set PremultiplyAlpha=False.
@@ -20,8 +20,8 @@ NO_PREMULT = {
 HEADER = """\
 #----------------------------- Global Properties ----------------------------#
 
-/outputDir:../ContentMGCB/bin/Content
-/intermediateDir:../ContentMGCB/obj/Content
+/outputDir:../../ContentMGCB/bin/Content
+/intermediateDir:../../ContentMGCB/obj/Content
 /platform:DesktopGL
 /config:
 /profile:Reach
@@ -29,7 +29,7 @@ HEADER = """\
 
 #-------------------------------- References --------------------------------#
 
-/reference:../ContentMGCB/lib/ContentPipeline.dll
+/reference:../../ContentMGCB/lib/ContentPipeline.dll
 
 #---------------------------------- Content ---------------------------------#
 """
@@ -64,6 +64,12 @@ def entry(path: str) -> list[str] | None:
                 f"/build:{name}"]
 
     if ext == ".wav":
+        # WAVs under Music/ are long loops/intros — load as Song, not SoundEffect.
+        if name.startswith("Music/"):
+            return [f"#begin {name}",
+                    "/importer:WavImporter",
+                    "/processor:SongProcessor",
+                    f"/build:{name}"]
         return [f"#begin {name}",
                 "/importer:WavImporter",
                 "/processor:SoundEffectProcessor",

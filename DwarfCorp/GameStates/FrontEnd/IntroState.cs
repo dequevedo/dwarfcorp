@@ -54,7 +54,7 @@ namespace DwarfCorp.GameStates
             Vector2 screenCenter = new Vector2(Game.GraphicsDevice.Viewport.Width / 2 - Logo.Width / 2, Game.GraphicsDevice.Viewport.Height / 2 - Logo.Height);
             DwarfGame.SpriteBatch.Draw(Logo, screenCenter, null, new Color(1f, 1f, 1f));
             screenCenter = new Vector2(Game.GraphicsDevice.Viewport.Width / 2 - HoleyDonutLogo.Width, Game.GraphicsDevice.Viewport.Height / 2);
-            DwarfGame.SpriteBatch.Draw(HoleyDonutLogo, position: screenCenter, scale: new Vector2(2, 2), color: new Color(1f, 1f, 1f));
+            DwarfGame.SpriteBatch.Draw(HoleyDonutLogo, screenCenter, null, new Color(1f, 1f, 1f), 0f, Vector2.Zero, new Vector2(2, 2), SpriteEffects.None, 0f);
 
             DwarfGame.SpriteBatch.End();
 

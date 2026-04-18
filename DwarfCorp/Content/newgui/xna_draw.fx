@@ -66,7 +66,7 @@ technique DrawTextured
 		SrcBlend = SrcAlpha;
 		DestBlend = InvSrcAlpha;
 		
-        VertexShader = compile vs_4_0 TexturedVertexShaderFunction();
-        PixelShader = compile ps_4_0 PSTexturedColor();
+        VertexShader = compile vs_2_0 TexturedVertexShaderFunction();
+        PixelShader = compile ps_2_0 PSTexturedColor();
     }
 }
