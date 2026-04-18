@@ -14,456 +14,15 @@
 #---------------------------------- Content ---------------------------------#
 
 
-#begin newgui/pointers.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:newgui/pointers.png
-
-#begin Particles/chickenfeather.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Particles/chickenfeather.png
-
-#begin Shaders/BloomCombine.fx
-/importer:EffectImporter
-/processor:FxcEffectProcessor
-/build:Shaders/BloomCombine.fx
-
-#begin Shaders/BloomExtract.fx
-/importer:EffectImporter
-/processor:FxcEffectProcessor
-/build:Shaders/BloomExtract.fx
-
-#begin Shaders/GaussianBlur.fx
-/importer:EffectImporter
-/processor:FxcEffectProcessor
-/build:Shaders/GaussianBlur.fx
-
-#begin Shaders/SkySphere.fx
-/importer:EffectImporter
-/processor:FxcEffectProcessor
-/build:Shaders/SkySphere.fx
-
-#begin Sky/night_sky.dds
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Sky/night_sky.dds
-
-#begin Models/sphereLowPoly.fbx
-/importer:FbxImporter
-/processor:ModelProcessor
-/build:Models/sphereLowPoly.fbx
-
-#begin Shaders/TexturedShaders.fx
-/importer:EffectImporter
-/processor:FxcEffectProcessor
-/build:Shaders/TexturedShaders.fx
-
-#begin Sky/day_sky.dds
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Sky/day_sky.dds
-
-#begin Terrain/water_normal.jpg
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Terrain/water_normal.jpg
-
-#begin Terrain/cartoon_water.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Terrain/cartoon_water.png
-
-#begin Terrain/water_normal2.jpg
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Terrain/water_normal2.jpg
-
-#begin Terrain/foam.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Terrain/foam.png
-
-#begin Gradients/ambientgradient.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Gradients/ambientgradient.png
-
-#begin Gradients/sungradient.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Gradients/sungradient.png
-
-#begin Gradients/torchgradient.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Gradients/torchgradient.png
-
-#begin Effects/shadowcircle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/shadowcircle.png
-
-#begin Particles/puff.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/puff.png
-
-#begin Entities/Plants/grass.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/grass.png
-
-#begin Gradients/skygradient.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Gradients/skygradient.png
-
-#begin Particles/leaf.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/leaf.png
-
-#begin Audio/hit.wav
+#begin Audio/bird.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/hit.wav
+/build:Audio/bird.wav
 
-#begin Audio/jump.wav
+#begin Audio/bunny.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/jump.wav
-
-#begin Audio/explode.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/explode.wav
-
-#begin Entities/Plants/gnarled.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/gnarled.png
-
-#begin Entities/Plants/mushroom.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/mushroom.png
-
-#begin Entities/Plants/snowpine.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/snowpine.png
-
-#begin Entities/Plants/frostgrass.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/frostgrass.png
-
-#begin Entities/Plants/vine.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/vine.png
-
-#begin Entities/Plants/berrybush.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/berrybush.png
-
-#begin Audio/ouch.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/ouch.wav
-
-#begin Entities/Balloon/Sprites/balloon.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Balloon/Sprites/balloon.png
-
-#begin Entities/Plants/flower.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/flower.png
-
-#begin Entities/Plants/deadbush.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/deadbush.png
-
-#begin Entities/Plants/wheat.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/wheat.png
-
-#begin Terrain/lava.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Terrain/lava.png
-
-#begin Terrain/lavafoam.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Terrain/lavafoam.png
-
-#begin Entities/Furniture/interior_furniture.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Furniture/interior_furniture.png
-
-#begin Particles/dirt_particle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/dirt_particle.png
-
-#begin Particles/stone_particle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/stone_particle.png
-
-#begin Particles/sand_particle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/sand_particle.png
-
-#begin Audio/gravel.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/gravel.wav
-
-#begin Audio/pick.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/pick.wav
-
-#begin Particles/flame.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/flame.png
-
-#begin Particles/blood_particle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/blood_particle.png
-
-#begin Audio/sword.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/sword.wav
-
-#begin Entities/Furniture/bedtex.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Furniture/bedtex.png
-
-#begin Particles/splash.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/splash.png
-
-#begin Audio/splash.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/splash.wav
-
-#begin Audio/fire.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/fire.wav
-
-#begin Audio/river.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/river.wav
-
-#begin Logos/companylogo.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Logos/companylogo.png
-
-#begin Particles/splash2.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/splash2.png
-
-#begin Logos/grebeardlogo.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Logos/grebeardlogo.png
-
-#begin Sky/moon.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Sky/moon.png
-
-#begin Sky/sun.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Sky/sun.png
-
-#begin Terrain/terrain_tiles.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Terrain/terrain_tiles.png
-
-#begin Terrain/terrain_illumination.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Terrain/terrain_illumination.png
-
-#begin GUI/indicators.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:GUI/indicators.png
-
-#begin Entities/Dwarf/Audio/dwarfhurt1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Entities/Dwarf/Audio/dwarfhurt1.wav
-
-#begin Entities/Dwarf/Audio/dwarfhurt2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Entities/Dwarf/Audio/dwarfhurt2.wav
-
-#begin Entities/Dwarf/Audio/dwarfhurt3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Entities/Dwarf/Audio/dwarfhurt3.wav
-
-#begin Entities/Dwarf/Audio/dwarfhurt4.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Entities/Dwarf/Audio/dwarfhurt4.wav
-
-#begin Entities/Goblin/Audio/goblinhurt1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Entities/Goblin/Audio/goblinhurt1.wav
-
-#begin Entities/Goblin/Audio/goblinhurt2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Entities/Goblin/Audio/goblinhurt2.wav
-
-#begin Entities/Goblin/Audio/goblinhurt3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Entities/Goblin/Audio/goblinhurt3.wav
-
-#begin Entities/Goblin/Audio/goblinhurt4.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Entities/Goblin/Audio/goblinhurt4.wav
-
-#begin Audio/chew.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/chew.wav
-
-#begin Logos/gamelogo.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Logos/gamelogo.png
-
-#begin Entities/Animals/Birds/bird0.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Birds/bird0.png
-
-#begin Entities/Animals/Birds/bird1.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Birds/bird1.png
-
-#begin Entities/Animals/Birds/bird2.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Birds/bird2.png
-
-#begin Entities/Animals/Birds/bird3.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Birds/bird3.png
-
-#begin Entities/Animals/Birds/bird4.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Birds/bird4.png
-
-#begin Entities/Animals/Birds/bird5.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Birds/bird5.png
-
-#begin Entities/Animals/Birds/bird6.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Birds/bird6.png
-
-#begin Entities/Animals/Birds/bird7.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Birds/bird7.png
-
-#begin Entities/Animals/Deer/deer.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Deer/deer.png
-
-#begin GUI/map_icons.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:GUI/map_icons.png
-
-#begin Audio/whoosh.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/whoosh.wav
-
-#begin Audio/dig.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/dig.wav
-
-#begin Entities/Animals/Snake/snake.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Snake/snake.png
-
-#begin Effects/selection_circle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/selection_circle.png
+/build:Audio/bunny.wav
 
 #begin Audio/cash.wav
 /importer:WavImporter
@@ -475,262 +34,10 @@
 /processor:SoundEffectProcessor
 /build:Audio/change.wav
 
-#begin Entities/DwarfObjects/coinpiles.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/DwarfObjects/coinpiles.png
-
-#begin Entities/DwarfObjects/beartrap.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/DwarfObjects/beartrap.png
-
-#begin Logos/logos.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Logos/logos.png
-
-#begin Effects/slice.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/slice.png
-
-#begin Entities/Skeleton/necro.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Skeleton/necro.png
-
-#begin Entities/Skeleton/skele.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Skeleton/skele.png
-
-#begin Particles/green_flame.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/green_flame.png
-
-#begin Effects/flash.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/flash.png
-
-#begin Effects/ring.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/ring.png
-
-#begin Audio/bird.wav
+#begin Audio/chew.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/bird.wav
-
-#begin Audio/pluck.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/pluck.wav
-
-#begin Audio/vegetation_break.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/vegetation_break.wav
-
-#begin Audio/hammer.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/hammer.wav
-
-#begin Audio/trap.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/trap.wav
-
-#begin Entities/DwarfObjects/constructiontape.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/DwarfObjects/constructiontape.png
-
-#begin Entities/DwarfObjects/underconstruction.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/DwarfObjects/underconstruction.png
-
-#begin Particles/bigstar_particle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/bigstar_particle.png
-
-#begin Particles/star_particle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/star_particle.png
-
-#begin Entities/Dwarf/Sprites/crafter-hammer.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/crafter-hammer.png
-
-#begin Entities/Dwarf/Sprites/crafter.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/crafter.png
-
-#begin Entities/Dwarf/Sprites/soldier-axe.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/soldier-axe.png
-
-#begin Entities/Dwarf/Sprites/soldier-shield.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/soldier-shield.png
-
-#begin Entities/Dwarf/Sprites/soldier.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/soldier.png
-
-#begin Entities/Dwarf/Sprites/wizard-staff.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/wizard-staff.png
-
-#begin Entities/Dwarf/Sprites/wizard.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/wizard.png
-
-#begin Entities/Dwarf/Sprites/worker-pick.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/worker-pick.png
-
-#begin Entities/Dwarf/Sprites/worker.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/worker.png
-
-#begin Audio/wurp.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/wurp.wav
-
-#begin Audio/tinkle.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/tinkle.wav
-
-#begin Entities/Elf/Sprites/elf-bow.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Elf/Sprites/elf-bow.png
-
-#begin Entities/Elf/Sprites/elf.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Elf/Sprites/elf.png
-
-#begin Entities/Elf/Sprites/arrow.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Elf/Sprites/arrow.png
-
-#begin Entities/Dwarf/Sprites/fairy.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/fairy.png
-
-#begin Particles/moreflames.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/moreflames.png
-
-#begin Audio/powerup.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/powerup.wav
-
-#begin Particles/heart.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/heart.png
-
-#begin Particles/gib_particle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/gib_particle.png
-
-#begin Entities/Furniture/bookshelf.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Furniture/bookshelf.png
-
-#begin Entities/Goblin/Sprites/gob-nosword.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Goblin/Sprites/gob-nosword.png
-
-#begin Entities/Goblin/Sprites/gob-swordsonly.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Goblin/Sprites/gob-swordsonly.png
-
-#begin Entities/Dwarf/Sprites/soldier-helmet.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/soldier-helmet.png
-
-#begin Entities/Dwarf/Sprites/wizard-hat.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/wizard-hat.png
-
-#begin Entities/Dwarf/Sprites/worker-helmet.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/worker-helmet.png
-
-#begin Entities/Demon/demon.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Demon/demon.png
-
-#begin Entities/Animals/Rabbit/rabbit0.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Rabbit/rabbit0.png
-
-#begin Entities/Animals/Rabbit/rabbit1.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Rabbit/rabbit1.png
-
-#begin Entities/Animals/Frog/frog0.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Frog/frog0.png
-
-#begin Entities/Animals/Frog/frog1.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Frog/frog1.png
-
-#begin Entities/Animals/scorpion.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/scorpion.png
-
-#begin Audio/bunny.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/bunny.wav
+/build:Audio/chew.wav
 
 #begin Audio/demon0.wav
 /importer:WavImporter
@@ -757,6 +64,11 @@
 /processor:SoundEffectProcessor
 /build:Audio/demon_attack.wav
 
+#begin Audio/dig.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/dig.wav
+
 #begin Audio/elf0.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -777,15 +89,45 @@
 /processor:SoundEffectProcessor
 /build:Audio/elf3.wav
 
+#begin Audio/explode.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/explode.wav
+
+#begin Audio/fire.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/fire.wav
+
 #begin Audio/frog.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /build:Audio/frog.wav
 
+#begin Audio/gravel.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/gravel.wav
+
+#begin Audio/hammer.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/hammer.wav
+
 #begin Audio/hiss.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /build:Audio/hiss.wav
+
+#begin Audio/hit.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/hit.wav
+
+#begin Audio/jump.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/jump.wav
 
 #begin Audio/mole0.wav
 /importer:WavImporter
@@ -817,6 +159,31 @@
 /processor:SoundEffectProcessor
 /build:Audio/ok3.wav
 
+#begin Audio/ouch.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/ouch.wav
+
+#begin Audio/pick.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/pick.wav
+
+#begin Audio/pluck.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/pluck.wav
+
+#begin Audio/powerup.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/powerup.wav
+
+#begin Audio/river.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/river.wav
+
 #begin Audio/skel0.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -832,65 +199,315 @@
 /processor:SoundEffectProcessor
 /build:Audio/skel2.wav
 
-#begin Entities/Animals/bat.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/bat.png
+#begin Audio/splash.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/splash.wav
 
-#begin Entities/Animals/Spider/spider.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Spider/spider.png
+#begin Audio/sword.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/sword.wav
 
-#begin Entities/Animals/Spider/webshot.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Spider/webshot.png
+#begin Audio/tinkle.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/tinkle.wav
 
-#begin Entities/Animals/Spider/webstick.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Spider/webstick.png
+#begin Audio/trap.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/trap.wav
 
-#begin Effects/bite.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/bite.png
+#begin Audio/vegetation_break.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/vegetation_break.wav
 
-#begin Effects/claw.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/claw.png
+#begin Audio/whoosh.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/whoosh.wav
 
-#begin Effects/hit.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/hit.png
+#begin Audio/wurp.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/wurp.wav
 
-#begin Effects/pierce.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/pierce.png
+#begin Audio/oscar/sfx_amb_cave.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_amb_cave.wav
 
-#begin Effects/slash.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/slash.png
+#begin Audio/oscar/sfx_amb_desert.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_amb_desert.wav
 
-#begin Effects/explode.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Effects/explode.png
+#begin Audio/oscar/sfx_amb_forest_day.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_amb_forest_day.wav
+
+#begin Audio/oscar/sfx_amb_forest_night.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_amb_forest_night.wav
+
+#begin Audio/oscar/sfx_amb_grassland_day_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_amb_grassland_day_1.wav
+
+#begin Audio/oscar/sfx_amb_grassland_night_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_amb_grassland_night_1.wav
+
+#begin Audio/oscar/sfx_amb_ocean.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_amb_ocean.wav
+
+#begin Audio/oscar/sfx_amb_rain_storm.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_amb_rain_storm.wav
+
+#begin Audio/oscar/sfx_amb_snow_storm.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_amb_snow_storm.wav
+
+#begin Audio/oscar/sfx_amb_tundra.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_amb_tundra.wav
+
+#begin Audio/oscar/sfx_env_bush_harvest_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_bush_harvest_1.wav
+
+#begin Audio/oscar/sfx_env_bush_harvest_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_bush_harvest_2.wav
+
+#begin Audio/oscar/sfx_env_bush_harvest_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_bush_harvest_3.wav
+
+#begin Audio/oscar/sfx_env_door_close_generic.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_door_close_generic.wav
+
+#begin Audio/oscar/sfx_env_door_open_generic.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_door_open_generic.wav
+
+#begin Audio/oscar/sfx_env_lava_spread.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_lava_spread.wav
+
+#begin Audio/oscar/sfx_env_plant_grow.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_plant_grow.wav
+
+#begin Audio/oscar/sfx_env_tree_cut_down_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_tree_cut_down_1.wav
+
+#begin Audio/oscar/sfx_env_tree_cut_down_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_tree_cut_down_2.wav
+
+#begin Audio/oscar/sfx_env_voxel_dirt_destroy.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_voxel_dirt_destroy.wav
+
+#begin Audio/oscar/sfx_env_voxel_metal_destroy.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_voxel_metal_destroy.wav
+
+#begin Audio/oscar/sfx_env_voxel_sand_destroy.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_voxel_sand_destroy.wav
+
+#begin Audio/oscar/sfx_env_voxel_snow_destroy.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_voxel_snow_destroy.wav
+
+#begin Audio/oscar/sfx_env_voxel_stone_destroy.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_voxel_stone_destroy.wav
+
+#begin Audio/oscar/sfx_env_voxel_wood_destroy.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_voxel_wood_destroy.wav
+
+#begin Audio/oscar/sfx_env_water_object_fall.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_env_water_object_fall.wav
 
 #begin Audio/oscar/sfx_env_water_splash.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_env_water_splash.wav
 
+#begin Audio/oscar/sfx_gui_change_selection.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_change_selection.wav
+
+#begin Audio/oscar/sfx_gui_click_voxel.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_click_voxel.wav
+
+#begin Audio/oscar/sfx_gui_confirm_selection.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_confirm_selection.wav
+
+#begin Audio/oscar/sfx_gui_daytime.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_daytime.wav
+
+#begin Audio/oscar/sfx_gui_negative_generic.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_negative_generic.wav
+
+#begin Audio/oscar/sfx_gui_nighttime.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_nighttime.wav
+
+#begin Audio/oscar/sfx_gui_positive_generic.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_positive_generic.wav
+
+#begin Audio/oscar/sfx_gui_positive_great_success.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_positive_great_success.wav
+
+#begin Audio/oscar/sfx_gui_rain_storm_alert.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_rain_storm_alert.wav
+
+#begin Audio/oscar/sfx_gui_snow_storm_alert.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_snow_storm_alert.wav
+
+#begin Audio/oscar/sfx_gui_speed_1x.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_speed_1x.wav
+
+#begin Audio/oscar/sfx_gui_speed_2x.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_speed_2x.wav
+
+#begin Audio/oscar/sfx_gui_speed_3x.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_speed_3x.wav
+
+#begin Audio/oscar/sfx_gui_speed_pause.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_speed_pause.wav
+
+#begin Audio/oscar/sfx_gui_speed_unpause.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_speed_unpause.wav
+
+#begin Audio/oscar/sfx_gui_window_close.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_window_close.wav
+
+#begin Audio/oscar/sfx_gui_window_open.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_gui_window_open.wav
+
 #begin Audio/oscar/sfx_ic_demon_angered.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_demon_angered.wav
+
+#begin Audio/oscar/sfx_ic_demon_death.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_demon_death.wav
+
+#begin Audio/oscar/sfx_ic_demon_fire_hit_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_demon_fire_hit_1.wav
+
+#begin Audio/oscar/sfx_ic_demon_fire_hit_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_demon_fire_hit_2.wav
+
+#begin Audio/oscar/sfx_ic_demon_fire_spit_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_demon_fire_spit_1.wav
+
+#begin Audio/oscar/sfx_ic_demon_fire_spit_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_demon_fire_spit_2.wav
+
+#begin Audio/oscar/sfx_ic_demon_flap_wings_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_demon_flap_wings_1.wav
+
+#begin Audio/oscar/sfx_ic_demon_flap_wings_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_demon_flap_wings_2.wav
+
+#begin Audio/oscar/sfx_ic_demon_flap_wings_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_demon_flap_wings_3.wav
+
+#begin Audio/oscar/sfx_ic_demon_hurt_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_demon_hurt_1.wav
+
+#begin Audio/oscar/sfx_ic_demon_hurt_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_demon_hurt_2.wav
 
 #begin Audio/oscar/sfx_ic_demon_mumble_1.wav
 /importer:WavImporter
@@ -926,6 +543,26 @@
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_demon_pleased.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_angered.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_angered.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_attack_musket_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_attack_musket_1.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_attack_musket_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_attack_musket_2.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_attack_musket_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_attack_musket_3.wav
 
 #begin Audio/oscar/sfx_ic_dwarf_attack_pick.wav
 /importer:WavImporter
@@ -1007,6 +644,16 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_dwarf_jump.wav
 
+#begin Audio/oscar/sfx_ic_dwarf_magic_research.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_magic_research.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_magic_research_stereo.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_magic_research_stereo.wav
+
 #begin Audio/oscar/sfx_ic_dwarf_mumble_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -1037,6 +684,91 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_dwarf_mumble_6.wav
 
+#begin Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_1.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_2.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_3.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_musket_reload.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_musket_reload.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_ok_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_ok_1.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_ok_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_ok_2.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_ok_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_ok_3.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_pick_dirt_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_pick_dirt_1.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_pick_dirt_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_pick_dirt_2.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_pick_dirt_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_pick_dirt_3.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_pick_stone_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_pick_stone_1.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_pick_stone_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_pick_stone_2.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_pick_stone_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_pick_stone_3.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_pick_wood_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_pick_wood_1.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_pick_wood_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_pick_wood_2.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_pick_wood_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_pick_wood_3.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_pleased.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_pleased.wav
+
 #begin Audio/oscar/sfx_ic_dwarf_sleep_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -1052,10 +784,70 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_dwarf_sleep_3.wav
 
+#begin Audio/oscar/sfx_ic_dwarf_spell_cast_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_spell_cast_1.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_spell_cast_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_spell_cast_2.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_stash_item.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_stash_item.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_stash_money.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_stash_money.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_stockpile.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_stockpile.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_tantrum_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_tantrum_1.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_tantrum_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_tantrum_2.wav
+
+#begin Audio/oscar/sfx_ic_dwarf_tantrum_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_dwarf_tantrum_3.wav
+
 #begin Audio/oscar/sfx_ic_elf_angered.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_elf_angered.wav
+
+#begin Audio/oscar/sfx_ic_elf_arrow_hit.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_elf_arrow_hit.wav
+
+#begin Audio/oscar/sfx_ic_elf_death.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_elf_death.wav
+
+#begin Audio/oscar/sfx_ic_elf_hurt_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_elf_hurt_1.wav
+
+#begin Audio/oscar/sfx_ic_elf_hurt_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_elf_hurt_2.wav
 
 #begin Audio/oscar/sfx_ic_elf_mumble_1.wav
 /importer:WavImporter
@@ -1092,6 +884,11 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_elf_pleased.wav
 
+#begin Audio/oscar/sfx_ic_elf_shoot_bow.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_elf_shoot_bow.wav
+
 #begin Audio/oscar/sfx_ic_generic_hurt_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -1111,6 +908,21 @@
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_goblin_angered.wav
+
+#begin Audio/oscar/sfx_ic_goblin_attack_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_goblin_attack_1.wav
+
+#begin Audio/oscar/sfx_ic_goblin_attack_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_goblin_attack_2.wav
+
+#begin Audio/oscar/sfx_ic_goblin_attack_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_goblin_attack_3.wav
 
 #begin Audio/oscar/sfx_ic_goblin_mumble_1.wav
 /importer:WavImporter
@@ -1152,6 +964,71 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_moleman_angered.wav
 
+#begin Audio/oscar/sfx_ic_moleman_claw_attack_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_claw_attack_1.wav
+
+#begin Audio/oscar/sfx_ic_moleman_claw_attack_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_claw_attack_2.wav
+
+#begin Audio/oscar/sfx_ic_moleman_claw_attack_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_claw_attack_3.wav
+
+#begin Audio/oscar/sfx_ic_moleman_claw_dig_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_claw_dig_1.wav
+
+#begin Audio/oscar/sfx_ic_moleman_claw_dig_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_claw_dig_2.wav
+
+#begin Audio/oscar/sfx_ic_moleman_claw_dig_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_claw_dig_3.wav
+
+#begin Audio/oscar/sfx_ic_moleman_claw_dig_4.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_claw_dig_4.wav
+
+#begin Audio/oscar/sfx_ic_moleman_claw_dig_5.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_claw_dig_5.wav
+
+#begin Audio/oscar/sfx_ic_moleman_claw_dig_6.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_claw_dig_6.wav
+
+#begin Audio/oscar/sfx_ic_moleman_claw_dig_loop.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_claw_dig_loop.wav
+
+#begin Audio/oscar/sfx_ic_moleman_death.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_death.wav
+
+#begin Audio/oscar/sfx_ic_moleman_hurt_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_hurt_1.wav
+
+#begin Audio/oscar/sfx_ic_moleman_hurt_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_moleman_hurt_2.wav
+
 #begin Audio/oscar/sfx_ic_moleman_mumble_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -1192,6 +1069,21 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_necromancer_angered.wav
 
+#begin Audio/oscar/sfx_ic_necromancer_death.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_necromancer_death.wav
+
+#begin Audio/oscar/sfx_ic_necromancer_hurt_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_necromancer_hurt_1.wav
+
+#begin Audio/oscar/sfx_ic_necromancer_hurt_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_ic_necromancer_hurt_2.wav
+
 #begin Audio/oscar/sfx_ic_necromancer_mumble_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -1227,65 +1119,75 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_ic_necromancer_pleased.wav
 
-#begin Audio/oscar/sfx_env_door_close_generic.wav
+#begin Audio/oscar/sfx_ic_necromancer_skeleton_attack_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_door_close_generic.wav
+/build:Audio/oscar/sfx_ic_necromancer_skeleton_attack_1.wav
 
-#begin Audio/oscar/sfx_env_door_open_generic.wav
+#begin Audio/oscar/sfx_ic_necromancer_skeleton_attack_2.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_door_open_generic.wav
+/build:Audio/oscar/sfx_ic_necromancer_skeleton_attack_2.wav
 
-#begin Audio/oscar/sfx_gui_daytime.wav
+#begin Audio/oscar/sfx_ic_necromancer_skeleton_hurt_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_daytime.wav
+/build:Audio/oscar/sfx_ic_necromancer_skeleton_hurt_1.wav
 
-#begin Audio/oscar/sfx_gui_negative_generic.wav
+#begin Audio/oscar/sfx_ic_necromancer_skeleton_hurt_2.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_negative_generic.wav
+/build:Audio/oscar/sfx_ic_necromancer_skeleton_hurt_2.wav
 
-#begin Audio/oscar/sfx_gui_nighttime.wav
+#begin Audio/oscar/sfx_ic_necromancer_summon.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_nighttime.wav
+/build:Audio/oscar/sfx_ic_necromancer_summon.wav
 
-#begin Audio/oscar/sfx_gui_rain_storm_alert.wav
+#begin Audio/oscar/sfx_oc_bat_attack_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_rain_storm_alert.wav
+/build:Audio/oscar/sfx_oc_bat_attack_1.wav
 
-#begin Audio/oscar/sfx_gui_snow_storm_alert.wav
+#begin Audio/oscar/sfx_oc_bat_hurt_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_snow_storm_alert.wav
+/build:Audio/oscar/sfx_oc_bat_hurt_1.wav
 
-#begin Audio/oscar/sfx_ic_dwarf_attack_musket_1.wav
+#begin Audio/oscar/sfx_oc_bat_neutral_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_attack_musket_1.wav
+/build:Audio/oscar/sfx_oc_bat_neutral_1.wav
 
-#begin Audio/oscar/sfx_ic_dwarf_attack_musket_2.wav
+#begin Audio/oscar/sfx_oc_bat_neutral_2.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_attack_musket_2.wav
+/build:Audio/oscar/sfx_oc_bat_neutral_2.wav
 
-#begin Audio/oscar/sfx_ic_dwarf_attack_musket_3.wav
+#begin Audio/oscar/sfx_oc_bird_attack.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_attack_musket_3.wav
+/build:Audio/oscar/sfx_oc_bird_attack.wav
 
-#begin Audio/oscar/sfx_ic_dwarf_magic_research.wav
+#begin Audio/oscar/sfx_oc_bird_hurt.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_magic_research.wav
+/build:Audio/oscar/sfx_oc_bird_hurt.wav
 
-#begin Audio/oscar/sfx_ic_dwarf_magic_research_stereo.wav
+#begin Audio/oscar/sfx_oc_bird_lay_egg.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_magic_research_stereo.wav
+/build:Audio/oscar/sfx_oc_bird_lay_egg.wav
+
+#begin Audio/oscar/sfx_oc_bird_neutral_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_oc_bird_neutral_1.wav
+
+#begin Audio/oscar/sfx_oc_bird_neutral_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_oc_bird_neutral_2.wav
 
 #begin Audio/oscar/sfx_oc_chicken_attack.wav
 /importer:WavImporter
@@ -1362,101 +1264,6 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_oc_frog_neutral_2.wav
 
-#begin Audio/oscar/sfx_oc_rabbit_attack.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_rabbit_attack.wav
-
-#begin Audio/oscar/sfx_oc_rabbit_hurt_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_rabbit_hurt_1.wav
-
-#begin Audio/oscar/sfx_oc_rabbit_hurt_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_rabbit_hurt_2.wav
-
-#begin Audio/oscar/sfx_oc_rabbit_neutral_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_rabbit_neutral_1.wav
-
-#begin Audio/oscar/sfx_oc_rabbit_neutral_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_rabbit_neutral_2.wav
-
-#begin Audio/oscar/sfx_ic_necromancer_summon.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_necromancer_summon.wav
-
-#begin Audio/oscar/sfx_amb_grassland_day_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_amb_grassland_day_1.wav
-
-#begin Audio/oscar/sfx_amb_grassland_night_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_amb_grassland_night_1.wav
-
-#begin Audio/oscar/sfx_env_bush_harvest_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_bush_harvest_1.wav
-
-#begin Audio/oscar/sfx_env_bush_harvest_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_bush_harvest_2.wav
-
-#begin Audio/oscar/sfx_env_bush_harvest_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_bush_harvest_3.wav
-
-#begin Audio/oscar/sfx_env_tree_cut_down_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_tree_cut_down_1.wav
-
-#begin Audio/oscar/sfx_env_tree_cut_down_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_tree_cut_down_2.wav
-
-#begin Audio/oscar/sfx_ic_elf_arrow_hit.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_elf_arrow_hit.wav
-
-#begin Audio/oscar/sfx_ic_elf_shoot_bow.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_elf_shoot_bow.wav
-
-#begin Audio/oscar/sfx_oc_bat_attack_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_bat_attack_1.wav
-
-#begin Audio/oscar/sfx_oc_bat_hurt_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_bat_hurt_1.wav
-
-#begin Audio/oscar/sfx_oc_bat_neutral_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_bat_neutral_1.wav
-
-#begin Audio/oscar/sfx_oc_bat_neutral_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_bat_neutral_2.wav
-
 #begin Audio/oscar/sfx_oc_giant_snake_attack_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -1502,6 +1309,31 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_oc_giant_spider_neutral_2.wav
 
+#begin Audio/oscar/sfx_oc_rabbit_attack.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_oc_rabbit_attack.wav
+
+#begin Audio/oscar/sfx_oc_rabbit_hurt_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_oc_rabbit_hurt_1.wav
+
+#begin Audio/oscar/sfx_oc_rabbit_hurt_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_oc_rabbit_hurt_2.wav
+
+#begin Audio/oscar/sfx_oc_rabbit_neutral_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_oc_rabbit_neutral_1.wav
+
+#begin Audio/oscar/sfx_oc_rabbit_neutral_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Audio/oscar/sfx_oc_rabbit_neutral_2.wav
+
 #begin Audio/oscar/sfx_oc_scorpion_attack_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -1527,46 +1359,6 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_oc_scorpion_neutral_2.wav
 
-#begin Audio/oscar/sfx_trap_turret_shoot_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_trap_turret_shoot_1.wav
-
-#begin Audio/oscar/sfx_trap_turret_shoot_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_trap_turret_shoot_2.wav
-
-#begin Audio/oscar/sfx_env_plant_grow.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_plant_grow.wav
-
-#begin Audio/oscar/sfx_gui_speed_1x.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_speed_1x.wav
-
-#begin Audio/oscar/sfx_gui_speed_2x.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_speed_2x.wav
-
-#begin Audio/oscar/sfx_gui_speed_3x.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_speed_3x.wav
-
-#begin Audio/oscar/sfx_gui_speed_pause.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_speed_pause.wav
-
-#begin Audio/oscar/sfx_gui_speed_unpause.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_speed_unpause.wav
-
 #begin Audio/oscar/sfx_trap_destroyed.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -1577,300 +1369,195 @@
 /processor:SoundEffectProcessor
 /build:Audio/oscar/sfx_trap_trigger.wav
 
-#begin Audio/oscar/sfx_env_lava_spread.wav
+#begin Audio/oscar/sfx_trap_turret_shoot_1.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_lava_spread.wav
+/build:Audio/oscar/sfx_trap_turret_shoot_1.wav
 
-#begin Audio/oscar/sfx_env_water_object_fall.wav
+#begin Audio/oscar/sfx_trap_turret_shoot_2.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_water_object_fall.wav
+/build:Audio/oscar/sfx_trap_turret_shoot_2.wav
 
-#begin Audio/oscar/sfx_ic_demon_death.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_demon_death.wav
-
-#begin Audio/oscar/sfx_ic_demon_fire_hit_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_demon_fire_hit_1.wav
-
-#begin Audio/oscar/sfx_ic_demon_fire_hit_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_demon_fire_hit_2.wav
-
-#begin Audio/oscar/sfx_ic_demon_fire_spit_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_demon_fire_spit_1.wav
-
-#begin Audio/oscar/sfx_ic_demon_fire_spit_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_demon_fire_spit_2.wav
-
-#begin Audio/oscar/sfx_ic_demon_flap_wings_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_demon_flap_wings_1.wav
-
-#begin Audio/oscar/sfx_ic_demon_flap_wings_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_demon_flap_wings_2.wav
-
-#begin Audio/oscar/sfx_ic_demon_flap_wings_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_demon_flap_wings_3.wav
-
-#begin Audio/oscar/sfx_ic_demon_hurt_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_demon_hurt_1.wav
-
-#begin Audio/oscar/sfx_ic_demon_hurt_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_demon_hurt_2.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_1.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_2.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_musket_bullet_explode_3.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_musket_reload.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_musket_reload.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_spell_cast_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_spell_cast_1.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_spell_cast_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_spell_cast_2.wav
-
-#begin Audio/oscar/sfx_ic_elf_death.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_elf_death.wav
-
-#begin Audio/oscar/sfx_ic_elf_hurt_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_elf_hurt_1.wav
-
-#begin Audio/oscar/sfx_ic_elf_hurt_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_elf_hurt_2.wav
-
-#begin Audio/oscar/sfx_ic_goblin_attack_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_goblin_attack_1.wav
-
-#begin Audio/oscar/sfx_ic_goblin_attack_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_goblin_attack_2.wav
-
-#begin Audio/oscar/sfx_ic_goblin_attack_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_goblin_attack_3.wav
-
-#begin Audio/oscar/sfx_ic_moleman_claw_attack_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_claw_attack_1.wav
-
-#begin Audio/oscar/sfx_ic_moleman_claw_attack_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_claw_attack_2.wav
-
-#begin Audio/oscar/sfx_ic_moleman_claw_attack_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_claw_attack_3.wav
-
-#begin Audio/oscar/sfx_ic_moleman_claw_dig_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_claw_dig_1.wav
-
-#begin Audio/oscar/sfx_ic_moleman_claw_dig_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_claw_dig_2.wav
-
-#begin Audio/oscar/sfx_ic_moleman_claw_dig_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_claw_dig_3.wav
-
-#begin Audio/oscar/sfx_ic_moleman_claw_dig_4.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_claw_dig_4.wav
-
-#begin Audio/oscar/sfx_ic_moleman_claw_dig_5.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_claw_dig_5.wav
-
-#begin Audio/oscar/sfx_ic_moleman_claw_dig_6.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_claw_dig_6.wav
-
-#begin Audio/oscar/sfx_ic_moleman_claw_dig_loop.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_claw_dig_loop.wav
-
-#begin Audio/oscar/sfx_ic_moleman_death.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_death.wav
-
-#begin Audio/oscar/sfx_ic_moleman_hurt_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_hurt_1.wav
-
-#begin Audio/oscar/sfx_ic_moleman_hurt_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_moleman_hurt_2.wav
-
-#begin Audio/oscar/sfx_ic_necromancer_death.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_necromancer_death.wav
-
-#begin Audio/oscar/sfx_ic_necromancer_hurt_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_necromancer_hurt_1.wav
-
-#begin Audio/oscar/sfx_ic_necromancer_hurt_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_necromancer_hurt_2.wav
-
-#begin Audio/oscar/sfx_ic_necromancer_skeleton_attack_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_necromancer_skeleton_attack_1.wav
-
-#begin Audio/oscar/sfx_ic_necromancer_skeleton_attack_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_necromancer_skeleton_attack_2.wav
-
-#begin Audio/oscar/sfx_ic_necromancer_skeleton_hurt_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_necromancer_skeleton_hurt_1.wav
-
-#begin Audio/oscar/sfx_ic_necromancer_skeleton_hurt_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_necromancer_skeleton_hurt_2.wav
-
-#begin Audio/oscar/sfx_oc_bird_attack.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_bird_attack.wav
-
-#begin Audio/oscar/sfx_oc_bird_hurt.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_bird_hurt.wav
-
-#begin Audio/oscar/sfx_oc_bird_lay_egg.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_bird_lay_egg.wav
-
-#begin Audio/oscar/sfx_oc_bird_neutral_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_bird_neutral_1.wav
-
-#begin Audio/oscar/sfx_oc_bird_neutral_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_oc_bird_neutral_2.wav
-
-#begin newgui/tutorials/trade_balance.png
+#begin Effects/bite.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/tutorials/trade_balance.png
+/build:Effects/bite.png
 
-#begin newgui/tutorials/trade_money.png
+#begin Effects/claw.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/tutorials/trade_money.png
+/build:Effects/claw.png
 
-#begin newgui/tutorials/trade_screen.png
+#begin Effects/explode.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/tutorials/trade_screen.png
+/build:Effects/explode.png
 
-#begin newgui/tutorials/trade_stocks.png
+#begin Effects/flash.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/tutorials/trade_stocks.png
+/build:Effects/flash.png
 
-#begin newgui/tutorials/xray.png
+#begin Effects/hit.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/tutorials/xray.png
+/build:Effects/hit.png
 
-#begin newgui/tutorials/gather.png
+#begin Effects/pierce.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/tutorials/gather.png
+/build:Effects/pierce.png
 
-#begin newgui/tutorials/build Stockpile.png
+#begin Effects/ring.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/tutorials/build Stockpile.png
+/build:Effects/ring.png
 
-#begin newgui/tutorials/build blocks.png
+#begin Effects/selection_circle.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/tutorials/build blocks.png
+/build:Effects/selection_circle.png
 
-#begin Entities/Furniture/elevator.png
+#begin Effects/shadowcircle.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Furniture/elevator.png
+/build:Effects/shadowcircle.png
+
+#begin Effects/slash.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Effects/slash.png
+
+#begin Effects/slice.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Effects/slice.png
+
+#begin Effects/splash.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Effects/splash.png
+
+#begin Entities/fairy.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/fairy.png
+
+#begin Entities/jack-o-lantern.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/jack-o-lantern.png
+
+#begin Entities/potions.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/potions.png
+
+#begin Entities/Animals/bat.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/bat.png
+
+#begin Entities/Animals/chicken.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/chicken.png
+
+#begin Entities/Animals/penguin.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/penguin.png
+
+#begin Entities/Animals/scorpion.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/scorpion.png
+
+#begin Entities/Animals/turkey.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/turkey.png
+
+#begin Entities/Animals/Birds/bird0.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Birds/bird0.png
+
+#begin Entities/Animals/Birds/bird1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Birds/bird1.png
+
+#begin Entities/Animals/Birds/bird2.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Birds/bird2.png
+
+#begin Entities/Animals/Birds/bird3.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Birds/bird3.png
+
+#begin Entities/Animals/Birds/bird4.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Birds/bird4.png
+
+#begin Entities/Animals/Birds/bird5.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Birds/bird5.png
+
+#begin Entities/Animals/Birds/bird6.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Birds/bird6.png
+
+#begin Entities/Animals/Birds/bird7.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Birds/bird7.png
+
+#begin Entities/Animals/Chimp/chimp.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Chimp/chimp.png
+
+#begin Entities/Animals/Deer/deer.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Deer/deer.png
+
+#begin Entities/Animals/Frog/frog0.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Frog/frog0.png
+
+#begin Entities/Animals/Frog/frog1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Frog/frog1.png
+
+#begin Entities/Animals/Rabbit/brown-rabbit.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Rabbit/brown-rabbit.png
+
+#begin Entities/Animals/Rabbit/white-rabbit.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Rabbit/white-rabbit.png
 
 #begin Entities/Animals/Slimes/slime_blue.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /build:Entities/Animals/Slimes/slime_blue.png
+
+#begin Entities/Animals/Slimes/Slime_Goo.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Slimes/Slime_Goo.png
 
 #begin Entities/Animals/Slimes/slime_green.png
 /importer:TextureImporter
@@ -1882,304 +1569,120 @@
 /processor:TextureProcessor
 /build:Entities/Animals/Slimes/slime_red.png
 
+#begin Entities/Animals/Slimes/slime_white.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Animals/Slimes/slime_white.png
+
 #begin Entities/Animals/Slimes/slime_yellow.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /build:Entities/Animals/Slimes/slime_yellow.png
-
-#begin Entities/Animals/Slimes/Slime_Goo.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Slimes/Slime_Goo.png
-
-#begin World/colonies.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:World/colonies.png
-
-#begin World/biome-blend.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:World/biome-blend.png
-
-#begin World/stripes.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:World/stripes.png
-
-#begin Shaders/OverworldShader.fx
-/importer:EffectImporter
-/processor:FxcEffectProcessor
-/build:Shaders/OverworldShader.fx
-
-#begin Particles/blood_spatters.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Particles/blood_spatters.png
-
-#begin newgui/progress-fill.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/progress-fill.png
-
-#begin newgui/progress-middle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/progress-middle.png
-
-#begin newgui/progress-sides.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/progress-sides.png
-
-#begin Entities/Plants/appletree.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/appletree.png
-
-#begin Entities/DwarfObjects/fence.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/DwarfObjects/fence.png
-
-#begin newgui/indicator-circle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/indicator-circle.png
-
-#begin newgui/hand.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/hand.png
-
-#begin newgui/hilite-border.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/hilite-border.png
-
-#begin newgui/trinkets-carve-insets-bone.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/trinkets-carve-insets-bone.png
-
-#begin newgui/trinkets-carve-insets.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/trinkets-carve-insets.png
-
-#begin newgui/trinkets-carve.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/trinkets-carve.png
-
-#begin newgui/trinkets-cast-insets.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/trinkets-cast-insets.png
-
-#begin newgui/trinkets-cast.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/trinkets-cast.png
-
-#begin newgui/trinkets-sculpt-insets.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/trinkets-sculpt-insets.png
-
-#begin newgui/trinkets-sculpt.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/trinkets-sculpt.png
-
-#begin Entities/Skeleton/necro-summon.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Skeleton/necro-summon.png
-
-#begin newgui/font-10px.bmp
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyEnabled=False
-/processorParam:PremultiplyAlpha=False
-/build:newgui/font-10px.bmp
-
-#begin newgui/font-16px.bmp
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyEnabled=False
-/processorParam:PremultiplyAlpha=False
-/build:newgui/font-16px.bmp
-
-#begin newgui/font-18px-outline.bmp
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyEnabled=False
-/processorParam:PremultiplyAlpha=False
-/build:newgui/font-18px-outline.bmp
-
-#begin newgui/font-8px-sprfont.bmp
-/importer:TextureImporter
-/processor:FontTextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:newgui/font-8px-sprfont.bmp
-
-#begin newgui/font-8px.bmp
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyEnabled=False
-/processorParam:PremultiplyAlpha=False
-/build:newgui/font-8px.bmp
-
-#begin newgui/font-10px-outline-numsonly.bmp
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyEnabled=False
-/processorParam:PremultiplyAlpha=False
-/build:newgui/font-10px-outline-numsonly.bmp
-
-#begin newgui/font-16px-sprfont.bmp
-/importer:TextureImporter
-/processor:FontTextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:newgui/font-16px-sprfont.bmp
-
-#begin Entities/Plants/appletree-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/appletree-sprout.png
-
-#begin Entities/Plants/berrybush-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/berrybush-sprout.png
-
-#begin Entities/Plants/cactus-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/cactus-sprout.png
-
-#begin Entities/Plants/caveshroom-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/caveshroom-sprout.png
-
-#begin Entities/Plants/mushroom-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/mushroom-sprout.png
-
-#begin Entities/Plants/palmtree-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/palmtree-sprout.png
-
-#begin Entities/Plants/palmtree.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/palmtree.png
-
-#begin Entities/Plants/pinetree-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/pinetree-sprout.png
-
-#begin Entities/Plants/pinetree.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/pinetree.png
-
-#begin Entities/Plants/wheat-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/wheat-sprout.png
-
-#begin Entities/Plants/eviltree-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/eviltree-sprout.png
-
-#begin Entities/Plants/eviltree.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/eviltree.png
-
-#begin Entities/Plants/pumpkinvine-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/pumpkinvine-sprout.png
-
-#begin Entities/Plants/pumpkinvine.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/pumpkinvine.png
-
-#begin newgui/font-14px-outline.bmp
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyEnabled=False
-/processorParam:PremultiplyAlpha=False
-/build:newgui/font-14px-outline.bmp
-
-#begin newgui/14pt-numbers.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/14pt-numbers.png
 
 #begin Entities/Animals/Snake/bonesnake.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /build:Entities/Animals/Snake/bonesnake.png
 
-#begin Entities/Animals/turkey.png
+#begin Entities/Animals/Snake/snake.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Animals/turkey.png
+/build:Entities/Animals/Snake/snake.png
 
-#begin newgui/error.png
+#begin Entities/Animals/Spider/spider.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/error.png
+/build:Entities/Animals/Spider/spider.png
 
-#begin Entities/Animals/penguin.png
+#begin Entities/Animals/Spider/webshot.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Animals/penguin.png
+/build:Entities/Animals/Spider/webshot.png
 
-#begin Entities/Golems/mudball.png
+#begin Entities/Animals/Spider/webstick.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Golems/mudball.png
+/build:Entities/Animals/Spider/webstick.png
 
-#begin Entities/Golems/snowball.png
+#begin Entities/Balloon/Sprites/balloon.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Golems/snowball.png
+/build:Entities/Balloon/Sprites/balloon.png
 
-#begin Entities/Golems/snowgolem.png
+#begin Entities/Demon/demon.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Golems/snowgolem.png
+/build:Entities/Demon/demon.png
 
-#begin Entities/Plants/candycane-snow.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/candycane-snow.png
+#begin Entities/Dwarf/Audio/dwarfhurt1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Entities/Dwarf/Audio/dwarfhurt1.wav
 
-#begin Entities/Plants/candycane-sprout.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/candycane-sprout.png
+#begin Entities/Dwarf/Audio/dwarfhurt2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Entities/Dwarf/Audio/dwarfhurt2.wav
 
-#begin Entities/Plants/candycane.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/candycane.png
+#begin Entities/Dwarf/Audio/dwarfhurt3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Entities/Dwarf/Audio/dwarfhurt3.wav
 
-#begin Entities/Kobold/kobold.png
+#begin Entities/Dwarf/Audio/dwarfhurt4.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Entities/Dwarf/Audio/dwarfhurt4.wav
+
+#begin Entities/Dwarf/Layers/dwarf-palettes.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Kobold/kobold.png
+/build:Entities/Dwarf/Layers/dwarf-palettes.png
+
+#begin Entities/Dwarf/ToolIcons/axe.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Dwarf/ToolIcons/axe.png
+
+#begin Entities/Dwarf/ToolIcons/equipment.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Dwarf/ToolIcons/equipment.png
+
+#begin Entities/Dwarf/ToolIcons/hammer.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Dwarf/ToolIcons/hammer.png
+
+#begin Entities/Dwarf/ToolIcons/pick.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Dwarf/ToolIcons/pick.png
+
+#begin Entities/Dwarf/ToolIcons/unknown.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Dwarf/ToolIcons/unknown.png
+
+#begin Entities/DwarfObjects/beartrap.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/DwarfObjects/beartrap.png
+
+#begin Entities/DwarfObjects/coinpiles.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/DwarfObjects/coinpiles.png
+
+#begin Entities/DwarfObjects/constructiontape.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/DwarfObjects/constructiontape.png
+
+#begin Entities/DwarfObjects/fence.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/DwarfObjects/fence.png
 
 #begin Entities/DwarfObjects/minecart-crafter.png
 /importer:TextureImporter
@@ -2211,703 +1714,180 @@
 /processor:TextureProcessor
 /build:Entities/DwarfObjects/minecart.png
 
-#begin Entities/Gremlin/gremlin.png
+#begin Entities/DwarfObjects/underconstruction.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Gremlin/gremlin.png
+/build:Entities/DwarfObjects/underconstruction.png
 
-#begin Shaders/Background.fx
-/importer:EffectImporter
-/processor:FxcEffectProcessor
-/build:Shaders/Background.fx
-
-#begin Entities/Rail/rail.png
+#begin Entities/Elf/elf.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Entities/Rail/rail.png
+/build:Entities/Elf/elf.png
 
-#begin Sky/cloud1.png
+#begin Entities/Elf/Sprites/arrow.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Sky/cloud1.png
+/build:Entities/Elf/Sprites/arrow.png
 
-#begin Sky/cloud2.png
+#begin Entities/Furniture/bedtex.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Sky/cloud2.png
+/build:Entities/Furniture/bedtex.png
 
-#begin newgui/dwarves.png
+#begin Entities/Furniture/bookshelf.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/dwarves.png
-
-#begin Entities/Golems/mudgolem.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Golems/mudgolem.png
-
-#begin newgui/slider.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/slider.png
-
-#begin Entities/Plants/cactus.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/cactus.png
-
-#begin Entities/Plants/caveshroom.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Plants/caveshroom.png
-
-#begin Shaders/FXAA.fx
-/importer:EffectImporter
-/processor:FxcEffectProcessor
-/build:Shaders/FXAA.fx
-
-#begin Entities/Moleman/moleman.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Moleman/moleman.png
-
-#begin Particles/splat.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/splat.png
-
-#begin GUI/diplo-dorf.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:GUI/diplo-dorf.png
-
-#begin GUI/diplo-elf.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:GUI/diplo-elf.png
-
-#begin GUI/diplo-goblin.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:GUI/diplo-goblin.png
-
-#begin GUI/diplo-necro.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:GUI/diplo-necro.png
-
-#begin GUI/diplo-moleman.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:GUI/diplo-moleman.png
-
-#begin GUI/checker.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:GUI/checker.png
-
-#begin Particles/fireball.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/fireball.png
-
-#begin GUI/background.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:GUI/background.png
-
-#begin Particles/raindrop.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/raindrop.png
-
-#begin Particles/snow_particle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Particles/snow_particle.png
-
-#begin Gradients/shoregradient.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:Gradients/shoregradient.png
-
-#begin newgui/basic.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/basic.png
-
-#begin newgui/border.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/border.png
-
-#begin newgui/button.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/button.png
-
-#begin newgui/checkbox.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/checkbox.png
-
-#begin newgui/down.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/down.png
-
-#begin newgui/fancy-border.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/fancy-border.png
-
-#begin newgui/radiobutton.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/radiobutton.png
-
-#begin newgui/thin.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/thin.png
-
-#begin newgui/vertical-scrollbar.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/vertical-scrollbar.png
-
-#begin newgui/xna_draw.fx
-/importer:EffectImporter
-/processor:FxcEffectProcessor
-/build:newgui/xna_draw.fx
-
-#begin newgui/gamelogo.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/gamelogo.png
-
-#begin Entities/Dwarf/Sprites/musket-helmet.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/musket-helmet.png
-
-#begin Entities/Dwarf/Sprites/musket-musket.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/musket-musket.png
-
-#begin Entities/Dwarf/Sprites/musket.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/Sprites/musket.png
-
-#begin newgui/logo-bg.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/logo-bg.png
-
-#begin newgui/logo-fg.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/logo-fg.png
-
-#begin newgui/icon-frame.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/icon-frame.png
-
-#begin newgui/icons.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/icons.png
-
-#begin newgui/tray-border.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tray-border.png
-
-#begin newgui/round-buttons.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/round-buttons.png
-
-#begin newgui/speech-bubble.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/speech-bubble.png
-
-#begin newgui/diplo-dorf.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/diplo-dorf.png
-
-#begin newgui/gui_minimap.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/gui_minimap.png
-
-#begin newgui/resources.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/resources.png
-
-#begin newgui/room_icons.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/room_icons.png
-
-#begin newgui/crafts.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/crafts.png
-
-#begin newgui/thin-transparent.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/thin-transparent.png
-
-#begin newgui/dark-border.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/dark-border.png
-
-#begin newgui/tray-border-transparent.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tray-border-transparent.png
-
-#begin Entities/Animals/chicken.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/chicken.png
-
-#begin newgui/speech-bubble-reverse.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/speech-bubble-reverse.png
-
-#begin Audio/oscar/sfx_env_voxel_dirt_destroy.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_voxel_dirt_destroy.wav
-
-#begin Audio/oscar/sfx_env_voxel_metal_destroy.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_voxel_metal_destroy.wav
-
-#begin Audio/oscar/sfx_env_voxel_sand_destroy.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_voxel_sand_destroy.wav
-
-#begin Audio/oscar/sfx_env_voxel_snow_destroy.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_voxel_snow_destroy.wav
-
-#begin Audio/oscar/sfx_env_voxel_stone_destroy.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_voxel_stone_destroy.wav
-
-#begin Audio/oscar/sfx_env_voxel_wood_destroy.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_env_voxel_wood_destroy.wav
-
-#begin Audio/oscar/sfx_gui_change_selection.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_change_selection.wav
-
-#begin Audio/oscar/sfx_gui_click_voxel.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_click_voxel.wav
-
-#begin Audio/oscar/sfx_gui_confirm_selection.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_confirm_selection.wav
-
-#begin Audio/oscar/sfx_gui_positive_generic.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_positive_generic.wav
-
-#begin Audio/oscar/sfx_gui_positive_great_success.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_positive_great_success.wav
-
-#begin Audio/oscar/sfx_gui_window_close.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_window_close.wav
-
-#begin Audio/oscar/sfx_gui_window_open.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_gui_window_open.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_pick_dirt_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_pick_dirt_1.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_pick_dirt_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_pick_dirt_2.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_pick_dirt_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_pick_dirt_3.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_pick_stone_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_pick_stone_1.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_pick_stone_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_pick_stone_2.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_pick_stone_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_pick_stone_3.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_pick_wood_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_pick_wood_1.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_pick_wood_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_pick_wood_2.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_pick_wood_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_pick_wood_3.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_angered.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_angered.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_ok_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_ok_1.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_ok_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_ok_2.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_ok_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_ok_3.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_pleased.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_pleased.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_stash_item.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_stash_item.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_stash_money.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_stash_money.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_stockpile.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_stockpile.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_tantrum_1.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_tantrum_1.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_tantrum_2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_tantrum_2.wav
-
-#begin Audio/oscar/sfx_ic_dwarf_tantrum_3.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/build:Audio/oscar/sfx_ic_dwarf_tantrum_3.wav
-
-#begin newgui/brown-frame.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/brown-frame.png
-
-#begin Audio/XACT/Sounds.xap
-/importer:XactImporter
-/processor:XactProcessor
-/build:Audio/XACT/Sounds.xap
-
-#begin newgui/small-font.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
-/build:newgui/small-font.png
+/build:Entities/Furniture/bookshelf.png
 
 #begin Entities/Furniture/conveyor.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/processorParam:PremultiplyAlpha=False
 /build:Entities/Furniture/conveyor.png
-
-#begin Entities/Troll/troll.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Troll/troll.png
-
-#begin newgui/fonts/font10.bmp
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/fonts/font10.bmp
-
-#begin newgui/fonts/font16.bmp
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/fonts/font16.bmp
-
-#begin newgui/fonts/font18-outline.bmp
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/fonts/font18-outline.bmp
-
-#begin newgui/fonts/font8.bmp
-/build:newgui/fonts/font8.bmp
-
-#begin Particles/dice.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Particles/dice.png
-
-#begin Particles/raindrop_splash.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Particles/raindrop_splash.png
-
-#begin newgui/tutorials/slice.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/slice.png
-
-#begin newgui/tutorials/time.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/time.png
-
-#begin newgui/tutorials/unslice.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/unslice.png
-
-#begin newgui/tutorials/build BalloonPort.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/build BalloonPort.png
-
-#begin newgui/tutorials/build Graveyard.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/build Graveyard.png
-
-#begin newgui/tutorials/build Treasury.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/build Treasury.png
-
-#begin newgui/tutorials/wrangle.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/wrangle.png
-
-#begin newgui/tutorials/build Animal Pen.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/build Animal Pen.png
-
-#begin newgui/tutorials/attack.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/attack.png
-
-#begin newgui/tutorials/chop.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/chop.png
-
-#begin newgui/tutorials/mine.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/mine.png
-
-#begin newgui/tutorials/plant.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/plant.png
-
-#begin newgui/tutorials/brush.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/brush.png
-
-#begin newgui/tutorials/combat.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/combat.png
-
-#begin newgui/tutorials/death.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/death.png
-
-#begin newgui/tutorials/happiness.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/happiness.png
-
-#begin newgui/tutorials/level up.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/level up.png
-
-#begin newgui/tutorials/money.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/money.png
-
-#begin newgui/tutorials/pay.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/tutorials/pay.png
-
-#begin newgui/balance.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/balance.png
-
-#begin newgui/balance_beam.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:newgui/balance_beam.png
-
-#begin Entities/Animals/Chimp/chimp.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Animals/Chimp/chimp.png
-
-#begin Entities/Rail/minecart_tx.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Rail/minecart_tx.png
-
-#begin Entities/Furniture/tx_anvil.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Furniture/tx_anvil.png
-
-#begin Entities/Dwarf/ToolIcons/pick.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/build:Entities/Dwarf/ToolIcons/pick.png
 
 #begin Entities/Furniture/craft-table.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /build:Entities/Furniture/craft-table.png
 
-#begin World/ruins.png
+#begin Entities/Furniture/elevator.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:World/ruins.png
+/build:Entities/Furniture/elevator.png
 
-#begin Particles/purple_puff.png
+#begin Entities/Furniture/interior_furniture.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Particles/purple_puff.png
+/build:Entities/Furniture/interior_furniture.png
 
-#begin Entities/Plants/bamboo.png
+#begin Entities/Furniture/tx_anvil.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Plants/bamboo.png
+/build:Entities/Furniture/tx_anvil.png
+
+#begin Entities/Goblin/goblin.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Goblin/goblin.png
+
+#begin Entities/Goblin/Audio/goblinhurt1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Entities/Goblin/Audio/goblinhurt1.wav
+
+#begin Entities/Goblin/Audio/goblinhurt2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Entities/Goblin/Audio/goblinhurt2.wav
+
+#begin Entities/Goblin/Audio/goblinhurt3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Entities/Goblin/Audio/goblinhurt3.wav
+
+#begin Entities/Goblin/Audio/goblinhurt4.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Entities/Goblin/Audio/goblinhurt4.wav
+
+#begin Entities/Golems/mudball.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Golems/mudball.png
+
+#begin Entities/Golems/mudgolem.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Golems/mudgolem.png
+
+#begin Entities/Golems/snowball.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Golems/snowball.png
+
+#begin Entities/Golems/snowgolem.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Golems/snowgolem.png
+
+#begin Entities/Gremlin/gremlin.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Gremlin/gremlin.png
+
+#begin Entities/Kobold/kobold.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Kobold/kobold.png
+
+#begin Entities/Moleman/moleman.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Moleman/moleman.png
+
+#begin Entities/Plants/appletree-sprout.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/appletree-sprout.png
+
+#begin Entities/Plants/appletree.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/appletree.png
 
 #begin Entities/Plants/bamboo-sprout.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /build:Entities/Plants/bamboo-sprout.png
 
-#begin Entities/Dwarf/ToolIcons/hammer.png
+#begin Entities/Plants/bamboo.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Dwarf/ToolIcons/hammer.png
+/build:Entities/Plants/bamboo.png
 
-#begin Entities/Dwarf/ToolIcons/axe.png
+#begin Entities/Plants/berrybush-sprout.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Dwarf/ToolIcons/axe.png
+/build:Entities/Plants/berrybush-sprout.png
 
-#begin Entities/Dwarf/Layers/dwarf-palettes.png
+#begin Entities/Plants/berrybush.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Dwarf/Layers/dwarf-palettes.png
+/build:Entities/Plants/berrybush.png
 
-#begin Entities/Dwarf/ToolIcons/unknown.png
+#begin Entities/Plants/cactus-sprout.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Dwarf/ToolIcons/unknown.png
+/build:Entities/Plants/cactus-sprout.png
 
-#begin newgui/equipment.png
+#begin Entities/Plants/cactus.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/equipment.png
+/build:Entities/Plants/cactus.png
 
-#begin newgui/selected-slot.png
+#begin Entities/Plants/candycane-snow.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/selected-slot.png
+/build:Entities/Plants/candycane-snow.png
 
-#begin Entities/Dwarf/ToolIcons/equipment.png
+#begin Entities/Plants/candycane-sprout.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/Dwarf/ToolIcons/equipment.png
+/build:Entities/Plants/candycane-sprout.png
 
-#begin newgui/equipment_sheet.png
+#begin Entities/Plants/candycane.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:newgui/equipment_sheet.png
+/build:Entities/Plants/candycane.png
+
+#begin Entities/Plants/caveshroom-sprout.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/caveshroom-sprout.png
+
+#begin Entities/Plants/caveshroom.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/caveshroom.png
 
 #begin Entities/Plants/cotton-resource.png
 /importer:TextureImporter
@@ -2924,17 +1904,1426 @@
 /processor:TextureProcessor
 /build:Entities/Plants/cotton.png
 
-#begin Entities/jack-o-lantern.png
+#begin Entities/Plants/deadbush.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/jack-o-lantern.png
+/build:Entities/Plants/deadbush.png
+
+#begin Entities/Plants/eviltree-sprout.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/eviltree-sprout.png
+
+#begin Entities/Plants/eviltree.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/eviltree.png
+
+#begin Entities/Plants/flower.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/flower.png
+
+#begin Entities/Plants/frostgrass.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/frostgrass.png
+
+#begin Entities/Plants/gnarled.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/gnarled.png
+
+#begin Entities/Plants/grass.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/grass.png
+
+#begin Entities/Plants/hair.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/hair.png
+
+#begin Entities/Plants/mushroom-sprout.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/mushroom-sprout.png
+
+#begin Entities/Plants/mushroom.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/mushroom.png
+
+#begin Entities/Plants/palmtree-sprout.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/palmtree-sprout.png
+
+#begin Entities/Plants/palmtree.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/palmtree.png
+
+#begin Entities/Plants/pinetree-sprout.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/pinetree-sprout.png
+
+#begin Entities/Plants/pinetree.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/pinetree.png
+
+#begin Entities/Plants/pumpkinvine-sprout.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/pumpkinvine-sprout.png
+
+#begin Entities/Plants/pumpkinvine.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/pumpkinvine.png
+
+#begin Entities/Plants/snowpine.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/snowpine.png
+
+#begin Entities/Plants/vine.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/vine.png
+
+#begin Entities/Plants/wheat-sprout.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/wheat-sprout.png
+
+#begin Entities/Plants/wheat.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Plants/wheat.png
+
+#begin Entities/Rail/minecart_tx.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Rail/minecart_tx.png
+
+#begin Entities/Rail/rail.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Rail/rail.png
+
+#begin Entities/Skeleton/necromancer.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Skeleton/necromancer.png
+
+#begin Entities/Skeleton/skeleton.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Skeleton/skeleton.png
+
+#begin Entities/Troll/troll.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Entities/Troll/troll.png
+
+#begin Gradients/ambientgradient.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Gradients/ambientgradient.png
+
+#begin Gradients/shoregradient.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Gradients/shoregradient.png
+
+#begin Gradients/skygradient.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Gradients/skygradient.png
+
+#begin Gradients/sungradient.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Gradients/sungradient.png
+
+#begin Gradients/torchgradient.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Gradients/torchgradient.png
+
+#begin Gradients/torchgradient_old.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Gradients/torchgradient_old.png
+
+#begin GUI/background.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:GUI/background.png
+
+#begin GUI/checker.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:GUI/checker.png
+
+#begin GUI/diplo-dorf.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:GUI/diplo-dorf.png
+
+#begin GUI/diplo-elf.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:GUI/diplo-elf.png
+
+#begin GUI/diplo-goblin.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:GUI/diplo-goblin.png
+
+#begin GUI/diplo-moleman.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:GUI/diplo-moleman.png
+
+#begin GUI/diplo-necro.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:GUI/diplo-necro.png
+
+#begin GUI/indicators.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:GUI/indicators.png
+
+#begin GUI/map_icons.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:GUI/map_icons.png
+
+#begin Logos/companylogo.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Logos/companylogo.png
+
+#begin Logos/gamelogo.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Logos/gamelogo.png
+
+#begin Logos/grebeardlogo.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Logos/grebeardlogo.png
+
+#begin Logos/logo-bg.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Logos/logo-bg.png
+
+#begin Logos/logo-fg.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Logos/logo-fg.png
+
+#begin Logos/logos.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Logos/logos.png
+
+#begin Models/sphereLowPoly.fbx
+/importer:FbxImporter
+/processor:ModelProcessor
+/build:Models/sphereLowPoly.fbx
+
+#begin Music/dwarfcorp.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/build:Music/dwarfcorp.mp3
+
+#begin Music/dwarfcorp_2.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/build:Music/dwarfcorp_2.mp3
+
+#begin Music/dwarfcorp_3.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/build:Music/dwarfcorp_3.mp3
+
+#begin Music/dwarfcorp_4.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/build:Music/dwarfcorp_4.mp3
+
+#begin Music/dwarfcorp_5.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/build:Music/dwarfcorp_5.mp3
+
+#begin Music/mx_dayToNight_trans_v1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Music/mx_dayToNight_trans_v1.wav
+
+#begin Music/mx_day_intro_v4.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Music/mx_day_intro_v4.wav
+
+#begin Music/mx_day_loop_v4.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Music/mx_day_loop_v4.wav
+
+#begin Music/mx_elves_loop_v1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Music/mx_elves_loop_v1.wav
+
+#begin Music/mx_goblin_loop_v1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Music/mx_goblin_loop_v1.wav
+
+#begin Music/mx_menu_loop_v2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Music/mx_menu_loop_v2.wav
+
+#begin Music/mx_molemen_loop_v1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Music/mx_molemen_loop_v1.wav
+
+#begin Music/mx_night_loop_v2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Music/mx_night_loop_v2.wav
+
+#begin Music/mx_undead_demo_v2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Music/mx_undead_demo_v2.wav
+
+#begin Music/mx_undead_loop_v1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:Music/mx_undead_loop_v1.wav
+
+#begin newgui/14pt-numbers.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/14pt-numbers.png
+
+#begin newgui/balance.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/balance.png
+
+#begin newgui/balance_beam.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/balance_beam.png
+
+#begin newgui/basic.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/basic.png
+
+#begin newgui/border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/border.png
+
+#begin newgui/brown-frame.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/brown-frame.png
+
+#begin newgui/button.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/button.png
+
+#begin newgui/checkbox.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/checkbox.png
+
+#begin newgui/crafts.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/crafts.png
+
+#begin newgui/dark-border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/dark-border.png
+
+#begin newgui/diplo-dorf.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/diplo-dorf.png
+
+#begin newgui/double-border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/double-border.png
+
+#begin newgui/down.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/down.png
+
+#begin newgui/dwarves.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/dwarves.png
+
+#begin newgui/equipment.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/equipment.png
+
+#begin newgui/equipment_sheet.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/equipment_sheet.png
+
+#begin newgui/error.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/error.png
+
+#begin newgui/fancy-border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/fancy-border.png
+
+#begin newgui/gamelogo.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/gamelogo.png
+
+#begin newgui/gui_minimap.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/gui_minimap.png
+
+#begin newgui/hand.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/hand.png
+
+#begin newgui/hilite-border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/hilite-border.png
+
+#begin newgui/horizontal-scrollbar.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/horizontal-scrollbar.png
+
+#begin newgui/icon-frame.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/icon-frame.png
+
+#begin newgui/icons.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/icons.png
+
+#begin newgui/indicator-circle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/indicator-circle.png
+
+#begin newgui/large-mono-font.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/large-mono-font.png
+
+#begin newgui/logo-bg.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/logo-bg.png
+
+#begin newgui/logo-fg.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/logo-fg.png
+
+#begin newgui/pointers.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:PremultiplyAlpha=False
+/build:newgui/pointers.png
+
+#begin newgui/progress-fill.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/progress-fill.png
+
+#begin newgui/progress-middle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/progress-middle.png
+
+#begin newgui/progress-sides.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/progress-sides.png
+
+#begin newgui/radiobutton.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/radiobutton.png
+
+#begin newgui/resources.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/resources.png
+
+#begin newgui/room_icons.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/room_icons.png
+
+#begin newgui/round-buttons.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/round-buttons.png
+
+#begin newgui/selected-slot.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/selected-slot.png
+
+#begin newgui/slider.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/slider.png
+
+#begin newgui/small-font.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/small-font.png
+
+#begin newgui/speech-bubble-reverse.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/speech-bubble-reverse.png
+
+#begin newgui/speech-bubble.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/speech-bubble.png
+
+#begin newgui/thin-transparent.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/thin-transparent.png
+
+#begin newgui/thin.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/thin.png
+
+#begin newgui/tray-border-transparent.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tray-border-transparent.png
+
+#begin newgui/tray-border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tray-border.png
+
+#begin newgui/trinkets-carve-insets-bone.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/trinkets-carve-insets-bone.png
+
+#begin newgui/trinkets-carve-insets.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/trinkets-carve-insets.png
+
+#begin newgui/trinkets-carve.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/trinkets-carve.png
+
+#begin newgui/trinkets-cast-insets.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/trinkets-cast-insets.png
+
+#begin newgui/trinkets-cast.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/trinkets-cast.png
 
 #begin newgui/trinkets-new.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /build:newgui/trinkets-new.png
 
-#begin Entities/potions.png
+#begin newgui/trinkets-sculpt-insets.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/build:Entities/potions.png
+/build:newgui/trinkets-sculpt-insets.png
+
+#begin newgui/trinkets-sculpt.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/trinkets-sculpt.png
+
+#begin newgui/vertical-scrollbar.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/vertical-scrollbar.png
+
+#begin newgui/window-transparent.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/window-transparent.png
+
+#begin newgui/window.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/window.png
+
+#begin newgui/worldgen-factionrings.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/worldgen-factionrings.png
+
+#begin newgui/xna_draw.fx
+/importer:EffectImporter
+/processor:FxcEffectProcessor
+/build:newgui/xna_draw.fx
+
+#begin newgui/tutorials/attack.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/attack.png
+
+#begin newgui/tutorials/brush.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/brush.png
+
+#begin newgui/tutorials/build Animal Pen.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/build Animal Pen.png
+
+#begin newgui/tutorials/build BalloonPort.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/build BalloonPort.png
+
+#begin newgui/tutorials/build blocks.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/build blocks.png
+
+#begin newgui/tutorials/build Graveyard.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/build Graveyard.png
+
+#begin newgui/tutorials/build Stockpile.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/build Stockpile.png
+
+#begin newgui/tutorials/build Treasury.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/build Treasury.png
+
+#begin newgui/tutorials/chop.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/chop.png
+
+#begin newgui/tutorials/combat.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/combat.png
+
+#begin newgui/tutorials/death.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/death.png
+
+#begin newgui/tutorials/gather.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/gather.png
+
+#begin newgui/tutorials/happiness.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/happiness.png
+
+#begin newgui/tutorials/level up.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/level up.png
+
+#begin newgui/tutorials/mine.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/mine.png
+
+#begin newgui/tutorials/money.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/money.png
+
+#begin newgui/tutorials/pay.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/pay.png
+
+#begin newgui/tutorials/plant.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/plant.png
+
+#begin newgui/tutorials/slice.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/slice.png
+
+#begin newgui/tutorials/time.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/time.png
+
+#begin newgui/tutorials/trade_balance.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/trade_balance.png
+
+#begin newgui/tutorials/trade_money.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/trade_money.png
+
+#begin newgui/tutorials/trade_screen.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/trade_screen.png
+
+#begin newgui/tutorials/trade_stocks.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/trade_stocks.png
+
+#begin newgui/tutorials/unslice.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/unslice.png
+
+#begin newgui/tutorials/wrangle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/wrangle.png
+
+#begin newgui/tutorials/xray.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui/tutorials/xray.png
+
+#begin newgui - Copy/14pt-numbers.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/14pt-numbers.png
+
+#begin newgui - Copy/balance.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/balance.png
+
+#begin newgui - Copy/balance_beam.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/balance_beam.png
+
+#begin newgui - Copy/basic.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/basic.png
+
+#begin newgui - Copy/border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/border.png
+
+#begin newgui - Copy/brown-frame.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/brown-frame.png
+
+#begin newgui - Copy/button.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/button.png
+
+#begin newgui - Copy/checkbox.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/checkbox.png
+
+#begin newgui - Copy/crafts.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/crafts.png
+
+#begin newgui - Copy/dark-border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/dark-border.png
+
+#begin newgui - Copy/diplo-dorf.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/diplo-dorf.png
+
+#begin newgui - Copy/double-border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/double-border.png
+
+#begin newgui - Copy/down.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/down.png
+
+#begin newgui - Copy/dwarves.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/dwarves.png
+
+#begin newgui - Copy/equipment.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/equipment.png
+
+#begin newgui - Copy/equipment_sheet.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/equipment_sheet.png
+
+#begin newgui - Copy/error.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/error.png
+
+#begin newgui - Copy/fancy-border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/fancy-border.png
+
+#begin newgui - Copy/gamelogo.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/gamelogo.png
+
+#begin newgui - Copy/gui_minimap.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/gui_minimap.png
+
+#begin newgui - Copy/hand.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/hand.png
+
+#begin newgui - Copy/hilite-border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/hilite-border.png
+
+#begin newgui - Copy/horizontal-scrollbar.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/horizontal-scrollbar.png
+
+#begin newgui - Copy/icon-frame.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/icon-frame.png
+
+#begin newgui - Copy/icons.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/icons.png
+
+#begin newgui - Copy/indicator-circle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/indicator-circle.png
+
+#begin newgui - Copy/large-mono-font.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/large-mono-font.png
+
+#begin newgui - Copy/logo-bg.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/logo-bg.png
+
+#begin newgui - Copy/logo-fg.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/logo-fg.png
+
+#begin newgui - Copy/pointers.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/pointers.png
+
+#begin newgui - Copy/progress-fill.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/progress-fill.png
+
+#begin newgui - Copy/progress-middle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/progress-middle.png
+
+#begin newgui - Copy/progress-sides.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/progress-sides.png
+
+#begin newgui - Copy/radiobutton.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/radiobutton.png
+
+#begin newgui - Copy/resources.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/resources.png
+
+#begin newgui - Copy/room_icons.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/room_icons.png
+
+#begin newgui - Copy/round-buttons.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/round-buttons.png
+
+#begin newgui - Copy/selected-slot.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/selected-slot.png
+
+#begin newgui - Copy/slider.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/slider.png
+
+#begin newgui - Copy/small-font.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/small-font.png
+
+#begin newgui - Copy/speech-bubble-reverse.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/speech-bubble-reverse.png
+
+#begin newgui - Copy/speech-bubble.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/speech-bubble.png
+
+#begin newgui - Copy/thin-transparent.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/thin-transparent.png
+
+#begin newgui - Copy/thin.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/thin.png
+
+#begin newgui - Copy/tray-border-transparent.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tray-border-transparent.png
+
+#begin newgui - Copy/tray-border.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tray-border.png
+
+#begin newgui - Copy/trinkets-carve-insets-bone.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/trinkets-carve-insets-bone.png
+
+#begin newgui - Copy/trinkets-carve-insets.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/trinkets-carve-insets.png
+
+#begin newgui - Copy/trinkets-carve.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/trinkets-carve.png
+
+#begin newgui - Copy/trinkets-cast-insets.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/trinkets-cast-insets.png
+
+#begin newgui - Copy/trinkets-cast.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/trinkets-cast.png
+
+#begin newgui - Copy/trinkets-new.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/trinkets-new.png
+
+#begin newgui - Copy/trinkets-sculpt-insets.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/trinkets-sculpt-insets.png
+
+#begin newgui - Copy/trinkets-sculpt.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/trinkets-sculpt.png
+
+#begin newgui - Copy/vertical-scrollbar.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/vertical-scrollbar.png
+
+#begin newgui - Copy/worldgen-factionrings.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/worldgen-factionrings.png
+
+#begin newgui - Copy/tutorials/attack.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/attack.png
+
+#begin newgui - Copy/tutorials/brush.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/brush.png
+
+#begin newgui - Copy/tutorials/build Animal Pen.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/build Animal Pen.png
+
+#begin newgui - Copy/tutorials/build BalloonPort.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/build BalloonPort.png
+
+#begin newgui - Copy/tutorials/build blocks.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/build blocks.png
+
+#begin newgui - Copy/tutorials/build Graveyard.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/build Graveyard.png
+
+#begin newgui - Copy/tutorials/build Stockpile.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/build Stockpile.png
+
+#begin newgui - Copy/tutorials/build Treasury.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/build Treasury.png
+
+#begin newgui - Copy/tutorials/chop.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/chop.png
+
+#begin newgui - Copy/tutorials/combat.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/combat.png
+
+#begin newgui - Copy/tutorials/death.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/death.png
+
+#begin newgui - Copy/tutorials/gather.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/gather.png
+
+#begin newgui - Copy/tutorials/happiness.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/happiness.png
+
+#begin newgui - Copy/tutorials/level up.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/level up.png
+
+#begin newgui - Copy/tutorials/mine.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/mine.png
+
+#begin newgui - Copy/tutorials/money.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/money.png
+
+#begin newgui - Copy/tutorials/pay.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/pay.png
+
+#begin newgui - Copy/tutorials/plant.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/plant.png
+
+#begin newgui - Copy/tutorials/slice.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/slice.png
+
+#begin newgui - Copy/tutorials/time.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/time.png
+
+#begin newgui - Copy/tutorials/trade_balance.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/trade_balance.png
+
+#begin newgui - Copy/tutorials/trade_money.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/trade_money.png
+
+#begin newgui - Copy/tutorials/trade_screen.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/trade_screen.png
+
+#begin newgui - Copy/tutorials/trade_stocks.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/trade_stocks.png
+
+#begin newgui - Copy/tutorials/unslice.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/unslice.png
+
+#begin newgui - Copy/tutorials/wrangle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/wrangle.png
+
+#begin newgui - Copy/tutorials/xray.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:newgui - Copy/tutorials/xray.png
+
+#begin Particles/bigstar_particle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/bigstar_particle.png
+
+#begin Particles/blood_particle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/blood_particle.png
+
+#begin Particles/blood_spatters.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/blood_spatters.png
+
+#begin Particles/chickenfeather.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/chickenfeather.png
+
+#begin Particles/chickenfeather_particle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/chickenfeather_particle.png
+
+#begin Particles/dice.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/dice.png
+
+#begin Particles/dirt_particle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/dirt_particle.png
+
+#begin Particles/fireball.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/fireball.png
+
+#begin Particles/flame.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/flame.png
+
+#begin Particles/gib_particle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/gib_particle.png
+
+#begin Particles/green_flame.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/green_flame.png
+
+#begin Particles/heart.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/heart.png
+
+#begin Particles/leaf.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/leaf.png
+
+#begin Particles/moreflames.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/moreflames.png
+
+#begin Particles/puff.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/puff.png
+
+#begin Particles/purple_puff.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/purple_puff.png
+
+#begin Particles/raindrop.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/raindrop.png
+
+#begin Particles/raindrop_splash.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/raindrop_splash.png
+
+#begin Particles/sand_particle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/sand_particle.png
+
+#begin Particles/snow_particle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/snow_particle.png
+
+#begin Particles/splash.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/splash.png
+
+#begin Particles/splash2.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/splash2.png
+
+#begin Particles/splat.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/splat.png
+
+#begin Particles/star_particle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/star_particle.png
+
+#begin Particles/stone_particle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/stone_particle.png
+
+#begin Particles/turkeyfeather_particle.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Particles/turkeyfeather_particle.png
+
+#begin Shaders/Background.fx
+/importer:EffectImporter
+/processor:FxcEffectProcessor
+/build:Shaders/Background.fx
+
+#begin Shaders/BloomCombine.fx
+/importer:EffectImporter
+/processor:FxcEffectProcessor
+/build:Shaders/BloomCombine.fx
+
+#begin Shaders/BloomExtract.fx
+/importer:EffectImporter
+/processor:FxcEffectProcessor
+/build:Shaders/BloomExtract.fx
+
+#begin Shaders/FXAA.fx
+/importer:EffectImporter
+/processor:FxcEffectProcessor
+/build:Shaders/FXAA.fx
+
+#begin Shaders/GaussianBlur.fx
+/importer:EffectImporter
+/processor:FxcEffectProcessor
+/build:Shaders/GaussianBlur.fx
+
+#begin Shaders/OverworldShader.fx
+/importer:EffectImporter
+/processor:FxcEffectProcessor
+/build:Shaders/OverworldShader.fx
+
+#begin Shaders/SkySphere.fx
+/importer:EffectImporter
+/processor:FxcEffectProcessor
+/build:Shaders/SkySphere.fx
+
+#begin Shaders/TexturedShaders.fx
+/importer:EffectImporter
+/processor:FxcEffectProcessor
+/build:Shaders/TexturedShaders.fx
+
+#begin Sky/cloud1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Sky/cloud1.png
+
+#begin Sky/cloud2.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Sky/cloud2.png
+
+#begin Sky/day_sky.dds
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:PremultiplyAlpha=False
+/build:Sky/day_sky.dds
+
+#begin Sky/moon.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Sky/moon.png
+
+#begin Sky/night_sky.dds
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:PremultiplyAlpha=False
+/build:Sky/night_sky.dds
+
+#begin Sky/sun.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Sky/sun.png
+
+#begin Terrain/cartoon_water.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Terrain/cartoon_water.png
+
+#begin Terrain/foam.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Terrain/foam.png
+
+#begin Terrain/lava.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Terrain/lava.png
+
+#begin Terrain/lavafoam.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Terrain/lavafoam.png
+
+#begin Terrain/terrain_illumination.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Terrain/terrain_illumination.png
+
+#begin Terrain/terrain_tiles.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Terrain/terrain_tiles.png
+
+#begin Terrain/water_normal.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:PremultiplyAlpha=False
+/build:Terrain/water_normal.jpg
+
+#begin Terrain/water_normal2.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Terrain/water_normal2.jpg
+
+#begin World/biome-blend.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:World/biome-blend.png
+
+#begin World/colonies.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:World/colonies.png
+
+#begin World/ruins.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:World/ruins.png
+
+#begin World/stripes.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:World/stripes.png
+
+#begin World/VoxelModels/block.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:World/VoxelModels/block.png

@@ -36,13 +36,11 @@ namespace DwarfCorp
             file.WriteFile(worldDirectory.FullName);
 
             var gameFile = SaveGame.CreateFromWorld(this);
-            var baseName = String.Format("{0}-{1}", (int)Overworld.InstanceSettings.Origin.X, (int)Overworld.InstanceSettings.Origin.Y);
             // Autosaves land in a timestamped sibling directory so a manual save
             // doesn't overwrite them (upstream issue #981).
-            var path = worldDirectory.FullName + Path.DirectorySeparatorChar
-                + (isAutoSave
-                    ? String.Format("{0}-Autosave-{1:yyyyMMdd-HHmmss}", baseName, DateTime.Now)
-                    : baseName);
+            var path = isAutoSave
+                ? String.Format("{0}-Autosave-{1:yyyyMMdd-HHmmss}", worldDirectory.FullName, DateTime.Now)
+                : worldDirectory.FullName;
             if (isAutoSave)
                 SaveGame.RotateSavesMatching(path, GameSettings.Current.MaxSaves, "-Autosave-");
             else
