@@ -58,6 +58,7 @@ namespace DwarfCorp
         {
             GameState.Game = this;
             Graphics = new GraphicsDeviceManager(this);
+            Graphics.GraphicsProfile = GraphicsProfile.HiDef;
             Window.Title = "DwarfCorp";
             Window.AllowUserResizing = false;
             MainThreadID = Thread.CurrentThread.ManagedThreadId;
@@ -77,8 +78,9 @@ namespace DwarfCorp
             Graphics.PreferMultiSampling = false;
             Graphics.ApplyChanges();
 
-            if (AssetManagement.Steam.Steam.InitializeSteam() == AssetManagement.Steam.Steam.SteamInitializationResult.QuitImmediately)
-                Exit();
+            // Todo: Restore steam functionality
+            //if (AssetManagement.Steam.Steam.InitializeSteam() == AssetManagement.Steam.Steam.SteamInitializationResult.QuitImmediately)
+            //    Exit();
         }
 
         public static string GetGameDirectory()
@@ -308,16 +310,16 @@ namespace DwarfCorp
             if (SoundManager.Content == null)
             {
                 SoundManager.Content = Content;
-                SoundManager.LoadDefaultSounds();
+                SoundManager.LoadMixerSettings();
             }
 
             if (GameStateManager.StateStackIsEmpty)
             {
                 LogSentryBreadcrumb("GameState", "There was nothing in the state stack. Starting over.");
-                if (GameSettings.Current.DisplayIntro)
+                //if (GameSettings.Current.DisplayIntro)
                     GameStateManager.PushState(new IntroState(this));
-                else
-                    GameStateManager.PushState(new MainMenuState(this));
+                //else
+                //    GameStateManager.PushState(new MainMenuState(this));
             }
 
             ControlSettings.Load();
@@ -374,7 +376,7 @@ namespace DwarfCorp
 
             PerformanceMonitor.BeginFrame();
                 PerformanceMonitor.PushFrame("Update");
-                AssetManagement.Steam.Steam.Update();
+                //AssetManagement.Steam.Steam.Update(); // Todo: Restore Steam functionality
                 DwarfTime.LastTimeX.Update(time);
                 GameStateManager.Update(DwarfTime.LastTimeX);
 

@@ -70,16 +70,6 @@ namespace DwarfCorp
             return result;
         }
 
-        private List<VoxelChangeEvent> ChangedVoxels = new List<VoxelChangeEvent>();
-
-        public void NotifyChangedVoxel(VoxelChangeEvent Change)
-        {
-            lock (ChangedVoxels)
-            {
-                ChangedVoxels.Add(Change);
-            }
-        }
-
         private Thread RebuildThread { get; set; }
         private Thread ChunkUpdateThread { get; set; }
         private AutoScaleThread WaterUpdateThread;
@@ -108,6 +98,11 @@ namespace DwarfCorp
             return new VoxelHandle(this, Coordinate);
         }
 
+        public LiquidCellHandle CreateLiquidCellHandle(GlobalLiquidCoordinate Coordinate)
+        {
+            return new LiquidCellHandle(this, Coordinate);
+        }
+
         public ChunkManager(ContentManager Content, WorldManager World)
         {
             this.Content = Content;
@@ -121,7 +116,7 @@ namespace DwarfCorp
             RebuildThread.Name = "RebuildVoxels";
 
             WaterUpdateThread = new AutoScaleThread(this, (f) => Water.UpdateWater());
-            this.ChunkUpdateThread = new Thread(UpdateChunks) { IsBackground = true, Name = "Update Chunks" };
+            this.ChunkUpdateThread = new Thread(UpdateChunksThread) { IsBackground = true, Name = "Update Chunks" };
 
             GameSettings.Current.VisibilityUpdateTime = 0.05f;
 
@@ -229,31 +224,9 @@ namespace DwarfCorp
                     }
         }
 
-        public void UpdateChunks()
+        public void UpdateChunksThread()
         {
-            while(!ExitThreads && !DwarfGame.ExitGame)
-            {
-                if (!DwarfTime.LastTimeX.IsPaused)
-                {
-                    ChunkUpdateTimer.Update(DwarfTime.LastTimeX);
-                    if (ChunkUpdateTimer.HasTriggered)
-                    {
-                        ChunkUpdate.RunUpdate(this);
-                    }
-                }
-                Thread.Sleep(100);
-            }
-        }
-
-        public List<VoxelChangeEvent> GetAndClearChangedVoxelList()
-        {
-            List<VoxelChangeEvent> localList = null;
-            lock (ChangedVoxels)
-            {
-                localList = ChangedVoxels;
-                ChangedVoxels = new List<VoxelChangeEvent>();
-            }
-            return localList;
+            ChunkUpdate.ChunkUpdateThread(this);
         }
 
         public void UpdateBounds()

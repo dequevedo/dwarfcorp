@@ -24,13 +24,20 @@ namespace DwarfCorp
             {
                 if (!voxFile.EndsWith(".vox", StringComparison.OrdinalIgnoreCase))
                     continue;
-                var stream = new FileStream(voxFile, FileMode.Open);
-                var model = new VoxelModel();
-                var modelReader = new CsharpVoxReader.VoxReader(stream, model);
-                modelReader.ReadFromStream();
+                try
+                {
+                    var stream = new FileStream(voxFile, FileMode.Open);
+                    var model = new VoxelModel();
+                    var modelReader = new CsharpVoxReader.VoxReader(stream, model);
+                    modelReader.ReadFromStream();
 
-                var name = System.IO.Path.GetFileNameWithoutExtension(voxFile);
-                VoxelModels.Add(name, model);
+                    var name = System.IO.Path.GetFileNameWithoutExtension(voxFile);
+                    VoxelModels.Add(name, model);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error loading voxel model " + voxFile + ": " + e.Message);
+                }
             }
 
             Console.WriteLine("Loaded Voxel Model Library.");

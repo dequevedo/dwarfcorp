@@ -167,6 +167,7 @@ namespace DwarfCorp
 
             SetLoadingMessage("Loading Terrain...");
             ChunkManager.LoadChunks(gameFile.LoadChunks(), ChunkManager);
+            ChunkManager.Water.FirstBuild();
 
             SetLoadingMessage("Loading Entities...");
             gameFile.LoadPlayData(Overworld.GetInstancePath(), this);
@@ -182,8 +183,7 @@ namespace DwarfCorp
 
             foreach (var component in gameFile.PlayData.Components.SaveableComponents)
             {
-                if (!ComponentManager.HasComponent(component.GlobalID) &&
-                    ComponentManager.HasComponent(component.Parent.GlobalID))
+                if (!ComponentManager.HasComponent(component.GlobalID) && component.Parent.HasValue(out var p) && ComponentManager.HasComponent(p.GlobalID))
                 {
                     // Logically impossible.
                     throw new InvalidOperationException("Component exists in save data but not in manager.");
@@ -395,6 +395,7 @@ namespace DwarfCorp
                 SetLoadingMessage("Reticulating Splines...");
 
             ChunkManager.StartThreads();
+            ChunkManager.Water.FirstBuild();
             SetLoadingMessage("Presimulating ...");
             ShowingWorld = false;
             OnLoadedEvent();

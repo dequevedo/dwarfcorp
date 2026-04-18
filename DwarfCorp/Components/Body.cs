@@ -29,7 +29,7 @@ namespace DwarfCorp
         [JsonIgnore] public Action OnDestroyed;
         [JsonIgnore] public bool IsReserved => ReservedFor != null;
         [JsonIgnore] public GameComponent ReservedFor = null;
-        private BoundingBox LastBounds = new BoundingBox();
+        private BoundingBox LastBounds = new BoundingBox(new Vector3(-1, -1, -1), new Vector3(0, 0, 0)); // This is to make sure objects that spawn in chunk 0,0,0 actually get added to the octtree.
 
         [JsonIgnore] public Matrix GlobalTransform => globalTransform;
 
@@ -41,11 +41,6 @@ namespace DwarfCorp
                 HasMoved = true;
                 localTransform = value;
             }
-        }
-
-        private float MaxDiff(BoundingBox a, BoundingBox b)
-        {
-            return (a.Min - b.Min).LengthSquared() + (a.Max - b.Max).LengthSquared();
         }
 
         /// <summary>
@@ -178,22 +173,24 @@ namespace DwarfCorp
 
         public virtual void OnOutsideWorld()
         {
-            this.Die();
+            if (!this.IsFlagSet(Flag.PreserveOutsideWorld))
+                this.Die();
         }
 
         public void UpdateTransform()
         {
             HasMoved = false;
 
-            if (Parent != null)
-                globalTransform = LocalTransform * Parent.GlobalTransform;
+            if (Parent.HasValue(out var parent))
+                globalTransform = LocalTransform * parent.GlobalTransform;
             else
                 globalTransform = LocalTransform;
 
             UpdateBoundingBox();
 
-            if (NeedsSpacialStorageUpdate(LastBounds, BoundingBox))
+            if (NeedsSpacialStorageUpdate(LastBounds, BoundingBox) || IsFlagSet(Flag.ForceSpacialUpdate))
             {
+                SetFlag(Flag.ForceSpacialUpdate, false);
                 if (IsRoot() && !IsFlagSet(Flag.DontUpdate))
                 {
                     Manager.World.RemoveRootGameObject(this, LastBounds);

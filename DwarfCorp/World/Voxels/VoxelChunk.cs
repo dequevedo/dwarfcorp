@@ -20,7 +20,7 @@ namespace DwarfCorp
         public Mutex PrimitiveMutex { get; set; }
 
         private List<NewInstanceData>[] MoteRecords = new List<NewInstanceData>[VoxelConstants.ChunkSizeY];
-        public Dictionary<LiquidType, LiquidPrimitive> Liquids { get; set; }
+        public Dictionary<int, LiquidPrimitive> Liquids { get; set; }
         public bool NewLiquidReceived = false;
                 
         public List<DynamicLight> DynamicLights { get; set; }
@@ -28,6 +28,8 @@ namespace DwarfCorp
         public HashSet<GameComponent> RootEntities = new HashSet<GameComponent>();
         public HashSet<GameComponent> EntityAnchors = new HashSet<GameComponent>();
 
+        public int UpdateDitherPattern = 0;
+        public int LiquidUpdateDitherPattern = 0;
 
         public void InvalidateSlice(int LocalY)
         {
@@ -74,9 +76,9 @@ namespace DwarfCorp
             PrimitiveMutex = new Mutex();
             DynamicLights = new List<DynamicLight>();
 
-            Liquids = new Dictionary<LiquidType, LiquidPrimitive>();
-            Liquids[LiquidType.Water] = new LiquidPrimitive(LiquidType.Water);
-            Liquids[LiquidType.Lava] = new LiquidPrimitive(LiquidType.Lava);
+            Liquids = new Dictionary<int, LiquidPrimitive>();
+            foreach (var liquid in Library.EnumerateLiquids())
+                Liquids[liquid.ID] = new LiquidPrimitive(liquid.ID);
         }
        
         private BoundingBox m_boundingBox;
@@ -101,14 +103,11 @@ namespace DwarfCorp
             PrimitiveMutex.ReleaseMutex();
         }
 
-        public void RebuildLiquids()
+        public void RebuildLiquidGeometry()
         {
-            List<LiquidPrimitive> toInit = new List<LiquidPrimitive>();
-            foreach (KeyValuePair<LiquidType, LiquidPrimitive> primitive in Liquids)
-            {
+            var toInit = new List<LiquidPrimitive>();
+            foreach (var primitive in Liquids)
                 toInit.Add(primitive.Value);
-            }
-
             LiquidPrimitive.InitializePrimativesFromChunk(this, toInit);
         }
 

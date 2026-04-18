@@ -18,6 +18,14 @@ namespace DwarfCorp
         public short[] Indexes = new short[6];
         public ExtendedVertex[] Vertices = new ExtendedVertex[4];
 
+        public RawPrimitive Transform(Matrix M)
+        {
+            for (var x = 0; x < VertexCount; ++x)
+                Vertices[x].Position = Vector3.Transform(Vertices[x].Position, M);                
+
+            return this;
+        }
+
         private static void EnsureSpace<T>(ref T[] In, int Size)
         {
             if (In == null)
@@ -80,6 +88,13 @@ namespace DwarfCorp
             }
         }
 
+        public void AddPolygon(List<ExtendedVertex> Verticies)
+        {
+            var pivot = 0;
+            for (var x = 1; x < Verticies.Count - 1; ++x)
+                AddTriangle(Verticies[pivot], Verticies[x], Verticies[x + 1]);
+        }
+
         public void AddQuad(Matrix Transform, Color Color, Color VertColor, Vector2[] Uvs, Vector4 Bounds)
         {
             var baseIndex = VertexCount;
@@ -116,8 +131,13 @@ namespace DwarfCorp
 
         public static RawPrimitive Concat(IEnumerable<RawPrimitive> Primitives)
         {
-            var totalVertexCount = Primitives.Select(p => p.VertexCount).Sum();
-            var totalIndexCount = Primitives.Select(p => p.IndexCount).Sum();
+            return ConcatEx(Primitives);
+        }
+
+        public static RawPrimitive ConcatEx(IEnumerable<RawPrimitive> Primitives)
+        {
+            var totalVertexCount = Primitives.Select(p => p == null ? 0 : p.VertexCount).Sum();
+            var totalIndexCount = Primitives.Select(p => p == null ? 0 : p.IndexCount).Sum();
 
             var r = new RawPrimitive
             {
@@ -132,6 +152,9 @@ namespace DwarfCorp
 
             foreach (var primitive in Primitives)
             {
+                if (primitive == null)
+                    continue;
+
                 for (var i = 0; i < primitive.VertexCount; ++i)
                     r.Vertices[vBase + i] = primitive.Vertices[i];
                 for (var i = 0; i < primitive.IndexCount; ++i)
@@ -142,6 +165,37 @@ namespace DwarfCorp
             }
 
             return r;
+        }
+
+        public static RawPrimitive Concat(params RawPrimitive[] prims)
+        {
+            return ConcatEx(prims);
+        }
+
+        public static RawPrimitive Cube(Color Color, Color VertColor, Vector2[] FaceUVs, Vector4 TextureBounds)
+        {
+            var r = new RawPrimitive();
+            r.AddQuad(Matrix.CreateTranslation(0.0f, 0.5f, 0.0f), Color, VertColor, FaceUVs, TextureBounds);
+            r.AddQuad(Matrix.CreateTranslation(0.0f, -0.5f, 0.0f), Color, VertColor, FaceUVs, TextureBounds);
+            r.AddQuad(Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateTranslation(0.0f, 0.0f, 0.5f), Color, VertColor, FaceUVs, TextureBounds);
+            r.AddQuad(Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateTranslation(0.0f, 0.0f, -0.5f), Color, VertColor, FaceUVs, TextureBounds);
+            r.AddQuad(Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationY((float)Math.PI / 2) * Matrix.CreateTranslation(0.5f, 0.0f, 0.0f), Color, VertColor, FaceUVs, TextureBounds);
+            r.AddQuad(Matrix.CreateRotationX((float)Math.PI / 2) * Matrix.CreateRotationY((float)Math.PI / 2) * Matrix.CreateTranslation(-0.5f, 0.0f, 0.0f), Color, VertColor, FaceUVs, TextureBounds);
+            return r;
+        }
+
+        public static RawPrimitive CreateFromCSGSolid(Csg.Solid Solid)
+        {
+            var r = new RawPrimitive();
+            foreach (var poly in Solid.Polygons)
+                r.AddPolygon(poly.Vertices.Select(v => new ExtendedVertex { Position = new Vector3((float)v.Pos.X, (float)v.Pos.Y, (float)v.Pos.Z) }).ToList());
+            return r;
+        } 
+
+        public RawPrimitive TransformEx(Func<ExtendedVertex, ExtendedVertex> TFunc)
+        {
+            Vertices = Vertices.Select(v => TFunc(v)).ToArray();
+            return this;
         }
     }
 }

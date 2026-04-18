@@ -20,6 +20,10 @@ namespace DwarfCorp.Generation
             if (chunk.Origin.Y >= Settings.LavaLevel)
                 return;
 
+            var lava = Library.GetLiquid("Lava");
+            if (!lava.HasValue(out var _lava))
+                return;
+
             for (var x = 0; x < VoxelConstants.ChunkSizeX; ++x)
             {
                 for (var z = 0; z < VoxelConstants.ChunkSizeZ; ++z)
@@ -27,8 +31,8 @@ namespace DwarfCorp.Generation
                     for (var y = 0; y < Settings.LavaLevel - chunk.Origin.Y; ++y)
                     {
                         var voxel = VoxelHandle.UnsafeCreateLocalHandle(chunk, new LocalVoxelCoordinate(x, y, z));
-                        if (voxel.IsEmpty && voxel.LiquidLevel == 0)
-                            voxel.QuickSetLiquid(LiquidType.Lava, WaterManager.maxWaterLevel);
+                        if (voxel.IsEmpty)
+                            LiquidCellHelpers.FillVoxelWithLiquid(voxel, _lava.ID);
                     }
                 }
             }

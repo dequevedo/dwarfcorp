@@ -50,10 +50,10 @@ namespace DwarfCorp.GameStates
                 Library.GetString("options-tooltip"),
                 (sender, args) => GameStateManager.PushState(new OptionsState(Game)));
 
-            CreateMenuItem(frame,
-                Library.GetString("manage-mods"),
-                Library.GetString("manage-mods-tooltip"), 
-                (sender, args) => GameStateManager.PushState(new ModManagement.ManageModsState(Game)));
+            //CreateMenuItem(frame,
+            //    Library.GetString("manage-mods"),
+            //    Library.GetString("manage-mods-tooltip"), 
+            //    (sender, args) => GameStateManager.PushState(new ModManagement.ManageModsState(Game)));
 
             CreateMenuItem(frame, 
                 Library.GetString("credits"),
@@ -144,7 +144,7 @@ namespace DwarfCorp.GameStates
             IsInitialized = true;
 
             DwarfTime.LastTimeX.Speed = 1.0f;
-            SoundManager.PlayMusic("menu_music");
+            SoundManager.PlayMusic(null, "Music/mx_menu_loop_v2");
             SoundManager.StopAmbience();
         }
 

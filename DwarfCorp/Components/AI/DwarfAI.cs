@@ -385,19 +385,22 @@ namespace DwarfCorp
             PreEmptTasks();
 
             // Check for managerial buff
-            var managerBufferComponent = Parent.GetComponent<RadiusBuffer>();
-            if (Stats.IsManager && !managerBufferComponent.HasValue())
+            if (Parent.HasValue(out var parent))
             {
-                var managerBuffer = new RadiusBuffer(Manager, "Manager Buffer", Matrix.Identity, new Vector3(16, 16, 16), Vector3.Zero)
+                var managerBufferComponent = parent.GetComponent<RadiusBuffer>();
+                if (Stats.IsManager && !managerBufferComponent.HasValue())
                 {
-                    SenseRadius = 16,
-                    Buff = new ManagerMotivationStatusEffect(0.1f * Stats.Intelligence)
-                };
+                    var managerBuffer = new RadiusBuffer(Manager, "Manager Buffer", Matrix.Identity, new Vector3(16, 16, 16), Vector3.Zero)
+                    {
+                        SenseRadius = 16,
+                        Buff = new ManagerMotivationStatusEffect(0.1f * Stats.Intelligence)
+                    };
 
-                Parent.AddChild(managerBuffer);
+                    parent.AddChild(managerBuffer);
+                }
+                else if (!Stats.IsManager && managerBufferComponent.HasValue(out var outdatedBuff))
+                    outdatedBuff.Die();
             }
-            else if (!Stats.IsManager && managerBufferComponent.HasValue(out var outdatedBuff))
-                outdatedBuff.Die();
 
             if (Stats.IsManager)
                 Stats.AddBuff(new BaselineMotivationStatusEffect(1.0f)); // Managers are always highly motivated.
@@ -595,15 +598,18 @@ namespace DwarfCorp
             }
 
             // With a small probability, the creature will drown if its under water.
-            if (MathFunctions.RandEvent(0.01f))
+            if (MathFunctions.RandEvent(GameSettings.Current.DrownChance))
             {
                 var above = VoxelHelpers.GetVoxelAbove(Physics.CurrentVoxel);
                 var below = VoxelHelpers.GetVoxelBelow(Physics.CurrentVoxel);
-                bool shouldDrown = (above.IsValid && (!above.IsEmpty || above.LiquidLevel > 0));
-                if ((Physics.IsInLiquid || (!Movement.CanSwim && (below.IsValid && (below.LiquidLevel > 5)))) 
-                    && (!Movement.CanSwim || shouldDrown))
+                if (above.IsValid && below.IsValid)
                 {
-                    Creature.Damage(FrameDeltaTime, Movement.CanSwim ? 1.0f : 30.0f, Health.DamageType.Normal);
+                    var medianLiquidAbove = LiquidCellHelpers.MedianLiquidInVoxel(above);
+                    var medianLiquidBelow = LiquidCellHelpers.MedianLiquidInVoxel(below);
+                    bool shouldDrown = !above.IsEmpty || medianLiquidAbove != 0;
+                    if ((Physics.IsInLiquid || (!Movement.CanSwim && below.IsValid && medianLiquidBelow != 0))
+                        && (!Movement.CanSwim || shouldDrown))
+                        Creature.Damage(FrameDeltaTime, Movement.CanSwim ? 1.0f : 30.0f, Health.DamageType.Normal);
                 }
             }
 

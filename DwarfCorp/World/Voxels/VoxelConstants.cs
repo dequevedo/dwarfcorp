@@ -12,6 +12,12 @@ namespace DwarfCorp
         public const Int32 ChunkSizeZ = 16;
         public const Int32 ChunkVoxelCount = ChunkSizeX * ChunkSizeY * ChunkSizeZ;
 
+        public const Int32 LiquidChunkSizeX = 32;
+        public const Int32 LiquidChunkSizeY = 32;
+        public const Int32 LiquidChunkSizeZ = 32;
+        public const Int32 LiquidChunkVoxelCount = LiquidChunkSizeX * LiquidChunkSizeY * LiquidChunkSizeZ;
+
+
         public const Int32 OverworldScale = 4;
 
         public const Int32 XDivShift = 4;
@@ -22,9 +28,22 @@ namespace DwarfCorp
         public const Int32 YModMask = 0x0000000F;
         public const Int32 ZModMask = 0x0000000F;
 
+        public const Int32 XLiquidDivShift = 5;
+        public const Int32 YLiquidDivShift = 5;
+        public const Int32 ZLiquidDivShift = 5;
+
+        public const Int32 XLiquidModMask = 0x0000001F;
+        public const Int32 YLiquidModMask = 0x0000001F;
+        public const Int32 ZLiquidModMask = 0x0000001F;
+
         public static Int32 DataIndexOf(LocalVoxelCoordinate C)
         {
             return (C.Y * ChunkSizeX * ChunkSizeZ) + (C.Z * ChunkSizeX) + C.X;
+        }
+
+        public static Int32 DataIndexOf(LocalLiquidCoordinate C)
+        {
+            return (C.Y * LiquidChunkSizeX * LiquidChunkSizeZ) + (C.Z * LiquidChunkSizeX) + C.X;
         }
 
         public const Int32 MaximumVoxelTypes = 256;
@@ -66,11 +85,14 @@ namespace DwarfCorp
         public const Int32 PlayerBuiltVoxelMask = 0x80;
         public const Int32 InversePlayerBuiltVoxelMask = 0x7F;
 
+        // Byte - [1100 0000] Liquid Type
         public const Int32 LiquidTypeShift = 6;
         public const Int32 LiquidTypeMask = 0xC0;
         public const Int32 InverseLiquidTypeMask = 0x3F;
-        public const Int32 LiquidLevelMask = 0x3F;
-        public const Int32 InverseLiquidLevelMask = 0xC0;
+        // Byte - [0010 0000] Ocean Flag
+        public const Int32 LiquidOceanFlagShift = 5;
+        public const Int32 LiquidOceanFlagMask = 0x20;
+        public const Int32 InverseLiquidOceanFlagMask = 0xDF;
 
         public const UInt32 SelectionIDBit = 0x80000000;
         public const UInt32 SelectionIDYMask = 0x7F;

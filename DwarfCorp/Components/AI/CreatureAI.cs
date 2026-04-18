@@ -83,11 +83,14 @@ namespace DwarfCorp
         {
             get
             {
-                if (Parent == null)
+                if (!Parent.HasValue(out var parent))
                     return null;
+
                 if (_cachedCreature == null)
-                    _cachedCreature = Parent.EnumerateAll().OfType<Creature>().FirstOrDefault();
+                    _cachedCreature = parent.EnumerateAll().OfType<Creature>().FirstOrDefault();
+
                 System.Diagnostics.Debug.Assert(_cachedCreature != null, "AI Could not find creature");
+
                 return _cachedCreature;
             }
         }
@@ -476,10 +479,15 @@ namespace DwarfCorp
             {
                 var above = VoxelHelpers.GetVoxelAbove(Physics.CurrentVoxel);
                 var below = VoxelHelpers.GetVoxelBelow(Physics.CurrentVoxel);
-                bool shouldDrown = (above.IsValid && (!above.IsEmpty || above.LiquidLevel > 0));
-                if ((Physics.IsInLiquid || (!Movement.CanSwim && (below.IsValid && (below.LiquidLevel > 5))))
-                    && (!Movement.CanSwim || shouldDrown))
-                    Creature.Damage(FrameDeltaTime, Movement.CanSwim ? 1.0f : 30.0f, Health.DamageType.Normal);
+                if (above.IsValid && below.IsValid)
+                {
+                    var medianLiquidAbove = LiquidCellHelpers.MedianLiquidInVoxel(above);
+                    var medianLiquidBelow = LiquidCellHelpers.MedianLiquidInVoxel(below);
+                    bool shouldDrown = !above.IsEmpty || medianLiquidAbove != 0;
+                    if ((Physics.IsInLiquid || (!Movement.CanSwim && below.IsValid && medianLiquidBelow != 0))
+                        && (!Movement.CanSwim || shouldDrown))
+                        Creature.Damage(FrameDeltaTime, Movement.CanSwim ? 1.0f : 30.0f, Health.DamageType.Normal);
+                }
             }
 
             if (PositionConstraint.Contains(Physics.LocalPosition) == ContainmentType.Disjoint)
@@ -548,6 +556,9 @@ namespace DwarfCorp
             foreach (CreatureAI enemy in Sensor.Enemies.Where(e => e != null && !e.IsDead && e.Creature != null))
             {
                 if (enemy.Stats.IsFleeing)
+                    continue;
+
+                if (VoxelHelpers.DoesRayHitSolidVoxel(Manager.World.ChunkManager, this.Position, enemy.Position))
                     continue;
 
                 Task task = new KillEntityTask(enemy.Physics, KillEntityTask.KillType.Auto);

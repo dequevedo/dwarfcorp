@@ -9,7 +9,7 @@ namespace DwarfCorp
 {
     public class Shader : Effect
     {
-        public const int MaxLights = 16;
+        public const int MaxLights = 64;
 
         public Vector3[] LightPositions
         {
@@ -76,10 +76,16 @@ namespace DwarfCorp
             set {  Parameters["xEnableLighting"].SetValue(value ? 1 : 0);}
         }
 
+        public int ActiveLights
+        {
+            get { return Parameters["ActiveLights"].GetValueInt32(); }
+            set { Parameters["ActiveLights"].SetValue(value); }
+        }
+
         public bool EnableShadows
         {
-            get { return Parameters["xEnableShadows"].GetValueBoolean(); }
-            set {  Parameters["xEnableShadows"].SetValue(value);}
+            get { return false; } // return Parameters["xEnableShadows"].GetValueBoolean(); } //TODO: MONOFIX
+            set { }//  Parameters["xEnableShadows"].SetValue(value);}
         }
 
         public Texture2D WaterBumpMap
@@ -338,71 +344,10 @@ namespace DwarfCorp
             public static string Stipple = "Textured_Stipple";
         }
 
-
-        public static string[] TexturedTechniques =
-        {
-            Shader.Technique.Textured_ + "_1_Light",
-            Shader.Technique.Textured_ + "_2_Lights",
-            Shader.Technique.Textured_ + "_3_Lights",
-            Shader.Technique.Textured_ + "_4_Lights",
-            Shader.Technique.Textured_ + "_5_Lights",
-            Shader.Technique.Textured_ + "_6_Lights",
-            Shader.Technique.Textured_ + "_7_Lights",
-            Shader.Technique.Textured_ + "_8_Lights",
-            Shader.Technique.Textured_ + "_9_Lights",
-            Shader.Technique.Textured_ + "_10_Lights",
-            Shader.Technique.Textured_ + "_11_Lights",
-            Shader.Technique.Textured_ + "_12_Lights",
-            Shader.Technique.Textured_ + "_13_Lights",
-            Shader.Technique.Textured_ + "_14_Lights",
-            Shader.Technique.Textured_ + "_15_Lights",
-            Shader.Technique.Textured_ + "_16_Lights",
-        };
-
-        public static string[] InstancedTechniques =
-        {
-            Shader.Technique.Instanced_ + "_1_Light",
-            Shader.Technique.Instanced_ + "_2_Lights",
-            Shader.Technique.Instanced_ + "_3_Lights",
-            Shader.Technique.Instanced_ + "_4_Lights",
-            Shader.Technique.Instanced_ + "_5_Lights",
-            Shader.Technique.Instanced_ + "_6_Lights",
-            Shader.Technique.Instanced_ + "_7_Lights",
-            Shader.Technique.Instanced_ + "_8_Lights",
-            Shader.Technique.Instanced_ + "_9_Lights",
-            Shader.Technique.Instanced_ + "_10_Lights",
-            Shader.Technique.Instanced_ + "_11_Lights",
-            Shader.Technique.Instanced_ + "_12_Lights",
-            Shader.Technique.Instanced_ + "_13_Lights",
-            Shader.Technique.Instanced_ + "_14_Lights",
-            Shader.Technique.Instanced_ + "_15_Lights",
-            Shader.Technique.Instanced_ + "_16_Lights",
-        };
-
-        public static string[] TiledInstancedTechniques =
-        {
-            Shader.Technique.TiledInstanced_ + "_1_Light",
-            Shader.Technique.TiledInstanced_ + "_2_Lights",
-            Shader.Technique.TiledInstanced_ + "_3_Lights",
-            Shader.Technique.TiledInstanced_ + "_4_Lights",
-            Shader.Technique.TiledInstanced_ + "_5_Lights",
-            Shader.Technique.TiledInstanced_ + "_6_Lights",
-            Shader.Technique.TiledInstanced_ + "_7_Lights",
-            Shader.Technique.TiledInstanced_ + "_8_Lights",
-            Shader.Technique.TiledInstanced_ + "_9_Lights",
-            Shader.Technique.TiledInstanced_ + "_10_Lights",
-            Shader.Technique.TiledInstanced_ + "_11_Lights",
-            Shader.Technique.TiledInstanced_ + "_12_Lights",
-            Shader.Technique.TiledInstanced_ + "_13_Lights",
-            Shader.Technique.TiledInstanced_ + "_14_Lights",
-            Shader.Technique.TiledInstanced_ + "_15_Lights",
-            Shader.Technique.TiledInstanced_ + "_16_Lights",
-        };
-
-
         public void SetTexturedTechnique()
         {
-            CurrentTechnique = Techniques[TexturedTechniques[CurrentNumLights]];
+            ActiveLights = CurrentNumLights;
+            CurrentTechnique = Techniques["Textured"];
         }
 
         public void SetIconTechnique()
@@ -412,12 +357,14 @@ namespace DwarfCorp
 
         public void SetInstancedTechnique()
         {
-            CurrentTechnique = Techniques[InstancedTechniques[CurrentNumLights]];
+            ActiveLights = CurrentNumLights;
+            CurrentTechnique = Techniques["Instanced"];
         }
 
         public void SetTiledInstancedTechnique()
         {
-            CurrentTechnique = Techniques[TiledInstancedTechniques[CurrentNumLights]];
+            ActiveLights = CurrentNumLights;
+            CurrentTechnique = Techniques["TiledInstanced"];
         }
 
 

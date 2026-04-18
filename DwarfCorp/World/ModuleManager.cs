@@ -99,10 +99,10 @@ namespace DwarfCorp
                 module.Shutdown();
         }
 
-        public virtual void VoxelChange(List<VoxelChangeEvent> Events, WorldManager World)
+        public virtual void VoxelChange(List<VoxelEvent> Events, WorldManager World)
         {
             foreach (var module in GetModulesThatWantUpdates(UpdateTypes.VoxelChange))
-                module.VoxelChange(Events, World);
+                module.VoxelEvent(Events, World);
         }
     }
 }

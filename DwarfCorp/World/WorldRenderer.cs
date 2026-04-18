@@ -30,7 +30,7 @@ namespace DwarfCorp
         public Overworld Settings = null;
         public WorldRendererPersistentSettings PersistentSettings = new WorldRendererPersistentSettings();
         public Vector3 CursorLightPos = Vector3.Zero;
-        public Vector3[] LightPositions = new Vector3[16];
+        public Vector3[] LightPositions = new Vector3[Shader.MaxLights];
         public Shader DefaultShader;
         public OrbitCamera Camera;
         public static int MultiSamples
@@ -137,7 +137,9 @@ namespace DwarfCorp
         public bool IsCameraUnderwater()
         {
             var handle = new VoxelHandle(World.ChunkManager, GlobalVoxelCoordinate.FromVector3(Camera.Position + Vector3.Up));
-            return handle.IsValid && handle.LiquidLevel > 0 && handle.Coordinate.Y <= (PersistentSettings.MaxViewingLevel >= World.WorldSizeInVoxels.Y ? 1000.0f : PersistentSettings.MaxViewingLevel + 0.25f);
+            if (!handle.IsValid) return false;
+            var liquidPresent = LiquidCellHelpers.AnyLiquidInVoxel(handle);
+            return liquidPresent && handle.Coordinate.Y <= (PersistentSettings.MaxViewingLevel >= World.WorldSizeInVoxels.Y ? 1000.0f : PersistentSettings.MaxViewingLevel + 0.25f);
         }
 
         /// <summary>
@@ -239,33 +241,25 @@ namespace DwarfCorp
 
         public void FillClosestLights(DwarfTime time)
         {
-            var positions = (from light in DynamicLight.Lights select light.Position).ToList();
-            positions.AddRange((from light in DynamicLight.TempLights select light.Position));
-            positions.Sort((a, b) =>
+            var allLightPositions = DynamicLight.Lights.Select(l => l.Position).ToList();
+            allLightPositions.AddRange(DynamicLight.TempLights.Select(l => l.Position));
+            allLightPositions.Sort((a, b) =>
             {
-                float dA = (a - Camera.Position).LengthSquared();
-                float dB = (b - Camera.Position).LengthSquared();
+                var dA = (a - Camera.Position).LengthSquared();
+                var dB = (b - Camera.Position).LengthSquared();
                 return dA.CompareTo(dB);
             });
 
-            if (!GameSettings.Current.CursorLightEnabled)
-                LightPositions[0] = new Vector3(-99999, -99999, -99999);
-            else
-                LightPositions[0] = CursorLightPos;
+            var lightCount = 0;
+            if (GameSettings.Current.CursorLightEnabled)
+                LightPositions[lightCount++] = CursorLightPos;
 
-            int numLights = GameSettings.Current.CursorLightEnabled ? Math.Min(16, positions.Count + 1) : Math.Min(16, positions.Count);
-            for (int i = GameSettings.Current.CursorLightEnabled ? 1 : 0; i < numLights; i++)
-            {
-                if (i > positions.Count)
-                    LightPositions[i] = new Vector3(-99999, -99999, -99999);
-                else
-                    LightPositions[i] = GameSettings.Current.CursorLightEnabled ? positions[i - 1] : positions[i];
-            }
+            var lightsAdded = 0;
+            while (lightCount < Shader.MaxLights && lightsAdded < allLightPositions.Count)
+                LightPositions[lightCount++] = allLightPositions[lightsAdded++];
 
-            for (int j = numLights; j < 16; j++)
-                LightPositions[j] = new Vector3(0, 0, 0);
+            DefaultShader.CurrentNumLights = lightCount;
 
-            DefaultShader.CurrentNumLights = Math.Max(Math.Min(GameSettings.Current.CursorLightEnabled ? numLights - 1 : numLights, 15), 0);
             DynamicLight.TempLights.Clear();
         }
 
@@ -374,7 +368,7 @@ namespace DwarfCorp
             // Start drawing the bloom effect
             if (GameSettings.Current.EnableGlow)
             {
-                bloom.BeginDraw();
+                //bloom.BeginDraw();
             }
 
             // Draw the sky
@@ -449,9 +443,9 @@ namespace DwarfCorp
                 {
                     fxaa.Begin(DwarfTime.LastTimeX);
                 }
-                bloom.DrawTarget = UseFXAA ? fxaa.RenderTarget : null;
+                //bloom.DrawTarget = UseFXAA ? fxaa.RenderTarget : null;
 
-                bloom.Draw(gameTime.ToRealTime());
+                //bloom.Draw(gameTime.ToRealTime());
                 if (UseFXAA)
                     fxaa.End(DwarfTime.LastTimeX);
             }
