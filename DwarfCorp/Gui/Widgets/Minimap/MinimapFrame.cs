@@ -44,8 +44,8 @@ namespace DwarfCorp.Gui.Widgets.Minimap
                     DynamicAtlasEntry = Root.SpriteAtlas.AddDynamicSheet(null,
                         new TileSheetDefinition
                         {
-                            TileHeight = Renderer.RenderWidth,
-                            TileWidth = Renderer.RenderHeight,
+                            TileWidth = Renderer.RenderWidth,
+                            TileHeight = Renderer.RenderHeight,
                             RepeatWhenUsedAsBorder = false,
                             Type = TileSheetType.TileSheet
                         },

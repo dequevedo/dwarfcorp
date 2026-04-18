@@ -41,9 +41,28 @@ namespace DwarfCorp.GameStates
         private Widget ZonesIcon;
         private Widget TasksIcon;
         private Widget MarksIcon;
-        private Widget CommandsIcon;
         private Dictionary<uint, WorldPopup> LastWorldPopup = new Dictionary<uint, WorldPopup>();
         private Play.CommandTray CommandTray;
+        private List<Widget> SidePanels = new List<Widget>();
+
+        /// <summary>
+        /// Toggle a side panel's visibility. Clicking an icon whose panel is
+        /// already visible hides it; clicking a different icon closes all the
+        /// other side panels first so only one is visible at a time (previously
+        /// they'd stack on top of each other at FloatBottomLeft).
+        /// </summary>
+        private void ToggleSidePanel(Widget panel)
+        {
+            if (!panel.Hidden)
+            {
+                panel.Hidden = true;
+                return;
+            }
+            foreach (var other in SidePanels)
+                if (other != panel) other.Hidden = true;
+            panel.Hidden = false;
+            panel.BringToFront();
+        }
 
 
 
@@ -480,6 +499,10 @@ namespace DwarfCorp.GameStates
                 MinimumSize = new Point(450, 500 - (50 * (GameSettings.Current.GuiScale - 1))),
             }) as Play.EmployeeInfo.OverviewPanel;
 
+            // Side panels — all extend Window (draggable, closable). Kept in a
+            // shared list so ToggleSidePanel() below can make them mutually
+            // exclusive: opening one auto-hides the others instead of letting
+            // them stack on top of each other at FloatBottomLeft.
             var employeeListView = Gui.RootItem.AddChild(new Gui.Widgets.EmployeePanel
             {
                 Hidden = true,
@@ -499,7 +522,6 @@ namespace DwarfCorp.GameStates
 
             var taskList = Gui.RootItem.AddChild(new Play.TaskListPanel
             {
-                Border = "border-thin",
                 AutoLayout = AutoLayout.FloatBottomLeft,
                 MinimumSize = new Point(600, 300),
                 Hidden = true,
@@ -508,25 +530,14 @@ namespace DwarfCorp.GameStates
 
             var roomList = Gui.RootItem.AddChild(new Play.ZoneListPanel
             {
-                Border = "border-fancy",
                 AutoLayout = AutoLayout.FloatBottomLeft,
                 MinimumSize = new Point(600, 300),
                 Hidden = true,
                 World = this.World
             });
 
-            //var commandPanel = Gui.RootItem.AddChild(new Play.CommandPanel
-            //{
-            //    Border = "border-fancy",
-            //    AutoLayout = AutoLayout.FloatBottomLeft,
-            //    MinimumSize = new Point(400, Math.Min(600, Gui.RenderData.VirtualScreen.Height - 100)),
-            //    Hidden = true,
-            //    World = this.World
-            //});
-
             var eventPanel = Gui.RootItem.AddChild(new EventLogViewer()
             {
-                Border = "border-fancy",
                 AutoLayout = AutoLayout.FloatBottomLeft,
                 MinimumSize = new Point(400, Math.Min(600, Gui.RenderData.VirtualScreen.Height - 100)),
                 Log = World.EventLog,
@@ -542,6 +553,13 @@ namespace DwarfCorp.GameStates
                 Hidden = true
             });
 
+            SidePanels.Clear();
+            SidePanels.Add(employeeListView);
+            SidePanels.Add(markerFilter);
+            SidePanels.Add(taskList);
+            SidePanels.Add(roomList);
+            SidePanels.Add(eventPanel);
+            SidePanels.Add(economyPanel);
 
             MinimapIcon = new FramedIcon
             {
@@ -571,16 +589,7 @@ namespace DwarfCorp.GameStates
                 EnabledTextColor = Vector4.One,
                 TextHorizontalAlign = HorizontalAlign.Center,
                 TextVerticalAlign = VerticalAlign.Below,
-                OnClick = (sender, args) =>
-                {
-                    if (employeeListView.Hidden)
-                    {
-                        employeeListView.Hidden = false;
-                        employeeListView.BringToFront();
-                    }
-                    else
-                        employeeListView.Hidden = true;
-                }
+                OnClick = (sender, args) => ToggleSidePanel(employeeListView)
             };
 
             MarksIcon = new FramedIcon
@@ -591,16 +600,7 @@ namespace DwarfCorp.GameStates
                 TextHorizontalAlign = HorizontalAlign.Center,
                 TextVerticalAlign = VerticalAlign.Below,
                 EnabledTextColor = Vector4.One,
-                OnClick = (sender, args) =>
-                {
-                    if (markerFilter.Hidden)
-                    {
-                        markerFilter.Hidden = false;
-                        markerFilter.BringToFront();
-                    }
-                    else
-                        markerFilter.Hidden = true;
-                }
+                OnClick = (sender, args) => ToggleSidePanel(markerFilter)
             };
 
             TasksIcon = new FramedIcon
@@ -611,16 +611,7 @@ namespace DwarfCorp.GameStates
                 TextHorizontalAlign = HorizontalAlign.Center,
                 TextVerticalAlign = VerticalAlign.Below,
                 EnabledTextColor = Vector4.One,
-                OnClick = (sender, args) =>
-                {
-                    if (taskList.Hidden)
-                    {
-                        taskList.Hidden = false;
-                        taskList.BringToFront();
-                    }
-                    else
-                        taskList.Hidden = true;
-                }
+                OnClick = (sender, args) => ToggleSidePanel(taskList)
             };
 
             ZonesIcon = new FramedIcon
@@ -631,51 +622,13 @@ namespace DwarfCorp.GameStates
                 TextHorizontalAlign = HorizontalAlign.Center,
                 TextVerticalAlign = VerticalAlign.Below,
                 EnabledTextColor = Vector4.One,
-                OnClick = (sender, args) =>
-                {
-                    if (roomList.Hidden)
-                    {
-                        roomList.Hidden = false;
-                        roomList.BringToFront();
-                    }
-                    else
-                        roomList.Hidden = true;
-                }
+                OnClick = (sender, args) => ToggleSidePanel(roomList)
             };
-
-            //CommandsIcon = new FramedIcon
-            //{
-            //    Icon = new Gui.TileReference("tool-icons", 15),
-            //    Text = "Commands",
-            //    Tooltip = "Search all possible commands.",
-            //    TextHorizontalAlign = HorizontalAlign.Center,
-            //    TextVerticalAlign = VerticalAlign.Below,
-            //    EnabledTextColor = Vector4.One,
-            //    OnClick = (sender, args) =>
-            //    {
-            //        if (commandPanel.Hidden)
-            //        {
-            //            commandPanel.Hidden = false;
-            //            commandPanel.BringToFront();
-            //        }
-            //        else
-            //            commandPanel.Hidden = true;
-            //    }
-            //};
 
             var eventsIcon = new FramedIcon
             {
                 Icon = new Gui.TileReference("tool-icons", 21),
-                OnClick = (sender, args) =>
-                {
-                    if (eventPanel.Hidden)
-                    {
-                        eventPanel.Hidden = false;
-                        eventPanel.BringToFront();
-                    }
-                    else
-                        eventPanel.Hidden = true;
-                },
+                OnClick = (sender, args) => ToggleSidePanel(eventPanel),
                 Text = Library.GetString("events-label"),
                 TextVerticalAlign = VerticalAlign.Below,
                 Tooltip = Library.GetString("events-tooltip")
@@ -687,14 +640,9 @@ namespace DwarfCorp.GameStates
                 Icon = new Gui.TileReference("tool-icons", 10),
                 OnClick = (sender, args) =>
                 {
-                    if (economyPanel.Hidden)
-                    {
-                        economyPanel.Hidden = false;
-                        economyPanel.BringToFront();
-                        World.Tutorial("economy");
-                    }
-                    else
-                        economyPanel.Hidden = true;
+                    bool opening = economyPanel.Hidden;
+                    ToggleSidePanel(economyPanel);
+                    if (opening) World.Tutorial("economy");
                 },
                 Tooltip = Library.GetString("economy-tooltip"),
                 Text = Library.GetString("economy-label"),
@@ -708,20 +656,16 @@ namespace DwarfCorp.GameStates
                 Overworld = World.Overworld,
                 Hidden = true
             });
+            SidePanels.Add(factionWindow);
 
             var diplomacyIcon = new Gui.Widgets.FramedIcon()
             {
                 Icon = new Gui.TileReference("tool-icons", 36),
                 OnClick = (sender, args) =>
                 {
-                    if (factionWindow.Hidden)
-                    {
-                        factionWindow.Hidden = false;
-                        factionWindow.BringToFront();
-                        World.Tutorial("diplomacy");
-                    }
-                    else
-                        factionWindow.Hidden = true;
+                    bool opening = factionWindow.Hidden;
+                    ToggleSidePanel(factionWindow);
+                    if (opening) World.Tutorial("diplomacy");
                 },
                 Text = Library.GetString("diplomacy-label"),
                 TextVerticalAlign = VerticalAlign.Below,
@@ -742,7 +686,6 @@ namespace DwarfCorp.GameStates
                             MarksIcon,
                             TasksIcon,
                             ZonesIcon,
-                            //CommandsIcon,
                             eventsIcon,
                             EconomyIcon,
                             diplomacyIcon
@@ -833,12 +776,14 @@ namespace DwarfCorp.GameStates
 
             PausedWidget = Gui.RootItem.AddChild(new Widget()
             {
-                Text = "\n\nPaused",
+                Text = "Paused",
                 AutoLayout = DwarfCorp.Gui.AutoLayout.FloatCenter,
                 Tooltip = "(push " + ControlSettings.Mappings.Pause.ToString() + " to unpause)",
                 Font = "font18-outline",
                 TextColor = Color.White.ToVector4(),
-                MaximumSize = new Point(0, 0),
+                MinimumSize = new Point(200, 64),
+                TextHorizontalAlign = HorizontalAlign.Center,
+                TextVerticalAlign = VerticalAlign.Center,
                 WrapText = false,
                 Hidden = true,
             });
