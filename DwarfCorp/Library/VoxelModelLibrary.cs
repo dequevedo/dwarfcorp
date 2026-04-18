@@ -22,6 +22,8 @@ namespace DwarfCorp
 
             foreach (var voxFile in AssetManager.EnumerateAllFiles("World/VoxelModels/"))
             {
+                if (!voxFile.EndsWith(".vox", StringComparison.OrdinalIgnoreCase))
+                    continue;
                 var stream = new FileStream(voxFile, FileMode.Open);
                 var model = new VoxelModel();
                 var modelReader = new CsharpVoxReader.VoxReader(stream, model);
