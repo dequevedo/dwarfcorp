@@ -1,0 +1,12 @@
+.png
+.jpg
+.dds
+.fbx
+.wav
+.mp3
+.ogg
+.fx
+.contentproj
+.mgcb
+obj\
+bin\

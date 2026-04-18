@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>ContentPipeline</AssemblyName>
+    <RootNamespace>ContentPipeline</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="MonoGame.Framework.Content.Pipeline">
+      <HintPath>$(USERPROFILE)\.nuget\packages\dotnet-mgcb\3.8.4.1\tools\net8.0\any\MonoGame.Framework.Content.Pipeline.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

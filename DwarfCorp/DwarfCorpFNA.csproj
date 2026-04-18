@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DwarfCorp</RootNamespace>
     <AssemblyName>DwarfCorp</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -379,6 +379,7 @@
     <Compile Include=".\Entities\Animals\Chimp.cs" />
     <Compile Include=".\Entities\Animals\Deer.cs" />
     <Compile Include=".\Entities\Animals\Frog.cs" />
+    <Compile Include=".\Entities\Animals\Pumpking.cs" />
     <Compile Include=".\Entities\Animals\Scorpion.cs" />
     <Compile Include=".\Entities\Animals\Spider.cs" />
     <Compile Include=".\Entities\Balloon.cs" />
@@ -1010,19 +1011,14 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>XCOPY "$(SolutionDir)FNA_libs\win32\*" "$(ProjectDir)\$(OutDir)" /Y /E /V /D
-</PostBuildEvent>
+    <PostBuildEvent>XCOPY "$(SolutionDir)FNA_libs\win32\*" "$(ProjectDir)$(OutDir)" /Y /E /V /D
+IF NOT EXIST "$(ProjectDir)$(OutDir)Content" MD "$(ProjectDir)$(OutDir)Content"
+XCOPY "$(SolutionDir)ContentMGCB\bin\Content" "$(ProjectDir)$(OutDir)Content" /Y /E /D
+XCOPY "$(SolutionDir)DwarfCorpContent" "$(ProjectDir)$(OutDir)Content" /Y /E /D /EXCLUDE:"$(SolutionDir)ContentMGCB\copy-exclude.txt"
+py "$(SolutionDir)ContentMGCB\patch_xnb_types.py" "$(ProjectDir)$(OutDir)Content"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>RD /S /Q "$(ProjectDir)$(OutDir)"
-MD "$(ProjectDir)$(OutDir)"
-
-MD "$(ProjectDir)$(OutDir)Content"
-ECHO "$(ProjectDir)bin\x86\$(ConfigurationName)\Content" 
-
-XCOPY "$(ProjectDir)bin\x86\$(ConfigurationName)\Content" "$(ProjectDir)$(OutDir)Content" /Y /E /D
-
-"C:\Program Files\Git\bin\git.exe" rev-parse --short HEAD &gt; "$(ProjectDir)version.txt" &amp;&amp; ( (call )) || ( "C:\Program Files (x86)\Git\bin\git.exe" rev-parse --short HEAD &gt; "$(ProjectDir)version.txt" )</PreBuildEvent>
+    <PreBuildEvent>"C:\Program Files\Git\bin\git.exe" rev-parse --short HEAD &gt; "$(ProjectDir)version.txt" &amp;&amp; ( (call )) || ( "C:\Program Files (x86)\Git\bin\git.exe" rev-parse --short HEAD &gt; "$(ProjectDir)version.txt" )</PreBuildEvent>
   </PropertyGroup>
   <!--
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
