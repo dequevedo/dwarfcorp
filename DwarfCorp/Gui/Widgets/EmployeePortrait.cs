@@ -12,6 +12,11 @@ namespace DwarfCorp.Gui.Widgets
         public DwarfSprites.LayerStack Sprite;
         public AnimationPlayer AnimationPlayer;
         private TextureAtlas.SpriteAtlasEntry DynamicAtlasEntry = null;
+        // Persistent Texture2D reused every OnUpdate. Previously the code allocated a fresh
+        // Texture2D via TextureTool.Texture2DFromMemoryTexture on each tick and handed it to
+        // ReplaceTexture — old textures were abandoned to the finalizer (hence the flood of
+        // "Texture2D with tag and name was not Disposed" warnings).
+        private Texture2D _portraitTexture = null;
 
         public override void Construct()
         {
@@ -36,7 +41,7 @@ namespace DwarfCorp.Gui.Widgets
                     var frame = AnimationPlayer.GetCurrentAnimation().Frames[AnimationPlayer.CurrentFrame];
                     if (DynamicAtlasEntry == null)
                     {
-                        var tex = new Texture2D(Root.RenderData.Device, 48, 40);
+                        _portraitTexture = new Texture2D(Root.RenderData.Device, 48, 40);
                         DynamicAtlasEntry = Root.SpriteAtlas.AddDynamicSheet(null,
                             new TileSheetDefinition
                             {
@@ -44,12 +49,15 @@ namespace DwarfCorp.Gui.Widgets
                                 TileWidth = 48,
                                 RepeatWhenUsedAsBorder = false,
                                 Type = TileSheetType.TileSheet
-                            }, 
-                            tex);
+                            },
+                            _portraitTexture);
                     }
 
                     var memTex = TextureTool.MemoryTextureFromTexture2D(texture, new Rectangle(frame.X * 48, frame.Y * 40, 48, 40));
-                    DynamicAtlasEntry.ReplaceTexture(TextureTool.Texture2DFromMemoryTexture(Root.RenderData.Device, memTex));
+                    // Reuse the same GPU texture — just rewrite the pixels. ReplaceTexture with
+                    // the same instance still flips NeedsBlitToAtlas so the atlas re-blits.
+                    TextureTool.CopyMemoryTextureToTexture2D(memTex, _portraitTexture);
+                    DynamicAtlasEntry.ReplaceTexture(_portraitTexture);
                 }
 
                 this.Invalidate();
@@ -59,6 +67,9 @@ namespace DwarfCorp.Gui.Widgets
             {
                 if (DynamicAtlasEntry != null)
                     DynamicAtlasEntry.Discard();
+                if (_portraitTexture != null && !_portraitTexture.IsDisposed)
+                    _portraitTexture.Dispose();
+                _portraitTexture = null;
             };
         }
 

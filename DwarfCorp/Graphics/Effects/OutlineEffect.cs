@@ -79,7 +79,10 @@ namespace DwarfCorp
             var strength = MathHelper.Clamp(GameSettings.Current.OutlineStrength, 0f, 1f);
             Shader.Parameters["OutlineStrength"].SetValue(strength);
 
-            var threshold = MathHelper.Clamp(GameSettings.Current.OutlineEdgeThreshold, 0.01f, 1f);
+            // Threshold floor raised to 0.35: anything lower fires on every voxel texture detail
+            // (grass noise, stone speckles, etc.) because this shader reads luminance, not depth
+            // or normals. A real silhouette outline needs a depth-based pass — that's TODO.
+            var threshold = MathHelper.Clamp(GameSettings.Current.OutlineEdgeThreshold, 0.35f, 1f);
             Shader.Parameters["EdgeThreshold"].SetValue(threshold);
 
             var thickness = MathHelper.Clamp(GameSettings.Current.OutlineThickness, 0.5f, 4f);
