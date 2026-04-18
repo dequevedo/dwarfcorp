@@ -277,6 +277,62 @@ namespace DwarfCorp
                 yield return Coordinate + offset;
         }
 
+        /// <summary>
+        /// Zero-allocation enumerator for voxel neighbor arrays. The yield-return
+        /// IEnumerable versions allocate an iterator state machine on every call; this
+        /// struct avoids that for the chunk-mesh hot path (VertexLighting,
+        /// face-exploration checks) where the cost adds up over thousands of voxels per
+        /// chunk rebuild. Usable directly in foreach — `foreach (var c in NewStructEnumerator)`
+        /// compiles to the struct's `MoveNext` / `Current` without IEnumerator boxing.
+        /// </summary>
+        public struct NeighborArrayEnumerator
+        {
+            private readonly GlobalVoxelOffset[] _offsets;
+            private readonly GlobalVoxelCoordinate _origin;
+            private int _index;
+
+            internal NeighborArrayEnumerator(GlobalVoxelOffset[] offsets, GlobalVoxelCoordinate origin)
+            {
+                _offsets = offsets;
+                _origin = origin;
+                _index = -1;
+            }
+
+            public bool MoveNext()
+            {
+                _index++;
+                return _offsets != null && _index < _offsets.Length;
+            }
+
+            public GlobalVoxelCoordinate Current
+            {
+                get
+                {
+                    var off = _offsets[_index];
+                    return _origin + off;
+                }
+            }
+
+            public NeighborArrayEnumerator GetEnumerator() => this;
+        }
+
+        public static NeighborArrayEnumerator EnumerateVertexNeighborsFast(
+            GlobalVoxelCoordinate Coordinate, VoxelVertex Vertex)
+        {
+            return new NeighborArrayEnumerator(VertexNeighbors[(int)Vertex], Coordinate);
+        }
+
+        public static NeighborArrayEnumerator EnumerateVertexNeighbors2DFast(
+            GlobalVoxelCoordinate Coordinate, VoxelVertex Vertex)
+        {
+            return new NeighborArrayEnumerator(VertexNeighbors2D[(int)Vertex], Coordinate);
+        }
+
+        public static NeighborArrayEnumerator EnumerateManhattanNeighborsFast(GlobalVoxelCoordinate Coordinate)
+        {
+            return new NeighborArrayEnumerator(ManhattanNeighbors, Coordinate);
+        }
+
         public static IEnumerable<GlobalVoxelCoordinate> EnumerateManhattanNeighbors(
             GlobalVoxelCoordinate Coordinate)
         {

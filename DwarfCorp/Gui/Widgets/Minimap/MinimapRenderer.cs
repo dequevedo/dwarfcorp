@@ -125,6 +125,8 @@ namespace DwarfCorp.Gui.Widgets.Minimap
                 if (RenderTarget.IsDisposed || RenderTarget.IsContentLost)
                 {
                     World.ChunkManager.NeedsMinimapUpdate = true;
+                    if (!RenderTarget.IsDisposed)
+                        RenderTarget.Dispose();
                     RenderTarget = new RenderTarget2D(GameState.Game.GraphicsDevice, RenderWidth, RenderHeight, false, SurfaceFormat.Color, DepthFormat.Depth24);
                     return;
                 }

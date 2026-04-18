@@ -50,7 +50,9 @@ namespace DwarfCorp.Voxels
             color.DynamicColor = 0;
             color.SunColor = 0;
 
-            foreach (var c in VoxelHelpers.EnumerateVertexNeighbors(Vox.Coordinate, Vertex))
+            // Struct enumerator — avoids IEnumerable<>/yield state-machine alloc for every
+            // vertex on every chunk rebuild. Same semantics as EnumerateVertexNeighbors.
+            foreach (var c in VoxelHelpers.EnumerateVertexNeighborsFast(Vox.Coordinate, Vertex))
             {
                 var v = chunks.CreateVoxelHandle(c);
                 if (!v.IsValid) continue;

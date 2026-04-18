@@ -77,6 +77,8 @@ namespace DwarfCorp
                 {
                     try
                     {
+                        if (Buffer != null && !Buffer.IsDisposed)
+                            Buffer.Dispose();
                         Buffer = new RenderTarget2D(device, width, height, false, SurfaceFormat.Color, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
                     }
                     catch (Exception exception)

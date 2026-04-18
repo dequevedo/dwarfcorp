@@ -140,6 +140,12 @@ namespace DwarfCorp
                 if (AtlasEntries == null)
                     RebuildAtlas();
 
+                // Dispose the previous atlas texture before reassigning — otherwise every
+                // NeedsRendered flip leaks a full-atlas-sized Texture2D to the finalizer,
+                // and the finalizer running on a GC thread can free a GL handle the render
+                // thread is still referencing → native AccessViolation during DrawInstancedPrimitives.
+                if (AtlasTexture != null && !AtlasTexture.IsDisposed)
+                    AtlasTexture.Dispose();
                 AtlasTexture = new Texture2D(Device, AtlasBounds.Width, AtlasBounds.Height);
 
                 foreach (var texture in AtlasEntries)
@@ -162,7 +168,11 @@ namespace DwarfCorp
             }
 
             if (InstanceBuffer == null || InstanceBuffer.IsDisposed || InstanceBuffer.IsContentLost)
+            {
+                if (InstanceBuffer != null && !InstanceBuffer.IsDisposed)
+                    InstanceBuffer.Dispose();
                 InstanceBuffer = new DynamicVertexBuffer(Device, TiledInstancedVertex.VertexDeclaration, InstanceQueueSize, BufferUsage.None);
+            }
             
             Device.RasterizerState = new RasterizerState { CullMode = CullMode.None };
             if (Mode == InstanceRenderMode.Normal)
