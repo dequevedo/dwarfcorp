@@ -49,6 +49,31 @@ namespace DwarfCorp
     /// </summary>
     public class AStarPlanner
     {
+        // Per-thread pooled A* working state. PlanService runs N worker threads (NumPathingThreads);
+        // each thread reuses these across pathfind calls to eliminate the HashSet/Dictionary/PQ
+        // allocation storm per request. All sets are Clear()'d at the start of each Path() call —
+        // never rely on leftover contents. One set per thread avoids cross-thread contention.
+        [ThreadStatic] private static HashSet<MoveState> _ts_closedSet;
+        [ThreadStatic] private static HashSet<MoveState> _ts_openSet;
+        [ThreadStatic] private static Dictionary<MoveState, MoveAction> _ts_cameFrom;
+        [ThreadStatic] private static Dictionary<MoveState, float> _ts_gScore;
+        [ThreadStatic] private static PriorityQueue<MoveState> _ts_fScore;
+        [ThreadStatic] private static MoveActionTempStorage _ts_storage;
+        [ThreadStatic] private static List<GameComponent> _ts_playerObjects;
+        [ThreadStatic] private static List<GameComponent> _ts_teleportObjects;
+
+        private static void InitThreadPools()
+        {
+            _ts_closedSet ??= new HashSet<MoveState>();
+            _ts_openSet ??= new HashSet<MoveState>();
+            _ts_cameFrom ??= new Dictionary<MoveState, MoveAction>();
+            _ts_gScore ??= new Dictionary<MoveState, float>();
+            _ts_fScore ??= new PriorityQueue<MoveState>();
+            _ts_storage ??= new MoveActionTempStorage();
+            _ts_playerObjects ??= new List<GameComponent>();
+            _ts_teleportObjects ??= new List<GameComponent>();
+        }
+
         /// <summary>
         ///     Gets the DestinationVoxel that has minimum expansion score. Expands this voxel.
         /// </summary>
@@ -175,15 +200,24 @@ namespace DwarfCorp
             float weight, 
             Func<bool> continueFunc)
         {
+            InitThreadPools();
+
             // Create a local clone of the octree, using only the objects belonging to the player.
             var octree = new OctTreeNode<GameComponent>(mover.Creature.World.ChunkManager.Bounds.Min, mover.Creature.World.ChunkManager.Bounds.Max);
-           
-            List<GameComponent> playerObjects = new List<GameComponent>(mover.Creature.World.PlayerFaction.OwnedObjects);
-            List<GameComponent> teleportObjects = playerObjects.Where(o => o.Tags.Contains("Teleporter")).ToList();
-            foreach (var obj in playerObjects)
-                octree.Add(obj, obj.GetBoundingBox());
 
-            var storage = new MoveActionTempStorage();
+            var playerObjects = _ts_playerObjects;
+            playerObjects.Clear();
+            foreach (var obj in mover.Creature.World.PlayerFaction.OwnedObjects)
+                playerObjects.Add(obj);
+            var teleportObjects = _ts_teleportObjects;
+            teleportObjects.Clear();
+            for (int i = 0; i < playerObjects.Count; i++)
+                if (playerObjects[i].Tags.Contains("Teleporter"))
+                    teleportObjects.Add(playerObjects[i]);
+            for (int i = 0; i < playerObjects.Count; i++)
+                octree.Add(playerObjects[i], playerObjects[i].GetBoundingBox());
+
+            var storage = _ts_storage;
 
             var start = new MoveState()
             {
@@ -215,23 +249,26 @@ namespace DwarfCorp
                 };
             }
 
-            // Voxels that have already been explored.
-            var closedSet = new HashSet<MoveState>();
+            // Voxels that have already been explored. Pooled per-thread; clear before use.
+            var closedSet = _ts_closedSet;
+            closedSet.Clear();
 
             // Voxels which should be explored.
-            var openSet = new HashSet<MoveState>
-            {
-                start
-            };
+            var openSet = _ts_openSet;
+            openSet.Clear();
+            openSet.Add(start);
 
             // Dictionary of voxels to the optimal action that got the mover to that voxel.
-            var cameFrom = new Dictionary<MoveState, MoveAction>();
+            var cameFrom = _ts_cameFrom;
+            cameFrom.Clear();
 
             // Optimal score of a voxel based on the path it took to get there.
-            var gScore = new Dictionary<MoveState, float>();
+            var gScore = _ts_gScore;
+            gScore.Clear();
 
             // Expansion priority of voxels.
-            var fScore = new PriorityQueue<MoveState>();
+            var fScore = _ts_fScore;
+            fScore.Clear();
 
             // Starting conditions of the search.
             gScore[start] = 0.0f;

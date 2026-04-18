@@ -29,6 +29,9 @@
 - [x] Fase 0.4 do plano de performance: remover SharpRaven (deprecated).
   Enum `BreadcrumbLevel` próprio em CrashBreadcrumbs.cs; `LogSentryBreadcrumb` agora escreve também no ring-buffer do CrashBreadcrumbs (antes só no Console). Referências a `SharpRaven.Data.BreadcrumbLevel` trocadas em 6 arquivos. Reference removida do csproj, entrada tirada do packages.config. Dependência morta há anos, corta 1 lib.
 
+- [x] Fase 1.2 do plano de performance: A* data structures pooled per pathing thread.
+  AStarPlanner.cs: HashSet<MoveState> closedSet/openSet, Dictionary<MoveState,MoveAction> cameFrom, Dictionary<MoveState,float> gScore, PriorityQueue<MoveState> fScore, MoveActionTempStorage, List<GameComponent> playerObjects/teleportObjects viraram **[ThreadStatic]** — um set por worker thread (PlanService já roda NumPathingThreads). Cada Path() faz `.Clear()` no início em vez de `new HashSet/Dictionary/PQ`. Pathfinding já era async, faltava eliminar a tempestade de GC por request. LINQ `.Where().ToList()` do teleportObjects substituído por loop explícito.
+
 - [x] Fase 1.3 do plano de performance: pools + Mutex→lock nos hot paths de add/remove + dirty queues.
   - ComponentManager: Additions/Removals viraram **double-buffer A/B swap** (zero alloc per frame). `AdditionMutex`/`RemovalMutex` (kernel-object Mutex, microsseconds por Wait/Release) → `lock(object)`. `HasComponent` não chama LINQ Any mais.
   - WaterManager: `ClearDirtyQueue` e `UpdateWater` drenam pro scratch reutilizado em vez de `new List<>(DirtyCells)` per tick. `SplashLock` Mutex→lock, `GetSplashQueue` no mesmo bloco.
