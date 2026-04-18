@@ -84,8 +84,10 @@ namespace DwarfCorp
 
         public bool EnableShadows
         {
-            get { return false; } // return Parameters["xEnableShadows"].GetValueBoolean(); } //TODO: MONOFIX
-            set { }//  Parameters["xEnableShadows"].SetValue(value);}
+            // Shadows were disabled during the XNA->Mono->FNA migration and the
+            // xEnableShadows shader parameter was never ported. Property is a stub.
+            get { return false; }
+            set { }
         }
 
         public Texture2D WaterBumpMap

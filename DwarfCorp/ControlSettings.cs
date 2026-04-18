@@ -123,10 +123,10 @@ namespace DwarfCorp
                 Mappings = new KeyMappings();
                 Save();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.Error.WriteLine($"ControlSettings load failed, falling back to defaults without re-saving: {e.Message}");
                 Mappings = new KeyMappings();
-                // Don't save in this case because who the fuck knows what went wrong.
             }
         }
     }

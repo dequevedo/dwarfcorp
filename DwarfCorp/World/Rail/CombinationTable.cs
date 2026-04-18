@@ -107,9 +107,9 @@ namespace DwarfCorp.Rail
 
                 AddCombination(combination);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // Yum
+                Console.Error.WriteLine($"Rail combination parse failed: {e.Message}");
             }
         }
 

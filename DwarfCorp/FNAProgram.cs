@@ -39,7 +39,7 @@ namespace DwarfCorp
                     Commit = reader.ReadToEnd();
                 Commit = Commit.Trim();
             }
-            catch (Exception) { }
+            catch (Exception e) { Console.Error.WriteLine($"Failed to read version.txt: {e.Message}"); }
             System.Net.ServicePointManager.ServerCertificateValidationCallback = SSLCallback;
 #if CREATE_CRASH_LOGS
             try

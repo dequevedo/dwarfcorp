@@ -11,8 +11,6 @@ namespace DwarfCorp
     /// <summary>
     /// This class renders a skybox and sky elements (like the sun and moon) to the screen.
     /// </summary>
-    /// 
-    //TODO: MONOFIX
     public class SkyRenderer
     {
         private TextureCube SkyTexture;

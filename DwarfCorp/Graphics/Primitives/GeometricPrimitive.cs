@@ -49,13 +49,6 @@ namespace DwarfCorp
             // Todo: Redesign so locking is not required.
             //lock (VertexLock)
             {
-#if MONOGAME_BUILD
-                device.SamplerStates[0].Filter = TextureFilter.MinLinearMagPointMipLinear;
-                device.SamplerStates[1].Filter = TextureFilter.MinLinearMagPointMipLinear;
-                device.SamplerStates[2].Filter = TextureFilter.MinLinearMagPointMipLinear;
-                device.SamplerStates[3].Filter = TextureFilter.MinLinearMagPointMipLinear;
-                device.SamplerStates[4].Filter = TextureFilter.MinLinearMagPointMipLinear;
-#endif
                 if (Vertices == null || Vertices.Length < 3)
                     return;
 

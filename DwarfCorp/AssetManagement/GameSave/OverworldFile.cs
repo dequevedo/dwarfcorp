@@ -97,8 +97,9 @@ namespace DwarfCorp
                 var metaFilePath = filePath + Path.DirectorySeparatorChar + "meta.txt";
                 return FileUtils.LoadJsonFromAbsolutePath<OverworldMetaData>(metaFilePath).Overworld.Name;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.Error.WriteLine($"Failed to read overworld name from {filePath}: {e.Message}");
                 return "?";
             }
         }

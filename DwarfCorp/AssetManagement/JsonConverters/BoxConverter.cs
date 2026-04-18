@@ -71,8 +71,9 @@ namespace DwarfCorp
                     return new DwarfBux(decimal.Parse(token.ToString(),
                            global::System.Globalization.CultureInfo.GetCultureInfo("es-ES")));
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Console.Error.WriteLine($"BoxConverter: failed to parse '{token}' as DwarfBux ({e.Message}), defaulting to 0");
                     return new DwarfBux(0);
                 }
             }

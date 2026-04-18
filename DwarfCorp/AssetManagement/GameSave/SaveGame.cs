@@ -159,8 +159,10 @@ namespace DwarfCorp
                         var saveGame = SaveGame.LoadMetaFromDirectory(dir.FullName);
                         valid = Program.CompatibleVersions.Contains(saveGame.Metadata.Version);
                     }
-                    catch (Exception)
-                    { }
+                    catch (Exception e)
+                    {
+                        Console.Error.WriteLine($"Skipping save dir {dir.FullName}: {e.Message}");
+                    }
 
                     if (valid) newest = dir;
                 }

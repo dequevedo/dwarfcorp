@@ -93,12 +93,12 @@ namespace DwarfCorp
 
         public Keys GetKey(string name)
         {
-            if(!Buttons.ContainsKey(name))
+            if (!Buttons.TryGetValue(name, out var key))
             {
-                throw new KeyNotFoundException();
+                Console.Error.WriteLine($"KeyManager: unknown key binding '{name}', returning Keys.None");
+                return Keys.None;
             }
-
-            return Buttons[name];
+            return key;
         }
 
 
