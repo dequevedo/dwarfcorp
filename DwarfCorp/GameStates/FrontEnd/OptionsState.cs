@@ -69,6 +69,7 @@ namespace DwarfCorp.GameStates
         private CheckBox DisableTutorialForAllGames;
         private EditableTextField SaveLocation;
         private SliderCombo SpeciesLimitAdjust;
+        private ComboBox ColorProfile;
 
         public OptionsState(DwarfGame Game) :
             base(Game)
@@ -454,6 +455,22 @@ namespace DwarfCorp.GameStates
                     });
                 }
             }));
+
+            ColorProfile = leftPanel.AddChild(LabelAndDockWidget("Color Profile", new ComboBox
+            {
+                Items = ColorSettings.Profiles.Keys.ToList(),
+                Tooltip = "Switches the designation color palette. 'Colorblind' uses distinct shapes/brightnesses for deuteranopia-friendly play.",
+                Border = "border-thin",
+                OnSelectedIndexChanged = (sender) =>
+                {
+                    var combo = sender as ComboBox;
+                    if (combo != null && ColorSettings.Profiles.TryGetValue(combo.SelectedItem, out var profile))
+                    {
+                        GameSettings.Current.Colors = profile.Clone();
+                        HasChanges = true;
+                    }
+                }
+            })).GetChild(1) as ComboBox;
 
             SpeciesLimitAdjust = leftPanel.AddChild(LabelAndDockWidget("Species Limit % ", new SliderCombo
             {
@@ -1114,6 +1131,7 @@ namespace DwarfCorp.GameStates
             this.MaxSaves.SelectedIndex = this.MaxSaves.Items.IndexOf(GameSettings.Current.MaxSaves.ToString());
             this.DisableTutorialForAllGames.CheckState = GameSettings.Current.TutorialDisabledGlobally;
             this.SaveLocation.Text = String.IsNullOrEmpty(GameSettings.Current.SaveLocation) ? "" : GameSettings.Current.SaveLocation;
+            this.ColorProfile.SelectedIndex = 0;
 
             // Audio settings
             this.MasterVolume.ScrollPosition = GameSettings.Current.MasterVolume;
