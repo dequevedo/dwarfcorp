@@ -1,9 +1,7 @@
 using System;
 using DwarfCorp.GameStates;
 using DwarfCorp.Gui;
-#if !XNA_BUILD && !GEMMONO
 using SDL2;
-#endif
 
 namespace DwarfCorp
 {

@@ -370,7 +370,6 @@
     <Compile Include="Player\ContextCommands\WrangleCommand.cs" />
     <Compile Include=".\ControlSettings.cs" />
     <Compile Include=".\Debugger.cs" />
-    <Compile Include=".\DeProfiler.cs" />
     <Compile Include=".\DwarfGame.cs" />
     <Compile Include=".\Entities\Animals\Bat.cs" />
     <Compile Include=".\Entities\Animals\Bird.cs" />
@@ -619,8 +618,6 @@
     <Compile Include=".\Gui\InputEventArgs.cs" />
     <Compile Include=".\Gui\Input\FNAInputMapper.cs" />
     <Compile Include=".\Gui\Input\Input.cs" />
-    <Compile Include=".\Gui\Input\InputMapper.cs" />
-    <Compile Include=".\Gui\Input\MessageFilter.cs" />
     <Compile Include=".\Gui\Layout.cs" />
     <Compile Include=".\Gui\Margin.cs" />
     <Compile Include=".\Gui\MousePointer.cs" />
@@ -689,7 +686,6 @@
     <Compile Include=".\Gui\Widgets\TutorialPopup.cs" />
     <Compile Include=".\Gui\Widgets\VerticalScrollBar.cs" />
     <Compile Include=".\Gui\Widgets\WidgetListView.cs" />
-    <Compile Include=".\NativeInjector.cs" />
     <Compile Include="Graphics\ParticleEffects\ParticleEmitter.cs" />
     <Compile Include="Graphics\ParticleEffects\ParticleManager.cs" />
     <Compile Include="Graphics\ParticleEffects\ParticleTrigger.cs" />
@@ -1011,11 +1007,12 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>XCOPY "$(SolutionDir)FNA_libs\win32\*" "$(ProjectDir)$(OutDir)" /Y /E /V /D
+    <PostBuildEvent>SET REPO=$(MSBuildProjectDirectory)\..
+XCOPY "%25REPO%25\FNA_libs\win32\*" "$(ProjectDir)$(OutDir)" /Y /E /V /D
 IF NOT EXIST "$(ProjectDir)$(OutDir)Content" MD "$(ProjectDir)$(OutDir)Content"
-XCOPY "$(SolutionDir)ContentMGCB\bin\Content" "$(ProjectDir)$(OutDir)Content" /Y /E /D
-XCOPY "$(SolutionDir)DwarfCorpContent" "$(ProjectDir)$(OutDir)Content" /Y /E /D /EXCLUDE:"$(SolutionDir)ContentMGCB\copy-exclude.txt"
-py "$(SolutionDir)ContentMGCB\patch_xnb_types.py" "$(ProjectDir)$(OutDir)Content"</PostBuildEvent>
+XCOPY "%25REPO%25\ContentMGCB\bin\Content" "$(ProjectDir)$(OutDir)Content" /Y /E /D
+XCOPY "%25REPO%25\DwarfCorpContent" "$(ProjectDir)$(OutDir)Content" /Y /E /D /EXCLUDE:%25REPO%25\ContentMGCB\copy-exclude.txt
+py "%25REPO%25\ContentMGCB\patch_xnb_types.py" "$(ProjectDir)$(OutDir)Content"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>"C:\Program Files\Git\bin\git.exe" rev-parse --short HEAD &gt; "$(ProjectDir)version.txt" &amp;&amp; ( (call )) || ( "C:\Program Files (x86)\Git\bin\git.exe" rev-parse --short HEAD &gt; "$(ProjectDir)version.txt" )</PreBuildEvent>

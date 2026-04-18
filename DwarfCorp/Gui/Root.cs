@@ -621,13 +621,7 @@ namespace DwarfCorp.Gui
             RenderData.Effect.Parameters["World"].SetValue(
                 Matrix.CreateTranslation(RenderData.RealScreen.X, RenderData.RealScreen.Y, 1.0f)
                 * Matrix.CreateScale(scale)
-#if GEMXNA
-                * Matrix.CreateTranslation(-0.5f, -0.5f, 0.0f));
-#elif GEMMONO
-                );
-#elif GEMFNA
 );
-#endif
 
             RenderData.Effect.Parameters["Texture"].SetValue(Texture);
 
@@ -686,13 +680,7 @@ namespace DwarfCorp.Gui
             RenderData.Effect.Parameters["World"].SetValue(
                 Matrix.CreateTranslation(RenderData.RealScreen.X, RenderData.RealScreen.Y, 1.0f)
                 * Matrix.CreateScale(scale)
-#if GEMXNA
-                * Matrix.CreateTranslation(-0.5f, -0.5f, 0.0f));
-#elif GEMMONO
                 );
-#elif GEMFNA
-                );
-#endif
 
             RenderData.Effect.Parameters["Texture"].SetValue(SpriteAtlas.Texture);
             RenderData.Effect.CurrentTechnique.Passes[0].Apply();
@@ -730,13 +718,7 @@ namespace DwarfCorp.Gui
             RenderData.Effect.Parameters["World"].SetValue(
                 Matrix.CreateTranslation(RenderData.RealScreen.X, RenderData.RealScreen.Y, 1.0f)
                 * Matrix.CreateScale(scale)
-#if GEMXNA
-                * Matrix.CreateTranslation(-0.5f, -0.5f, 0.0f));
-#elif GEMMONO
                 );
-#elif GEMFNA
-                );
-#endif
 
             RenderData.Effect.Parameters["Texture"].SetValue(SpriteAtlas.Texture);
             RenderData.Effect.CurrentTechnique.Passes[0].Apply();

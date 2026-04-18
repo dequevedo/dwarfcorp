@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -82,31 +82,6 @@ namespace DwarfCorp
             FPSBuffer[k % 100] = FPS;
             k++;
             var avgFPS = (int)FPSBuffer.Average();
-#if XNA_BUILD
-            if (!SentPerfReport && GameSettings.Current.AllowReporting && avgFPS < 20)
-            {
-                if (FPSFaultTimer != null && FPSFaultTimer.Elapsed.TotalSeconds > 5)
-                {
-                    /*
-                    var settings = FileUtils.SerializeBasicJSON<GameSettings.Settings>(GameSettings.Default);
-                    var adapter = GameStates.GameState.Game.GraphicsDevice.Adapter;
-                    var deviceDetails = String.Format("Num Cores: {4}\nDevice:\nName: {0}\n ID: {1}\n Description: {2}\n Vendor: {3}", adapter.DeviceName, adapter.DeviceId, adapter.Description, adapter.VendorId, Environment.ProcessorCount);
-                    var memory = GameStates.PlayState.BytesToString(System.GC.GetTotalMemory(false));
-                    (GameStates.GameState.Game as DwarfGame).TriggerRavenEvent("Low performance detected", String.Format("Average FPS: {0}\nSettings:\n{1}\n{2}\nRAM: {3} {4}", avgFPS, settings, deviceDetails, memory, GameStates.PlayState.BytesToString(Environment.WorkingSet)));
-                    SentPerfReport = true;
-                    */
-                }
-                else if (FPSFaultTimer == null)
-                {
-                    FPSFaultTimer = Stopwatch.StartNew();
-                }
-            }
-            else if (!SentPerfReport && GameSettings.Current.AllowReporting)
-            {
-
-                FPSFaultTimer = null;
-            }
-#endif
 
             if (DwarfGame.IsConsoleVisible)
             {

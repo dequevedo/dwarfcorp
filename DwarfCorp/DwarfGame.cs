@@ -8,9 +8,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Linq;
 using Newtonsoft.Json;
-#if !XNA_BUILD && !GEMMONO
 using SDL2;
-#endif
 using SharpRaven;
 using SharpRaven.Data;
 using System.Collections.Generic;
@@ -82,7 +80,6 @@ namespace DwarfCorp
                 Exit();
         }
 
-#if !XNA_BUILD && !GEMMONO
         public static string GetGameDirectory()
         {
             string platform = SDL.SDL_GetPlatform();
@@ -116,14 +113,7 @@ namespace DwarfCorp
             }
             throw new Exception("SDL platform unhandled: " + platform);
         }
-#endif
 
-#if XNA_BUILD || GEMMONO
-        public static string GetGameDirectory()
-        {
-            return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + GameName;
-        }
-#endif
 
         public static string GetSaveDirectory()
         {

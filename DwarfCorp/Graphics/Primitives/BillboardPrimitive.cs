@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -180,13 +180,11 @@ namespace DwarfCorp
                 ResetBuffer(GameState.Game.GraphicsDevice);
             else
             {
-#if !GEMMONO
                 var buffers = GameState.Game.GraphicsDevice.GetVertexBuffers();
                 if (buffers.Any(buffer => buffer.VertexBuffer == VertexBuffer))
                 {
                     GameState.Game.GraphicsDevice.SetVertexBuffer(null);
                 }
-#endif                
                 VertexBuffer.SetData(Vertices);
             }
 

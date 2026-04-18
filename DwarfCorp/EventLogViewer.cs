@@ -8,9 +8,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Linq;
 using Newtonsoft.Json;
-#if !XNA_BUILD && !GEMMONO
 using SDL2;
-#endif
 using SharpRaven;
 using SharpRaven.Data;
 using System.Collections.Generic;

@@ -240,7 +240,6 @@ namespace DwarfCorp.Gui.Input
         
         public GumInputMapper(IntPtr WindowHandle)
         {
-#if !GEMMONO
             Microsoft.Xna.Framework.Input.TextInputEXT.TextInput += c =>
                 {
                     QueueLock.WaitOne();
@@ -259,7 +258,6 @@ namespace DwarfCorp.Gui.Input
                 };
 
             Microsoft.Xna.Framework.Input.TextInputEXT.StartTextInput();
-#endif
         }
     }
 }

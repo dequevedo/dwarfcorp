@@ -718,15 +718,7 @@ namespace DwarfCorp
         }
         public class Music
         {
-#if XNA_BUILD
-            public static string dwarfcorp = ProgramData.CreatePath("Music", "dwarfcorp");
-            public static string dwarfcorp_2 = ProgramData.CreatePath("Music", "dwarfcorp_2");
-            public static string dwarfcorp_3 = ProgramData.CreatePath("Music", "dwarfcorp_3");
-            public static string dwarfcorp_4 = ProgramData.CreatePath("Music", "dwarfcorp_4");
-            public static string dwarfcorp_5 = ProgramData.CreatePath("Music", "dwarfcorp_5");
-#else
             public static string dwarfcorp = ProgramData.CreatePath("Music", "dwarfcorp_ogg");
-#endif
 
         }
         public class Shaders

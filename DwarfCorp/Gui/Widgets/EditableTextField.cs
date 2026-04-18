@@ -130,21 +130,6 @@ namespace DwarfCorp.Gui.Widgets
                     {
                         return;
                     }
-#if XNA_BUILD
-                    if (args.KeyValue == (int)global::System.Windows.Forms.Keys.Up)
-                    {
-                        Root.SafeCall(ArrowKeyUpDown, this, 1);
-                    }
-                    else if (args.KeyValue == (int)global::System.Windows.Forms.Keys.Down)
-                    {
-                        Root.SafeCall(ArrowKeyUpDown, this, -1);
-                    }
-
-                    if (args.KeyValue == (int)global::System.Windows.Forms.Keys.Enter)
-                    {
-                        Root.SafeCall(OnEnter, this);
-                    }
-#else
                     if (args.KeyValue == (int)Microsoft.Xna.Framework.Input.Keys.Up)
                     {
                         Root.SafeCall(ArrowKeyUpDown, this, 1);
@@ -158,7 +143,6 @@ namespace DwarfCorp.Gui.Widgets
                     {
                         Root.SafeCall(OnEnter, this);
                     }
-#endif
 
                     var beforeEventArgs = new BeforeTextChangeEventArgs
                         {

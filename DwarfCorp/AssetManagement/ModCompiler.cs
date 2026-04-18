@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,12 +27,6 @@ namespace DwarfCorp
             //parameters.ReferencedAssemblies.Add("Microsoft.Xna.Framework.Graphics.dll");
             parameters.ReferencedAssemblies.Add("DwarfCorp.exe");
 
-#if XNA_BUILD
-            // On FNA, the correct assemblies would be in the directory with the executable.
-            parameters.ReferencedAssemblies.Add(Environment.GetEnvironmentVariable("XNAGSv4") + @"\References\Windows\x86\Microsoft.Xna.Framework.dll");
-            parameters.ReferencedAssemblies.Add(Environment.GetEnvironmentVariable("XNAGSv4") + @"\References\Windows\x86\Microsoft.Xna.Framework.Game.dll");
-            parameters.ReferencedAssemblies.Add(Environment.GetEnvironmentVariable("XNAGSv4") + @"\References\Windows\x86\Microsoft.Xna.Framework.Graphics.dll");
-#endif
             //foreach (var file in System.IO.Directory.EnumerateFiles(Environment.CurrentDirectory))
             //{
             //    if (System.IO.Path.GetExtension(file) == ".dll")
