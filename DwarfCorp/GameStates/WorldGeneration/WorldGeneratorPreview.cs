@@ -264,7 +264,7 @@ namespace DwarfCorp.GameStates
                 if (PreviewEffect == null)
                     PreviewEffect = GameState.Game.Content.Load<Effect>("Content\\Shaders\\OverworldShader");
 
-                if (PreviewEffect != null)
+                if (PreviewEffect != null && Mesh != null && Mesh.LandMesh != null && Mesh.LandIndex != null)
                 {
 
                     PreviewEffect.Parameters["World"].SetValue(Matrix.Identity);
@@ -311,8 +311,14 @@ namespace DwarfCorp.GameStates
                 Device.Indices = null;
                 Device.SetVertexBuffer(null);
             }
-            catch (InvalidOperationException exception)
+            catch (InvalidOperationException)
             {
+                return;
+            }
+            catch (NullReferenceException)
+            {
+                // Race between async world-gen and render thread on partially
+                // constructed Mesh/Overworld. Skip this frame; try again next tick.
                 return;
             }
         }

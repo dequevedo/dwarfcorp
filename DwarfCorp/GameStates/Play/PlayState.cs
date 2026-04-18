@@ -131,7 +131,8 @@ namespace DwarfCorp.GameStates
                         World.MakeAnnouncement(success ? "File autosaved." : "Autosave failed - " + exception.Message);
                         World.Paused = paused;
                         callback?.Invoke(success);
-                    });
+                    },
+                    isAutoSave: true);
         }
     }
 }

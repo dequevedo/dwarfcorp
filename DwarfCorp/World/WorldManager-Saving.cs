@@ -11,16 +11,16 @@ namespace DwarfCorp
     {
         public delegate void SaveCallback(bool success, Exception e);
 
-        public void Save(WorldManager.SaveCallback callback = null)
+        public void Save(WorldManager.SaveCallback callback = null, bool isAutoSave = false)
         {
             Paused = true;
-            var waitforsave = new WaitState(Game, "Saving...", () => SaveThreadRoutine());
+            var waitforsave = new WaitState(Game, "Saving...", () => SaveThreadRoutine(isAutoSave));
             if (callback != null)
                 waitforsave.OnFinished += (bool b, WaitStateException e) => callback(b, e);
             GameStateManager.PushState(waitforsave);
         }
 
-        private bool SaveThreadRoutine()
+        private bool SaveThreadRoutine(bool isAutoSave)
         {
 #if !DEBUG
             try
@@ -36,8 +36,17 @@ namespace DwarfCorp
             file.WriteFile(worldDirectory.FullName);
 
             var gameFile = SaveGame.CreateFromWorld(this);
-            var path = worldDirectory.FullName + Path.DirectorySeparatorChar + String.Format("{0}-{1}", (int)Overworld.InstanceSettings.Origin.X, (int)Overworld.InstanceSettings.Origin.Y);
-            SaveGame.DeleteOldestSave(path, GameSettings.Current.MaxSaves, "Autosave");
+            var baseName = String.Format("{0}-{1}", (int)Overworld.InstanceSettings.Origin.X, (int)Overworld.InstanceSettings.Origin.Y);
+            // Autosaves land in a timestamped sibling directory so a manual save
+            // doesn't overwrite them (upstream issue #981).
+            var path = worldDirectory.FullName + Path.DirectorySeparatorChar
+                + (isAutoSave
+                    ? String.Format("{0}-Autosave-{1:yyyyMMdd-HHmmss}", baseName, DateTime.Now)
+                    : baseName);
+            if (isAutoSave)
+                SaveGame.RotateSavesMatching(path, GameSettings.Current.MaxSaves, "-Autosave-");
+            else
+                SaveGame.DeleteOldestSave(path, GameSettings.Current.MaxSaves, "-Autosave-");
             gameFile.WriteFile(path);
             ComponentManager.CleanupSaveData();
 

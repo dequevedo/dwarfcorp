@@ -55,6 +55,18 @@ namespace DwarfCorp
                 oldestDir.Delete(true);
         }
 
+        public static void RotateSavesMatching(string subdir, int maxToKeep, string mustContain)
+        {
+            var dir = global::System.IO.Directory.CreateDirectory(subdir);
+            var parent = dir.Parent;
+            var matching = parent.GetDirectories().Where(d => d.Name.Contains(mustContain)).ToList();
+            if (matching.Count <= maxToKeep)
+                return;
+            matching.Sort((a, b) => a.LastWriteTime.CompareTo(b.LastWriteTime));
+            for (int i = 0; i < matching.Count - maxToKeep; i++)
+                matching[i].Delete(true);
+        }
+
         private SaveGame() { }
         
         public bool ReadChunks()
