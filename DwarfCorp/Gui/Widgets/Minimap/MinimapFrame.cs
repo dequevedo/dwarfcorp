@@ -17,6 +17,12 @@ namespace DwarfCorp.Gui.Widgets.Minimap
         public String Frame = "minimap-frame";
         public MinimapRenderer Renderer;
         private TextureAtlas.SpriteAtlasEntry DynamicAtlasEntry = null;
+        // Placeholder Texture2D we pass to AddDynamicSheet on first update (it requires a
+        // Texture2D up front). Subsequent updates swap it for the MinimapRenderer's actual
+        // RenderTarget via ReplaceTexture — so this placeholder is dropped on the floor and
+        // was finalized as "Texture2D with tag and name was not Disposed". Tracked here so
+        // we can dispose it once the real RenderTarget has taken over.
+        private Texture2D _placeholderTex = null;
 
         // When Collapsed is true the minimap body is hidden and only the header bar
         // (with zoom and collapse buttons) is drawn. Flip via the −/+ button in the
@@ -56,7 +62,7 @@ namespace DwarfCorp.Gui.Widgets.Minimap
 
                 if (DynamicAtlasEntry == null)
                 {
-                    var tex = new Texture2D(Root.RenderData.Device, Renderer.RenderWidth, Renderer.RenderHeight);
+                    _placeholderTex = new Texture2D(Root.RenderData.Device, Renderer.RenderWidth, Renderer.RenderHeight);
                     DynamicAtlasEntry = Root.SpriteAtlas.AddDynamicSheet(null,
                         new TileSheetDefinition
                         {
@@ -65,11 +71,20 @@ namespace DwarfCorp.Gui.Widgets.Minimap
                             RepeatWhenUsedAsBorder = false,
                             Type = TileSheetType.TileSheet
                         },
-                        tex);
+                        _placeholderTex);
                 }
 
                 if (Renderer.RenderTarget != null)
+                {
                     DynamicAtlasEntry.ReplaceTexture(Renderer.RenderTarget);
+                    // Once the real RenderTarget has been swapped in, the placeholder is no
+                    // longer referenced by the atlas entry. Dispose it exactly once.
+                    if (_placeholderTex != null && !_placeholderTex.IsDisposed)
+                    {
+                        _placeholderTex.Dispose();
+                        _placeholderTex = null;
+                    }
+                }
 
                 this.Invalidate();
             };
