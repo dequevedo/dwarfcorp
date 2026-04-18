@@ -46,6 +46,7 @@ namespace DwarfCorp
 
         public BloomComponent bloom;
         public FXAA fxaa;
+        public OutlineEffect Outline;
         public ChunkRenderer ChunkRenderer;
         public WaterRenderer WaterRenderer;
         public SkyRenderer Sky;
@@ -371,6 +372,20 @@ namespace DwarfCorp
                 //bloom.BeginDraw();
             }
 
+            // Screen-space outline post-effect: redirect the main scene to an intermediate
+            // render target; End() below blits it back with the outline shader applied.
+            bool outlineActive = GameSettings.Current.EnableOutline;
+            if (outlineActive)
+            {
+                if (Outline == null)
+                {
+                    Outline = new OutlineEffect();
+                    Outline.Initialize();
+                    CrashBreadcrumbs.Push("OutlineEffect initialized");
+                }
+                Outline.Begin(gameTime);
+            }
+
             // Draw the sky
             GraphicsDevice.Clear(DefaultShader.FogColor);
             DrawSky(gameTime, Camera.ViewMatrix, 1.0f, DefaultShader.FogColor);
@@ -430,6 +445,12 @@ namespace DwarfCorp
                 World.ChunkManager);
             World.ParticleManager.Render(World, GraphicsDevice);
             DefaultShader.ClippingEnabled = false;
+
+            // Flush the outline pass back to the previously-bound render target (typically
+            // the backbuffer). Done before any subsequent UI/debug drawing so outlines only
+            // affect the world, not the HUD.
+            if (outlineActive && Outline != null)
+                Outline.End(gameTime);
 
             if (UseFXAA && fxaa == null)
             {

@@ -158,6 +158,18 @@ namespace DwarfCorp
             {
                 case InputManager.MouseButton.Left:
                     SelectDwarves(bodies);
+                    // Single-click on a dwarf → open the Employee Details panel for them.
+                    // Skip when the player is drag-box-selecting multiple dwarfs (that's
+                    // intentional multi-select and shouldn't spawn a detail window).
+                    if (World.PersistentData.SelectedMinions.Count == 1 && World.UserInterface != null)
+                    {
+                        var onlySelected = World.PersistentData.SelectedMinions[0];
+                        var screen = GameState.Game.GraphicsDevice.Viewport.Bounds;
+                        // Anchor the panel to the left-center of the screen; ShowEmployeeDialog
+                        // flips it to the opposite side if it would overflow.
+                        var anchor = new Microsoft.Xna.Framework.Rectangle(0, screen.Height / 4, 0, 0);
+                        World.UserInterface.ShowEmployeeDialog(onlySelected, anchor);
+                    }
                     break;
             }
         }

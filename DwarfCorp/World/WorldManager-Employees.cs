@@ -53,6 +53,11 @@ namespace DwarfCorp
             var spawnOffset = MathFunctions.RandVector2Circle();
             spawnLoc += new Vector3(spawnOffset.X, 0.0f, spawnOffset.Y);
 
+            // Steam bug: dwarfs sometimes spawn inside a solid voxel (because the random
+            // XZ offset can land on a hill/wall near the balloon port). Walk up in Y until
+            // we find an empty voxel so the new dwarf is never trapped in terrain.
+            spawnLoc = FindEmptyVoxelAbove(spawnLoc, maxSteps: 10);
+
             var dwarfPhysics = DwarfFactory.GenerateDwarf(
                     spawnLoc,
                     ComponentManager, currentApplicant.Loadout, currentApplicant.Gender, currentApplicant.RandomSeed);
@@ -77,6 +82,23 @@ namespace DwarfCorp
             ParticleManager.Trigger("dwarf_puff", spawnLoc, Color.DarkViolet, 90);
 
             SoundManager.PlaySound(ContentPaths.Audio.Oscar.sfx_gui_positive_generic, 0.15f);
+        }
+
+        /// <summary>
+        /// Walks up in Y from <paramref name="start"/> until it finds a voxel that's either
+        /// invalid (outside world — we just return the original point) or empty. Used by the
+        /// hire/spawn path so dwarfs never materialize inside terrain.
+        /// </summary>
+        public Vector3 FindEmptyVoxelAbove(Vector3 start, int maxSteps = 10)
+        {
+            for (int i = 0; i < maxSteps; i++)
+            {
+                var probe = start + new Vector3(0, i, 0);
+                var v = new VoxelHandle(ChunkManager, GlobalVoxelCoordinate.FromVector3(probe));
+                if (!v.IsValid) return start; // outside world bounds; bail with original
+                if (v.IsEmpty) return probe;
+            }
+            return start + new Vector3(0, maxSteps, 0);
         }
 
         public void FireEmployee(CreatureAI Employee)

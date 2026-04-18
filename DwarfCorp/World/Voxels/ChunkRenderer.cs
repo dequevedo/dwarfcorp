@@ -19,6 +19,22 @@ namespace DwarfCorp
         public List<VoxelChunk> LiveVoxelList = new List<VoxelChunk>();
         private int RenderCycle = 1;
 
+        // Reusable scratch buffer for the per-frame visibility pass. Previously Update()
+        // allocated a fresh HashSet + List every frame, which showed up as GC pressure
+        // while panning the camera.
+        private readonly HashSet<VoxelChunk> _visibleScratch = new HashSet<VoxelChunk>();
+
+        // Cache the camera's view*projection matrix so we can skip the expensive
+        // triple-nested frustum scan when the camera hasn't moved or rotated. This is
+        // the main cause of FPS dropping *only while moving* — a static camera already
+        // computes the same visible set every frame.
+        private Matrix _lastVisibilityViewProj;
+        private bool _hasLastVisibilityViewProj;
+        // Force a full visibility recompute every N frames even if the camera is static,
+        // so chunks finishing their background load/build join RenderList within a handful
+        // of frames instead of being invisible until the player moves.
+        private int _framesSinceFullRecompute;
+        private const int ForceRecomputeEveryFrames = 15;
 
         public ChunkManager ChunkData;
 
@@ -121,9 +137,38 @@ namespace DwarfCorp
 
         public void Update(DwarfTime gameTime, Camera camera, GraphicsDevice g)
         {
-            var visibleSet = new HashSet<VoxelChunk>();
-            GetChunksIntersecting(camera.GetDrawFrustum(), visibleSet);
-            foreach (var chunk in visibleSet)
+            PerformanceMonitor.PushFrame("ChunkRenderer.Update");
+
+            var frustum = camera.GetDrawFrustum();
+            var viewProj = frustum.Matrix;
+
+            // Fast path: camera is static AND we've refreshed recently — the visible set
+            // cannot have changed geometrically, so reuse the previous RenderList instead of
+            // doing the triple-nested frustum scan. Even with a static camera we still fall
+            // through to the slow path every ForceRecomputeEveryFrames frames to catch chunks
+            // that finish their background load/build (crucial during map startup, where a
+            // pure skip would leave RenderList missing freshly-loaded terrain until the
+            // player moves).
+            _framesSinceFullRecompute += 1;
+            if (_hasLastVisibilityViewProj
+                && viewProj == _lastVisibilityViewProj
+                && _framesSinceFullRecompute < ForceRecomputeEveryFrames)
+            {
+                foreach (var chunk in RenderList)
+                    chunk.RenderCycleWhenLastVisible = RenderCycle;
+                RenderCycle += 1;
+                PerformanceMonitor.PopFrame();
+                return;
+            }
+
+            _lastVisibilityViewProj = viewProj;
+            _hasLastVisibilityViewProj = true;
+            _framesSinceFullRecompute = 0;
+
+            // Reuse the scratch set instead of allocating a new one each frame.
+            GetChunksIntersecting(frustum, _visibleScratch);
+
+            foreach (var chunk in _visibleScratch)
             {
                 if (chunk.Visible == false)
                 {
@@ -138,7 +183,11 @@ namespace DwarfCorp
                 if (chunk.RenderCycleWhenLastVisible != RenderCycle)
                     chunk.Visible = false;
 
-            RenderList = visibleSet.ToList();
+            // Rebuild RenderList in place so callers holding a reference still see it, and
+            // we avoid allocating a new List every frame.
+            RenderList.Clear();
+            foreach (var chunk in _visibleScratch)
+                RenderList.Add(chunk);
 
             //var loadedSet = new HashSet<VoxelChunk>();
             //GetChunksInRadius(camera.Position, GameSettings.Current.ChunkLoadDistance, loadedSet);
@@ -156,6 +205,7 @@ namespace DwarfCorp
             //LiveVoxelList = loadedSet.ToList();
 
             RenderCycle += 1;
+            PerformanceMonitor.PopFrame();
         }
     }
 }

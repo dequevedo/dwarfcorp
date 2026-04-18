@@ -23,6 +23,13 @@ namespace DwarfCorp
         public Farm Farm;
         public int LastGrowthHour = 0;
 
+        // Safety-net timer for "floating tree" bug: the GenericVoxelListener below should
+        // already die the plant when its support voxel becomes air, but Steam reviewers
+        // kept reporting trees suspended in mid-air — likely because some voxel changes
+        // miss the event. We re-validate support every ~2 seconds as backup.
+        [JsonIgnore] private float _supportCheckAccumulator = 0f;
+        private const float SupportCheckInterval = 2.0f;
+
         public Plant()
         {
             //SetFlag(Flag.DontUpdate, true);
@@ -136,6 +143,21 @@ namespace DwarfCorp
 
             if (!Active)
                 return;
+
+            // Safety-net: re-check support voxel every few seconds. The GenericVoxelListener
+            // is the primary mechanism, but this backup catches any missed events that
+            // otherwise leave the plant floating.
+            _supportCheckAccumulator += (float)Time.ElapsedRealTime.TotalSeconds;
+            if (_supportCheckAccumulator >= SupportCheckInterval)
+            {
+                _supportCheckAccumulator = 0f;
+                var under = new VoxelHandle(Chunks, GlobalVoxelCoordinate.FromVector3(BasePosition - new Vector3(0, 0.5f, 0)));
+                if (!under.IsValid || under.IsEmpty)
+                {
+                    Die();
+                    return;
+                }
+            }
 
             // Todo: Move this to an update system.
             //var currentHour = World.Time.CurrentDate.Hour;

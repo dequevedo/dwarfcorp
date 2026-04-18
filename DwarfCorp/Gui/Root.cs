@@ -571,9 +571,15 @@ namespace DwarfCorp.Gui
             // Check to see if tooltip should be displayed.
             if (TooltipItem == null && HoverItem != null && !String.IsNullOrEmpty(HoverItem.Tooltip))
             {
-                var hoverTime = DateTime.Now - MouseMotionTime;
-                if (hoverTime.TotalSeconds > SecondsBeforeTooltip)
-                    ShowTooltip(MousePosition, HoverItem.Tooltip);
+                // Defensive: legacy code / serialized widgets sometimes carry a literal
+                // "hover gui" placeholder tooltip that escaped into release builds (cited in
+                // several Steam reviews). Never show it — treat it as empty.
+                if (!string.Equals(HoverItem.Tooltip, "hover gui", StringComparison.OrdinalIgnoreCase))
+                {
+                    var hoverTime = DateTime.Now - MouseMotionTime;
+                    if (hoverTime.TotalSeconds > SecondsBeforeTooltip)
+                        ShowTooltip(MousePosition, HoverItem.Tooltip);
+                }
             }
 
             RunTime = Time.TotalGameTime.TotalSeconds;

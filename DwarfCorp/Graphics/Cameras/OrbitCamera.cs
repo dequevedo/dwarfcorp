@@ -401,15 +401,21 @@ namespace DwarfCorp
 
                     if (closestVoxel.IsValid)
                     {
+                        // Smoothly slide the camera out of the voxel it's clipping into instead
+                        // of teleporting. The previous hard snap caused visible bobbing every
+                        // time the player walked along a voxel edge.
                         var newPosition = closestVoxel.GetBoundingBox().Center();
                         var diff = (newPosition - Position);
-                        MoveTarget(diff);
+                        MoveTarget(diff * 0.15f);
                     }
                 }
             }
 
-            Target += right * diffTheta * 0.1f;
-            var newTarget = up * diffPhi * 0.1f + Target;
+            // Walk-mode look sensitivity is exposed in settings; default 1.0f preserves the
+            // previous hardcoded 0.1f factor.
+            var lookSensitivity = 0.1f * GameSettings.Current.WalkMouseSensitivity;
+            Target += right * diffTheta * lookSensitivity;
+            var newTarget = up * diffPhi * lookSensitivity + Target;
             var newForward = (Target - Position);
             if (Math.Abs(Vector3.Dot(newForward, UpVector)) < 0.99f)
             {
@@ -566,6 +572,10 @@ namespace DwarfCorp
 
             Vector3 velocityToSet = Vector3.Zero;
 
+            // Hold Shift to move the camera faster. LeftShift is preferred because RightShift is
+            // already used to enter mouse-rotation mode above.
+            float speedMultiplier = (keys.IsKeyDown(Keys.LeftShift) || keys.IsKeyDown(Keys.RightShift)) ? 3.0f : 1.0f;
+
             //if (EnableControl)
             {
                 if (keys.IsKeyDown(ControlSettings.Mappings.Forward) || keys.IsKeyDown(Keys.Up))
@@ -573,14 +583,14 @@ namespace DwarfCorp
                     Vector3 mov = forward;
                     mov.Y = 0;
                     mov.Normalize();
-                    velocityToSet += mov * CameraMoveSpeed * dt;
+                    velocityToSet += mov * CameraMoveSpeed * dt * speedMultiplier;
                 }
                 else if (keys.IsKeyDown(ControlSettings.Mappings.Back) || keys.IsKeyDown(Keys.Down))
                 {
                     Vector3 mov = forward;
                     mov.Y = 0;
                     mov.Normalize();
-                    velocityToSet += -mov * CameraMoveSpeed * dt;
+                    velocityToSet += -mov * CameraMoveSpeed * dt * speedMultiplier;
                 }
 
                 if (keys.IsKeyDown(ControlSettings.Mappings.Left) || keys.IsKeyDown(Keys.Left))
@@ -588,14 +598,14 @@ namespace DwarfCorp
                     Vector3 mov = right;
                     mov.Y = 0;
                     mov.Normalize();
-                    velocityToSet += -mov * CameraMoveSpeed * dt;
+                    velocityToSet += -mov * CameraMoveSpeed * dt * speedMultiplier;
                 }
                 else if (keys.IsKeyDown(ControlSettings.Mappings.Right) || keys.IsKeyDown(Keys.Right))
                 {
                     Vector3 mov = right;
                     mov.Y = 0;
                     mov.Normalize();
-                    velocityToSet += mov * CameraMoveSpeed * dt;
+                    velocityToSet += mov * CameraMoveSpeed * dt * speedMultiplier;
                 }
             }
             //else 

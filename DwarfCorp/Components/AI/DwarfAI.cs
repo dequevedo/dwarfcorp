@@ -69,7 +69,12 @@ namespace DwarfCorp
                 {
                     Name = "Join Gamble",
                     PreferWhenBored = true,
-                    Chance = () => 100.0f, // This is only available while a game is in progress... so make it highly likely.
+                    // Steam reviews flagged dwarfs spending ~90% of their time gambling. The
+                    // previous hardcoded `100.0f` meant any time a dice game was live, every
+                    // idle dwarf dropped everything to join. Scale off the user-visible
+                    // setting so balance is tunable; 5× keeps gambling attractive without
+                    // monopolizing the idle loop.
+                    Chance = () => GameSettings.Current.IdleBehavior_Gamble * 5.0f,
                     Create = (AI) =>
                     {
                         var task = new Scripting.GambleTask() { Priority = TaskPriority.High };
@@ -77,8 +82,11 @@ namespace DwarfCorp
                             return task;
                         return null;
                     },
-                    Available = (AI, World) => World.GamblingState.State == Scripting.Gambling.Status.Gaming ||
-                        World.GamblingState.State == Scripting.Gambling.Status.WaitingForPlayers && World.GamblingState.Participants.Count > 0
+                    // Cap active participants at 4 so late joiners pick something else to do.
+                    Available = (AI, World) =>
+                        (World.GamblingState.State == Scripting.Gambling.Status.Gaming ||
+                         (World.GamblingState.State == Scripting.Gambling.Status.WaitingForPlayers && World.GamblingState.Participants.Count > 0))
+                        && World.GamblingState.Participants.Count < 4
                 });
 
                 IdleTasks.Add(new IdleTask

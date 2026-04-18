@@ -46,7 +46,11 @@ namespace DwarfCorp
         {
             bool validTargetFound = false;
 
-            var sortedPiles = Creature.World.EnumerateZones().OfType<Stockpile>().Where(pile => pile.IsAllowed(Item.TypeName)).ToList();
+            // IsBuilt guard: unbuilt stockpiles have no voxels yet, so GetNearestVoxel() below
+            // would return an invalid handle and we'd silently skip them. Excluding them here
+            // means dwarfs stop wasting cycles on in-progress zones and pick a real destination.
+            // Matches the filter used by WorldManager-Zones.HasFreeStockpile().
+            var sortedPiles = Creature.World.EnumerateZones().OfType<Stockpile>().Where(pile => pile.IsBuilt && pile.IsAllowed(Item.TypeName)).ToList();
             sortedPiles.Sort(CompareStockpiles);
 
             foreach (var s in sortedPiles)

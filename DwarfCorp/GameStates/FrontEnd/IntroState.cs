@@ -8,7 +8,6 @@ namespace DwarfCorp.GameStates
     public class IntroState : GameState
     {
         private Texture2D Logo;
-        private Texture2D HoleyDonutLogo;
         private Timer IntroTimer = new Timer(1, true);
         private bool LoadFinished = false;
         private Thread LoadThread;
@@ -22,7 +21,6 @@ namespace DwarfCorp.GameStates
         {
             IsInitialized = true;
             Logo = AssetManager.GetContentTexture(ContentPaths.Logos.companylogo);
-            HoleyDonutLogo = AssetManager.GetContentTexture("Logos/small-logo");
             IntroTimer.Reset(3);
 
             LoadThread = new Thread(LibraryLoadThread);
@@ -51,10 +49,9 @@ namespace DwarfCorp.GameStates
         public override void Render(DwarfTime gameTime)
         {
             DwarfGame.SafeSpriteBatchBegin(SpriteSortMode.BackToFront, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Matrix.Identity);
-            Vector2 screenCenter = new Vector2(Game.GraphicsDevice.Viewport.Width / 2 - Logo.Width / 2, Game.GraphicsDevice.Viewport.Height / 2 - Logo.Height);
+            // Center the company logo vertically as well — previously it sat above the holy-donut logo.
+            Vector2 screenCenter = new Vector2(Game.GraphicsDevice.Viewport.Width / 2 - Logo.Width / 2, Game.GraphicsDevice.Viewport.Height / 2 - Logo.Height / 2);
             DwarfGame.SpriteBatch.Draw(Logo, screenCenter, null, new Color(1f, 1f, 1f));
-            screenCenter = new Vector2(Game.GraphicsDevice.Viewport.Width / 2 - HoleyDonutLogo.Width, Game.GraphicsDevice.Viewport.Height / 2);
-            DwarfGame.SpriteBatch.Draw(HoleyDonutLogo, screenCenter, null, new Color(1f, 1f, 1f), 0f, Vector2.Zero, new Vector2(2, 2), SpriteEffects.None, 0f);
 
             DwarfGame.SpriteBatch.End();
 

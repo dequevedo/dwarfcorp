@@ -21,6 +21,11 @@ namespace DwarfCorp.GameStates
         private Widget PausePanel;
         private Gui.Widgets.Minimap.MinimapFrame MinimapFrame;
         private Gui.Widgets.Minimap.MinimapRenderer MinimapRenderer;
+        private Gui.Widgets.ProfilerPanel ProfilerPanel;
+        private Gui.Widgets.CrosshairOverlay CrosshairOverlay;
+        private Gui.Widgets.NameLabelOverlay NameLabelOverlay;
+        // When true, NameLabelOverlay draws a label above every visible dwarf/resource.
+        public bool ShowNameLabels = false;
         private GameSpeedControls GameSpeedControls;
         private Widget PausedWidget;
         private InfoTray InfoTray;
@@ -36,7 +41,6 @@ namespace DwarfCorp.GameStates
         private Widget MultiContextMenu;
         private Widget BottomBar;
         private Widget BottomBackground;
-        private Widget MinimapIcon;
         private Widget EmployeesIcon;
         private Widget ZonesIcon;
         private Widget TasksIcon;
@@ -154,6 +158,43 @@ namespace DwarfCorp.GameStates
 
         private void UpdateGui(DwarfTime gameTime)
         {
+            #region Crosshair overlay visibility
+
+            // Show the crosshair only in Walk mode with the cursor locked for aiming.
+            if (CrosshairOverlay != null)
+            {
+                var showCrosshair = false;
+                var camera = World.Renderer?.Camera;
+                if (GameSettings.Current.ShowCrosshair
+                    && camera != null
+                    && camera.Control == OrbitCamera.ControlType.Walk
+                    && KeyManager.RotationEnabled(camera))
+                {
+                    showCrosshair = true;
+                }
+
+                if (CrosshairOverlay.Hidden == showCrosshair)
+                {
+                    CrosshairOverlay.Hidden = !showCrosshair;
+                    CrosshairOverlay.Invalidate();
+                    if (showCrosshair)
+                        CrosshairOverlay.BringToFront();
+                }
+            }
+
+            // Keep NameLabelOverlay's visibility in sync with the ShowNameLabels flag. Widget
+            // stays hidden (and therefore does no per-frame projection/enumeration) until the
+            // player actually enables it via N.
+            if (NameLabelOverlay != null && NameLabelOverlay.Hidden == ShowNameLabels)
+            {
+                NameLabelOverlay.Hidden = !ShowNameLabels;
+                NameLabelOverlay.Invalidate();
+                if (ShowNameLabels)
+                    NameLabelOverlay.BringToFront();
+            }
+
+            #endregion
+
             #region World Popups
 
             if (LastWorldPopup != null)
@@ -333,9 +374,10 @@ namespace DwarfCorp.GameStates
 
         public void CreateGUIComponents()
         {
-            BottomBackground = Gui.RootItem.AddChild(new TrayBackground
+            // Wooden panel backdrop removed — icons float directly over the world for a cleaner HUD.
+            BottomBackground = Gui.RootItem.AddChild(new Widget
             {
-                Corners = Scale9Corners.Top,
+                Transparent = true,
                 MinimumSize = new Point(0, 118),
                 AutoLayout = AutoLayout.DockBottom
             });
@@ -486,8 +528,33 @@ namespace DwarfCorp.GameStates
             {
                 Tag = "minimap",
                 Renderer = MinimapRenderer,
-                AutoLayout = AutoLayout.FloatBottomLeft
+                AutoLayout = AutoLayout.FloatTopRight
             }) as Gui.Widgets.Minimap.MinimapFrame;
+
+            // Profiler panel — hidden by default, toggled by F11. See PlayState-Input.cs.
+            ProfilerPanel = Gui.RootItem.AddChild(new Gui.Widgets.ProfilerPanel
+            {
+                Tag = "profiler",
+                Hidden = true
+            }) as Gui.Widgets.ProfilerPanel;
+
+            // Crosshair overlay — visible only while Walk mode has the cursor locked.
+            // Its Hidden flag is refreshed every frame by UpdateGui() below.
+            CrosshairOverlay = Gui.RootItem.AddChild(new Gui.Widgets.CrosshairOverlay
+            {
+                Tag = "crosshair",
+                Hidden = true
+            }) as Gui.Widgets.CrosshairOverlay;
+
+            // Name-label overlay — toggled by the N hotkey (see PlayState-Input.cs).
+            // Starts hidden; Hidden is flipped based on ShowNameLabels inside UpdateGui().
+            NameLabelOverlay = Gui.RootItem.AddChild(new Gui.Widgets.NameLabelOverlay
+            {
+                Tag = "name-labels",
+                Hidden = true,
+                World = this.World,
+                IsEnabled = () => ShowNameLabels
+            }) as Gui.Widgets.NameLabelOverlay;
 
             SelectedEmployeeInfo = Gui.RootItem.AddChild(new Play.EmployeeInfo.OverviewPanel
             {
@@ -561,25 +628,8 @@ namespace DwarfCorp.GameStates
             SidePanels.Add(eventPanel);
             SidePanels.Add(economyPanel);
 
-            MinimapIcon = new FramedIcon
-            {
-                Icon = new Gui.TileReference("tool-icons", 33),
-                Text = "@play-map-icon-label",
-                Tooltip = "@play-map-icon-tooltip",
-                EnabledTextColor = Vector4.One,
-                TextHorizontalAlign = HorizontalAlign.Center,
-                TextVerticalAlign = VerticalAlign.Below,
-                OnClick = (sender, args) =>
-                {
-                    if (MinimapFrame.Hidden)
-                    {
-                        MinimapFrame.Hidden = false;
-                        MinimapFrame.BringToFront();
-                    }
-                    else
-                        MinimapFrame.Hidden = true;
-                }
-            };
+            // MinimapIcon removed — the minimap now lives top-right and is collapsed/expanded
+            // via its own header button. The Map hotkey is wired directly in PlayState-Input.cs.
 
             EmployeesIcon = new FramedIcon
             {
@@ -681,7 +731,6 @@ namespace DwarfCorp.GameStates
                 AlwaysPerfectSize = true,
                 ItemSource = new Gui.Widget[]
                         {
-                            MinimapIcon,
                             EmployeesIcon,
                             MarksIcon,
                             TasksIcon,

@@ -2880,6 +2880,11 @@
 /processor:FxcEffectProcessor
 /build:Shaders/FXAA.fx
 
+#begin Shaders/ScreenSpaceOutline.fx
+/importer:EffectImporter
+/processor:FxcEffectProcessor
+/build:Shaders/ScreenSpaceOutline.fx
+
 #begin Shaders/GaussianBlur.fx
 /importer:EffectImporter
 /processor:FxcEffectProcessor

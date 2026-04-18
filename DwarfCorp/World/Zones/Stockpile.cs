@@ -105,6 +105,18 @@ namespace DwarfCorp
                 World.ParticleManager.Trigger("puff", pos + new Vector3(0.5f, 1.5f, 0.5f), Color.White, 90);
         }
 
+        /// <summary>
+        /// Returns how many voxels a group of <paramref name="count"/> items of a single
+        /// resource type should visually occupy. At least 1 — even a single item gets its
+        /// own tile — and at most what fits at <see cref="ResourcesPerVoxel"/> density.
+        /// </summary>
+        private int VoxelsNeededForGroup(int count)
+        {
+            if (count <= 0) return 0;
+            if (ResourcesPerVoxel <= 0) return 1;
+            return Math.Max(1, (count + ResourcesPerVoxel - 1) / ResourcesPerVoxel);
+        }
+
         private void HandleBoxes()
         {
             if (Voxels == null || Boxes == null)
@@ -114,36 +126,61 @@ namespace DwarfCorp
             {
                 ZoneBodies.RemoveAll(z => z.IsDead);
                 Boxes.RemoveAll(c => c.IsDead);
-
-                for (int i = 0; i < Boxes.Count; i++)
-                    Boxes[i].LocalPosition = new Vector3(0.5f, 1.5f, 0.5f) + Voxels[i].WorldPosition + VertexNoise.GetNoiseVectorFromRepeatingTexture(Voxels[i].WorldPosition + new Vector3(0.5f, 0, 0.5f));
             }
 
             if (Voxels.Count == 0)
             {
-                foreach(var component in Boxes)
+                foreach (var component in Boxes)
                     KillBox(component);
                 Boxes.Clear();
+                return;
             }
 
-            int numBoxes = Math.Min(Math.Max(Resources.TotalCount / ResourcesPerVoxel, 1), Voxels.Count);
-
-            if (Resources.TotalCount == 0)
-                numBoxes = 0;
-
-            if (Boxes.Count > numBoxes)
+            // RimWorld-style layout: each resource *type* claims its own tile(s) instead of
+            // everything aggregating into one crate in the middle. Empty tiles stay visually
+            // empty. Groups are laid out in spiral order (inherited from Voxels) so the
+            // colony's visible contents grow outward from the center as items accumulate.
+            var resourceList = Resources.Enumerate().ToList();
+            int desiredBoxes = 0;
+            if (resourceList.Count > 0)
             {
-                for (int i = Boxes.Count - 1; i >= numBoxes; i--)
+                var groups = ResourceSet.GroupByRealType(resourceList).ToList();
+                // Largest groups first so they land on central, prominent tiles.
+                groups.Sort((a, b) => b.Count.CompareTo(a.Count));
+
+                foreach (var group in groups)
+                {
+                    if (desiredBoxes >= Voxels.Count) break;
+                    var slots = Math.Min(VoxelsNeededForGroup(group.Count), Voxels.Count - desiredBoxes);
+                    desiredBoxes += slots;
+                }
+            }
+
+            // Reconcile: destroy excess, spawn missing. The current Boxes list is indexed
+            // positionally — Boxes[i] lives on Voxels[i] — so keeping its length in sync with
+            // desiredBoxes is enough to get the visible layout right. A richer per-type model
+            // (one crate art per resource type) is a follow-up once the layout itself is
+            // stable.
+            if (Boxes.Count > desiredBoxes)
+            {
+                for (int i = Boxes.Count - 1; i >= desiredBoxes; i--)
                 {
                     KillBox(Boxes[i]);
                     Boxes.RemoveAt(i);
                 }
             }
-            else if (Boxes.Count < numBoxes)
+            else if (Boxes.Count < desiredBoxes)
             {
-                for (int i = Boxes.Count; i < numBoxes; i++)
+                for (int i = Boxes.Count; i < desiredBoxes; i++)
                     CreateBox(Voxels[i].WorldPosition + VertexNoise.GetNoiseVectorFromRepeatingTexture(Voxels[i].WorldPosition + new Vector3(0.5f, 0, 0.5f)));
             }
+
+            // Refresh positions after any death/removal so existing boxes stay lined up with
+            // their tile.
+            for (int i = 0; i < Boxes.Count && i < Voxels.Count; i++)
+                Boxes[i].LocalPosition = new Vector3(0.5f, 1.5f, 0.5f)
+                    + Voxels[i].WorldPosition
+                    + VertexNoise.GetNoiseVectorFromRepeatingTexture(Voxels[i].WorldPosition + new Vector3(0.5f, 0, 0.5f));
         }
 
         private enum Direction

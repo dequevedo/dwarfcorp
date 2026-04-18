@@ -234,8 +234,31 @@ namespace DwarfCorp.GameStates
                         Gui.RootItem.Hidden = !Gui.RootItem.Hidden;
                         Gui.RootItem.Invalidate();
                     }
+                    else if ((Keys)args.KeyValue == Keys.F11)
+                    {
+                        // Toggle the profiler panel. While visible it flips EnableFrameCapture
+                        // on PerformanceMonitor so per-function timings are recorded even with
+                        // the debug console hidden.
+                        if (ProfilerPanel != null)
+                        {
+                            ProfilerPanel.Hidden = !ProfilerPanel.Hidden;
+                            if (!ProfilerPanel.Hidden) ProfilerPanel.BringToFront();
+                            ProfilerPanel.Invalidate();
+                            PerformanceMonitor.EnableFrameCapture = !ProfilerPanel.Hidden;
+                        }
+                    }
+                    else if ((Keys)args.KeyValue == Keys.N && (PausePanel == null || PausePanel.Hidden))
+                    {
+                        // Toggle name-label overlay (RimWorld-style name-over-entity).
+                        ShowNameLabels = !ShowNameLabels;
+                    }
                     else if ((Keys)args.KeyValue == ControlSettings.Mappings.Map && (PausePanel == null || PausePanel.Hidden))
-                        Gui.SafeCall(MinimapIcon.OnClick, MinimapIcon, new InputEventArgs());
+                    {
+                        // The toolbar Map icon was removed; the hotkey now toggles the minimap's
+                        // collapsed state in place (top-right corner of the screen).
+                        if (MinimapFrame != null)
+                            MinimapFrame.ToggleCollapsed();
+                    }
                     else if ((Keys)args.KeyValue == ControlSettings.Mappings.Employees && (PausePanel == null || PausePanel.Hidden))
                         Gui.SafeCall(EmployeesIcon.OnClick, EmployeesIcon, new InputEventArgs());
                     else if ((Keys)args.KeyValue == ControlSettings.Mappings.Tasks && (PausePanel == null || PausePanel.Hidden))

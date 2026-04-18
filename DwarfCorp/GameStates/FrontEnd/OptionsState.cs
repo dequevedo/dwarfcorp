@@ -45,6 +45,7 @@ namespace DwarfCorp.GameStates
         private SliderCombo ChunkLoadDistance;
         //private HorizontalFloatSlider VertexCullDistance;
         private CheckBox Glow;
+        private CheckBox Outline;
         private Gui.Widgets.ComboBox Antialiasing;
         private CheckBox ReflectTerrain;
         private CheckBox ReflectEntities;
@@ -696,6 +697,14 @@ namespace DwarfCorp.GameStates
                 Tooltip = "When checked, bright parts of the screen will have a glow effect. Turn off to make the game run faster."
             }) as CheckBox;
 
+            Outline = leftPanel.AddChild(new CheckBox
+            {
+                Text = "Screen-Space Outlines",
+                OnCheckStateChange = OnItemChanged,
+                AutoLayout = AutoLayout.DockTop,
+                Tooltip = "Adds a tinted outline around objects and terrain edges. Slight performance cost."
+            }) as CheckBox;
+
             Antialiasing = rightPanel.AddChild(LabelAndDockWidget("Antialiasing", new Gui.Widgets.ComboBox
             {
                 Items = AntialiasingOptions.Select(o => o.Key).ToList(),
@@ -982,6 +991,7 @@ namespace DwarfCorp.GameStates
             //toReturn.VertexCullDistance = this.VertexCullDistance.ScrollPosition + 0.1f;
             //toReturn.ChunkGenerateDistance = this.GenerateDistance.ScrollPosition + 1.0f;
             toReturn.EnableGlow = this.Glow.CheckState;
+            toReturn.EnableOutline = this.Outline.CheckState;
             toReturn.AntiAliasing = AntialiasingOptions[this.Antialiasing.SelectedItem];
             toReturn.DrawChunksReflected = this.ReflectTerrain.CheckState;
             toReturn.DrawEntityReflected =  this.ReflectEntities.CheckState;
@@ -1039,6 +1049,7 @@ namespace DwarfCorp.GameStates
             //GameSettings.Default.VertexCullDistance = this.VertexCullDistance.ScrollPosition + 0.1f;
             //GameSettings.Default.ChunkGenerateDistance = this.GenerateDistance.ScrollPosition + 1.0f;
             GameSettings.Current.EnableGlow = this.Glow.CheckState;
+            GameSettings.Current.EnableOutline = this.Outline.CheckState;
             GameSettings.Current.AntiAliasing = AntialiasingOptions[this.Antialiasing.SelectedItem];
             GameSettings.Current.DrawChunksReflected = this.ReflectTerrain.CheckState;
             GameSettings.Current.DrawEntityReflected = this.ReflectEntities.CheckState;
@@ -1148,6 +1159,7 @@ namespace DwarfCorp.GameStates
             //this.VertexCullDistance.ScrollPosition = GameSettings.Default.VertexCullDistance - 0.1f;
             //this.GenerateDistance.ScrollPosition = GameSettings.Default.ChunkGenerateDistance - 1.0f;
             this.Glow.CheckState = GameSettings.Current.EnableGlow;
+            this.Outline.CheckState = GameSettings.Current.EnableOutline;
             
             var antialiasingIndex = 0;
             foreach (var option in AntialiasingOptions)

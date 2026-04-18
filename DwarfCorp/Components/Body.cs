@@ -120,6 +120,14 @@ namespace DwarfCorp
             //PropogateTransforms();
         }
 
+        // Watchdog for "perma-stuck animations" — Steam reviews mentioned creatures freezing
+        // in a single pose. If the head animation in the queue hasn't flagged IsDone() within
+        // this many seconds, we force-remove it so the creature unstucks. 30 s is well above
+        // any legitimate animation length (movement easings, falls, emotes).
+        private const float StuckAnimationTimeoutSeconds = 30f;
+        private float _currentAnimationAge = 0f;
+        private object _currentAnimationRef = null;
+
         public virtual void Update(DwarfTime Time, ChunkManager Chunks, Camera Camera)
         {
             if (IsDead)
@@ -128,12 +136,33 @@ namespace DwarfCorp
             if (AnimationQueue.Count > 0)
             {
                 var anim = AnimationQueue[0];
+
+                // Track age of whichever animation is currently playing. If we see a new
+                // front-of-queue animation the timer resets; otherwise it accumulates.
+                if (!ReferenceEquals(anim, _currentAnimationRef))
+                {
+                    _currentAnimationRef = anim;
+                    _currentAnimationAge = 0f;
+                }
+                _currentAnimationAge += (float)Time.ElapsedRealTime.TotalSeconds;
+
                 anim.Update(Time);
 
                 LocalTransform = anim.GetTransform();
 
-                if (anim.IsDone())
+                if (anim.IsDone() || _currentAnimationAge > StuckAnimationTimeoutSeconds)
+                {
+                    if (!anim.IsDone())
+                        CrashBreadcrumbs.Push("Force-removed stuck animation on " + (Name ?? "<unnamed>") + " (age " + _currentAnimationAge.ToString("F1") + "s)");
                     AnimationQueue.RemoveAt(0);
+                    _currentAnimationRef = null;
+                    _currentAnimationAge = 0f;
+                }
+            }
+            else
+            {
+                _currentAnimationRef = null;
+                _currentAnimationAge = 0f;
             }
 
             for (var i = 0; i < Children.Count; ++i)

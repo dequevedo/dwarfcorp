@@ -194,6 +194,19 @@ namespace DwarfCorp
             public bool GrassMotes = true;
             public int NumMotes = 512;
             public bool InvertZoom = false;
+            // Multiplier applied to mouse-look sensitivity in Walk (first-person) camera mode.
+            // 1.0 = previous hardcoded behavior. Lower feels calmer, higher more responsive.
+            public float WalkMouseSensitivity = 1.0f;
+            // Toggles the HUD crosshair overlay while the Walk camera has cursor locked.
+            public bool ShowCrosshair = true;
+            // Screen-space outline post-effect (depth/normal-style edge darkening).
+            public bool EnableOutline = true;
+            // 0..1 — how much the outline tints the underlying color. 0.8 = strong, 0.4 = subtle.
+            public float OutlineStrength = 0.85f;
+            // Luminance gradient magnitude above which a pixel counts as an edge (0.05-0.25).
+            public float OutlineEdgeThreshold = 0.06f;
+            // Sample offset multiplier in pixels. 1.0 = 1px, 2.0 = thicker outline.
+            public float OutlineThickness = 1.0f;
             public float VisibilityUpdateTime = 0.1f;
             [AutoResetBool(true)] public bool FogofWar = true;
             public bool AutoSave = true;

@@ -38,6 +38,7 @@ namespace DwarfCorp.GameStates
         /// </summary>
         public override void OnEnter()
         {
+            CrashBreadcrumbs.Push("PlayState.OnEnter");
             // Just toss out any pending input.
             DwarfGame.GumInputMapper.GetInputQueue();
 

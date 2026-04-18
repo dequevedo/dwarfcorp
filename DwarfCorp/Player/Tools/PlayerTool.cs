@@ -63,6 +63,22 @@ namespace DwarfCorp
                     sb.Append("\n");
                 }
             }
+
+            // Fallback: when there's no entity under the cursor, show the voxel's type name
+            // instead of an empty/misleading tooltip. Steam reviewers specifically called out
+            // that hovering over plain terrain used to show "hover gui" — this path ensures
+            // the user always sees the block name (e.g. "Dirt", "Stone") when hovering
+            // over the world with no creature/item intercepting.
+            if (sb.Length == 0
+                && World?.UserInterface?.VoxSelector != null
+                && World.UserInterface.VoxSelector.VoxelUnderMouse.IsValid
+                && !World.UserInterface.VoxSelector.VoxelUnderMouse.IsEmpty)
+            {
+                var voxType = World.UserInterface.VoxSelector.VoxelUnderMouse.Type;
+                if (voxType != null && !string.IsNullOrEmpty(voxType.Name))
+                    sb.Append(voxType.Name);
+            }
+
             World.UserInterface.ShowTooltip(sb.ToString());
         }
 
