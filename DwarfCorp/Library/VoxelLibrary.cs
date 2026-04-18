@@ -157,9 +157,22 @@ namespace DwarfCorp
         }
 
         // Todo: Use Sheet.TileHeight as well.
+        // Cache the generated voxel icon atlas for the lifetime of the process. Every new
+        // SpriteAtlas (one per GameState transition, via Root.ResetGui) used to re-invoke this
+        // generator and leak the previous RenderTarget2D. Now first caller generates, rest
+        // return the same instance.
+        private static Texture2D _cachedVoxelIconSheet;
+        private static readonly object _cachedVoxelIconSheetLock = new object();
+
         [TextureGenerator("Voxels")]
         public static Texture2D RenderVoxelIcons(GraphicsDevice device, Microsoft.Xna.Framework.Content.ContentManager Content, Gui.TileSheetDefinition Sheet)
         {
+            lock (_cachedVoxelIconSheetLock)
+            {
+                if (_cachedVoxelIconSheet != null && !_cachedVoxelIconSheet.IsDisposed)
+                    return _cachedVoxelIconSheet;
+            }
+
             InitializeVoxels();
 
             var shader = Shader.TryGetSharedIconShader(Content, ContentPaths.Shaders.TexturedShaders);
@@ -227,6 +240,8 @@ namespace DwarfCorp
             }
             device.Viewport = oldview;
             device.SetRenderTarget(null);
+            lock (_cachedVoxelIconSheetLock)
+                _cachedVoxelIconSheet = (Texture2D)toReturn;
             return (Texture2D) toReturn;
         }
     }

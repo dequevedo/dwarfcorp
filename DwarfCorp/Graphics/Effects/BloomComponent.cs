@@ -136,6 +136,11 @@ namespace BloomPostprocess
                 || renderTarget2.Width != width || renderTarget2.Height != height
                 || renderTarget1.IsDisposed || renderTarget2.IsDisposed)
             {
+                // Dispose before reassign — otherwise every content-lost tick leaks two
+                // RenderTarget2Ds to the finalizer, which eventually frees their GL/Vulkan
+                // handles on a background thread and corrupts the render state.
+                if (renderTarget1 != null && !renderTarget1.IsDisposed) renderTarget1.Dispose();
+                if (renderTarget2 != null && !renderTarget2.IsDisposed) renderTarget2.Dispose();
                 renderTarget1 = new RenderTarget2D(GraphicsDevice, width, height, false, format, DepthFormat.None);
                 renderTarget2 = new RenderTarget2D(GraphicsDevice, width, height, false, format, DepthFormat.None);
             }

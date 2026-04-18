@@ -94,6 +94,11 @@ namespace DwarfCorp
             int width = 512;
             int height = 512;
             int numVerts = (width * height) / resolution;
+            // Dispose before reassign — RenderBackgroundMesh() re-invokes CreateBackgroundMesh
+            // whenever the buffer is content-lost, and without explicit dispose the previous
+            // VertexBuffer is abandoned to the finalizer (same issue that cascaded into the
+            // heap-corruption crash we saw on AMD Vulkan).
+            if (BackgroundMesh != null && !BackgroundMesh.IsDisposed) BackgroundMesh.Dispose();
             BackgroundMesh = new VertexBuffer(Device, VertexPositionColor.VertexDeclaration, numVerts, BufferUsage.None);
             var verts = new VertexPositionColor[numVerts];
             var noise = new Perlin(MathFunctions.RandInt(0, 1000));
@@ -120,6 +125,7 @@ namespace DwarfCorp
 
             BackgroundMesh.SetData(verts);
             var indices = SetUpTerrainIndices(width / resolution, height / resolution);
+            if (BackgroundIndex != null && !BackgroundIndex.IsDisposed) BackgroundIndex.Dispose();
             BackgroundIndex = new IndexBuffer(Device, typeof(int), indices.Length, BufferUsage.None);
             BackgroundIndex.SetData(indices);
         }

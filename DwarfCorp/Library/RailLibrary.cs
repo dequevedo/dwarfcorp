@@ -126,9 +126,20 @@ namespace DwarfCorp
         }
 
         // Todo: Use Sheet.TileHeight as well.
+        // Cache the generated rail icon atlas for the lifetime of the process. See the
+        // matching comment in VoxelLibrary.RenderVoxelIcons.
+        private static Texture2D _cachedRailIconSheet;
+        private static readonly object _cachedRailIconSheetLock = new object();
+
         [TextureGenerator("RailIcons")]
         public static Texture2D RenderPatternIcons(GraphicsDevice device, Microsoft.Xna.Framework.Content.ContentManager Content, Gui.TileSheetDefinition Sheet)
         {
+            lock (_cachedRailIconSheetLock)
+            {
+                if (_cachedRailIconSheet != null && !_cachedRailIconSheet.IsDisposed)
+                    return _cachedRailIconSheet;
+            }
+
             InitializeRailLibrary();
 
             var shader = Shader.TryGetSharedIconShader(Content, ContentPaths.Shaders.TexturedShaders);
@@ -223,6 +234,8 @@ namespace DwarfCorp
             }
             device.Viewport = oldview;
             device.SetRenderTarget(null);
+            lock (_cachedRailIconSheetLock)
+                _cachedRailIconSheet = (Texture2D)toReturn;
             return (Texture2D)toReturn;
         }
 

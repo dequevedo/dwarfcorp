@@ -56,8 +56,15 @@ namespace DwarfCorp
 
             int width = Math.Min(pp.BackBufferWidth / 4, 4096);
             int height = Math.Min(pp.BackBufferHeight / 4, 4096);
+            // Dispose previous reflection targets before reassign. ValidateBuffers() calls
+            // CreateContent() whenever content-lost is detected — without explicit dispose
+            // each call would leak ~5-10MB of GPU memory to the finalizer, and the native
+            // driver doesn't tolerate waiting on a finalizer to reclaim a render-target.
+            if (ReflectionMap != null && !ReflectionMap.IsDisposed) ReflectionMap.Dispose();
+            if (reflectionRenderTarget != null && !reflectionRenderTarget.IsDisposed) reflectionRenderTarget.Dispose();
             ReflectionMap = new Texture2D(device, width, height);
             reflectionRenderTarget = new RenderTarget2D(device, width, height, false, pp.BackBufferFormat, pp.DepthStencilFormat);
+            // ShoreMap comes from the content manager — don't dispose; it's shared.
             ShoreMap = AssetManager.GetContentTexture(ContentPaths.Gradients.shoregradient);
 
             foreach (var liquid in Library.EnumerateLiquids())

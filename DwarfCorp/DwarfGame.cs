@@ -74,7 +74,12 @@ namespace DwarfCorp
             MathFunctions.Random = new ThreadSafeRandom(new Random().Next());
             Graphics.PreparingDeviceSettings += WorldRenderer.GraphicsPreparingDeviceSettings;
             Graphics.PreferMultiSampling = false;
-            Graphics.ApplyChanges();
+            // Don't call ApplyChanges() here — FNA 26 emits "Forcing CreateDevice! Avoid
+            // calling ApplyChanges before Game.Run!" and creates the GraphicsDevice twice
+            // (once here, once during FNA's Run()), which orphans every texture/buffer
+            // allocated against the first device. All the properties set above are applied
+            // automatically when FNA creates the device inside Run(). WorldManager.StartLoad()
+            // calls ApplyChanges() once later — that's the only one we need.
 
             // Todo: Restore steam functionality
             //if (AssetManagement.Steam.Steam.InitializeSteam() == AssetManagement.Steam.Steam.SteamInitializationResult.QuitImmediately)
