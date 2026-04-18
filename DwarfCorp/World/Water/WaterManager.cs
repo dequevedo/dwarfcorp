@@ -15,16 +15,18 @@ namespace DwarfCorp
         public static byte inWaterThreshold = 4;
 
         private LinkedList<LiquidSplash> Splashes = new LinkedList<LiquidSplash>();
-        private Mutex SplashLock = new Mutex();
+        // Plain lock instead of kernel-object Mutex — consumers are all in-process.
+        private readonly object SplashLock = new object();
         public bool NeedsMinimapUpdate = true;
 
         public IEnumerable<LiquidSplash> GetSplashQueue()
         {
-            SplashLock.WaitOne();
-            var r = Splashes;
-            Splashes = new LinkedList<LiquidSplash>();
-            SplashLock.ReleaseMutex();
-            return r;
+            lock (SplashLock)
+            {
+                var r = Splashes;
+                Splashes = new LinkedList<LiquidSplash>();
+                return r;
+            }
         }
 
         public WaterManager(ChunkManager chunks)
@@ -39,6 +41,8 @@ namespace DwarfCorp
 
         private Queue<LiquidCellHandle> DirtyCells = new Queue<LiquidCellHandle>();
         private HashSet<LiquidCellHandle> DirtyCellMembers = new HashSet<LiquidCellHandle>();
+        // Scratch list reused across update ticks instead of allocating on each ClearDirtyQueue.
+        private readonly List<LiquidCellHandle> _dirtyCellDrain = new List<LiquidCellHandle>();
 
         public void EnqueueDirtyCell(LiquidCellHandle Cell)
         {
@@ -53,6 +57,7 @@ namespace DwarfCorp
 
         private Queue<VoxelChunk> DirtyChunks = new Queue<VoxelChunk>();
         private HashSet<VoxelChunk> DirtyChunkMembers = new HashSet<VoxelChunk>();
+        private readonly List<VoxelChunk> _dirtyChunkDrain = new List<VoxelChunk>();
 
         private void EnqueueDirtyChunk(VoxelChunk Chunk)
         {
@@ -89,9 +94,10 @@ namespace DwarfCorp
                     entity = liquidType.SplashEntity
                 };
 
-                SplashLock.WaitOne();
-                Splashes.AddFirst(splash);
-                SplashLock.ReleaseMutex();
+                lock (SplashLock)
+                {
+                    Splashes.AddFirst(splash);
+                }
             }
         }
 
@@ -102,15 +108,19 @@ namespace DwarfCorp
 
             ClearDirtyQueue();
 
-            List<VoxelChunk> localDirty = null;
             lock (DirtyChunks)
             {
-                localDirty = new List<VoxelChunk>(DirtyChunks);
-                DirtyChunks.Clear();
+                _dirtyChunkDrain.Clear();
+                while (DirtyChunks.Count > 0)
+                    _dirtyChunkDrain.Add(DirtyChunks.Dequeue());
                 DirtyChunkMembers.Clear();
             }
-            foreach (var chunk in localDirty)
+            var count = _dirtyChunkDrain.Count;
+            for (int i = 0; i < count; i++)
+            {
+                var chunk = _dirtyChunkDrain[i];
                 if (chunk != null) chunk.RebuildLiquidGeometry();
+            }
         }
 
         private class OpenSearchNode
@@ -214,15 +224,16 @@ namespace DwarfCorp
 
         private void ClearDirtyQueue()
         {
-            List<LiquidCellHandle> localDirty = null;
             lock (DirtyCells)
             {
-                localDirty = new List<LiquidCellHandle>(DirtyCells);
-                DirtyCells.Clear();
+                _dirtyCellDrain.Clear();
+                while (DirtyCells.Count > 0)
+                    _dirtyCellDrain.Add(DirtyCells.Dequeue());
                 DirtyCellMembers.Clear();
             }
-            foreach (var cell in localDirty)
-                UpdateCell(Chunks, cell);
+            var count = _dirtyCellDrain.Count;
+            for (int i = 0; i < count; i++)
+                UpdateCell(Chunks, _dirtyCellDrain[i]);
         }
 
         private void UpdateCell(ChunkManager ChunkManager, LiquidCellHandle dirtyCell)

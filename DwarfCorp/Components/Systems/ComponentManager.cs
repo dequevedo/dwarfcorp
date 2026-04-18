@@ -22,8 +22,13 @@ namespace DwarfCorp
         private Dictionary<uint, GameComponent> Components;
         private uint MaxGlobalID = 0;
         public const int InvalidID = 0;
-        private List<GameComponent> Removals = new List<GameComponent>();
-        private List<GameComponent> Additions = new List<GameComponent>();
+        // Double-buffered to avoid `new List<>` per frame in AddRemove(). A/B swap: producers
+        // write to the "active" side under lock; consumer (main-thread AddRemove) flips and
+        // drains its local copy without reallocating.
+        private List<GameComponent> _removalsActive = new List<GameComponent>();
+        private List<GameComponent> _removalsDraining = new List<GameComponent>();
+        private List<GameComponent> _additionsActive = new List<GameComponent>();
+        private List<GameComponent> _additionsDraining = new List<GameComponent>();
 
         public GameComponent RootComponent { get; private set; }
 
@@ -37,8 +42,10 @@ namespace DwarfCorp
             return Components.Count;
         }
 
-        private Mutex AdditionMutex = new Mutex();
-        private Mutex RemovalMutex = new Mutex();
+        // Replaced legacy Mutex (kernel object, ~microseconds per Wait/Release) with plain
+        // monitor locks — these queues are only contended across in-process threads.
+        private readonly object _additionLock = new object();
+        private readonly object _removalLock = new object();
 
         public WorldManager World { get; set; }
 
@@ -163,25 +170,31 @@ namespace DwarfCorp
 
         public void AddComponent(GameComponent component)
         {
-            AdditionMutex.WaitOne();
-
-            MaxGlobalID += 1;
-            component.GlobalID = MaxGlobalID;
-            Additions.Add(component);
-
-            AdditionMutex.ReleaseMutex();
+            lock (_additionLock)
+            {
+                MaxGlobalID += 1;
+                component.GlobalID = MaxGlobalID;
+                _additionsActive.Add(component);
+            }
         }
 
         public void RemoveComponent(GameComponent component)
         {
-            RemovalMutex.WaitOne();
-            Removals.Add(component);
-            RemovalMutex.ReleaseMutex();
+            lock (_removalLock)
+            {
+                _removalsActive.Add(component);
+            }
         }
 
         public bool HasComponent(uint id)
         {
-            return Components.ContainsKey(id) || Additions.Any(a => a.GlobalID == id);
+            if (Components.ContainsKey(id)) return true;
+            lock (_additionLock)
+            {
+                for (int i = 0; i < _additionsActive.Count; i++)
+                    if (_additionsActive[i].GlobalID == id) return true;
+            }
+            return false;
         }
 
         private void RemoveComponentImmediate(GameComponent Component)
@@ -252,23 +265,29 @@ namespace DwarfCorp
 
         private void AddRemove()
         {
-            AdditionMutex.WaitOne();
-            var local = Additions;
-            Additions = new List<GameComponent>();
-            AdditionMutex.ReleaseMutex();
+            // Swap the A/B buffers instead of allocating a fresh list each frame.
+            // Producers keep writing to the "active" side; we drain the "draining" side.
+            List<GameComponent> toAdd;
+            lock (_additionLock)
+            {
+                toAdd = _additionsActive;
+                _additionsActive = _additionsDraining;
+                _additionsDraining = toAdd;
+            }
+            for (int i = 0; i < toAdd.Count; i++)
+                AddComponentImmediate(toAdd[i]);
+            toAdd.Clear();
 
-            foreach (GameComponent component in local)
-                AddComponentImmediate(component);
-
-            local.Clear();
-
-            RemovalMutex.WaitOne();
-            var localRemovals = new List<GameComponent>(Removals);
-            Removals.Clear();
-            RemovalMutex.ReleaseMutex();
-
-            foreach (var component in localRemovals)
-                RemoveComponentImmediate(component);
+            List<GameComponent> toRemove;
+            lock (_removalLock)
+            {
+                toRemove = _removalsActive;
+                _removalsActive = _removalsDraining;
+                _removalsDraining = toRemove;
+            }
+            for (int i = 0; i < toRemove.Count; i++)
+                RemoveComponentImmediate(toRemove[i]);
+            toRemove.Clear();
         }
 
         public void UpdatePaused(DwarfTime gameTime, ChunkManager chunks, Camera camera)
