@@ -23,51 +23,57 @@ namespace DwarfCorp
     public partial class ChunkManager
     {
         private Queue<VoxelChunk> RebuildQueue = new Queue<VoxelChunk>();
-        private Mutex RebuildQueueLock = new Mutex();
+        private HashSet<VoxelChunk> RebuildQueueMembers = new HashSet<VoxelChunk>();
+        private readonly object RebuildQueueLock = new object();
         private AutoResetEvent RebuildEvent = new AutoResetEvent(true);
         public bool NeedsMinimapUpdate = true;
 
         private Queue<GlobalChunkCoordinate> InvalidColumns = new Queue<GlobalChunkCoordinate>();
-        private Mutex InvalidColumnLock = new Mutex();
+        private HashSet<GlobalChunkCoordinate> InvalidColumnMembers = new HashSet<GlobalChunkCoordinate>();
+        private readonly object InvalidColumnLock = new object();
 
         public void InvalidateChunk(VoxelChunk Chunk)
         {
-            RebuildQueueLock.WaitOne();
-            RebuildEvent.Set();
-            if (!RebuildQueue.Contains(Chunk))
-                RebuildQueue.Enqueue(Chunk);
-            RebuildQueueLock.ReleaseMutex();
+            lock (RebuildQueueLock)
+            {
+                RebuildEvent.Set();
+                if (RebuildQueueMembers.Add(Chunk))
+                    RebuildQueue.Enqueue(Chunk);
+            }
 
             EnqueueInvalidColumn(Chunk.ID.X, Chunk.ID.Z);
         }
 
         public VoxelChunk PopInvalidChunk()
         {
-            VoxelChunk result = null;
-            RebuildQueueLock.WaitOne();
-            if (RebuildQueue.Count > 0)
-                result = RebuildQueue.Dequeue();
-            RebuildQueueLock.ReleaseMutex();
-            return result;
+            lock (RebuildQueueLock)
+            {
+                if (RebuildQueue.Count == 0) return null;
+                var result = RebuildQueue.Dequeue();
+                RebuildQueueMembers.Remove(result);
+                return result;
+            }
         }
 
         public void EnqueueInvalidColumn(int X, int Z)
         {
             var columnCoordinate = new GlobalChunkCoordinate(X, 0, Z);
-            InvalidColumnLock.WaitOne();
-            if (!InvalidColumns.Contains(columnCoordinate))
-                InvalidColumns.Enqueue(columnCoordinate);
-            InvalidColumnLock.ReleaseMutex();
+            lock (InvalidColumnLock)
+            {
+                if (InvalidColumnMembers.Add(columnCoordinate))
+                    InvalidColumns.Enqueue(columnCoordinate);
+            }
         }
 
         public GlobalChunkCoordinate? PopInvalidColumn()
         {
-            GlobalChunkCoordinate? result = null;
-            InvalidColumnLock.WaitOne();
-            if (InvalidColumns.Count > 0)
-                result = InvalidColumns.Dequeue();
-            InvalidColumnLock.ReleaseMutex();
-            return result;
+            lock (InvalidColumnLock)
+            {
+                if (InvalidColumns.Count == 0) return null;
+                var result = InvalidColumns.Dequeue();
+                InvalidColumnMembers.Remove(result);
+                return result;
+            }
         }
 
         private Thread RebuildThread { get; set; }

@@ -1,9 +1,10 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp.Events
 {
@@ -12,6 +13,7 @@ namespace DwarfCorp.Events
         private static List<ScheduledEvent> Events;
         private static bool EventsInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeEvents()
         {
             if (EventsInitialized)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -12,6 +13,7 @@ namespace DwarfCorp
         private static List<LiquidType_> Liquids = null;
         private static bool LiquidsInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeLiquids()
         {
             if (LiquidsInitialized)

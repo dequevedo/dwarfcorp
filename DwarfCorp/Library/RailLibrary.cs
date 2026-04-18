@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using DwarfCorp.Rail;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -17,6 +18,7 @@ namespace DwarfCorp
         private static CombinationTable RailCombinationTable;
         private static bool RailInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeRailLibrary()
         {
             if (RailInitialized)

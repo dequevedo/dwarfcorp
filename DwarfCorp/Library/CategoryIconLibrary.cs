@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -12,6 +13,7 @@ namespace DwarfCorp
         private static List<Play.CategoryIcon> CategoryIcons;
         private static bool CategoryIconsInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeCategoryIcons()
         {
             if (CategoryIconsInitialized)

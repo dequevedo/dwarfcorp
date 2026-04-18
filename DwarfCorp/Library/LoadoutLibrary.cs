@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -10,6 +11,7 @@ namespace DwarfCorp
         private static Dictionary<String, Loadout> Loadouts = null;
         private static bool LoadoutsInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeLoadouts()
         {
             if (LoadoutsInitialized)

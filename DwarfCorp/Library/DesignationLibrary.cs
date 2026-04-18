@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -11,6 +12,7 @@ namespace DwarfCorp
         private static bool DesignationInitialized = false;
         private static Object DesignationLock = new object();
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeDesignations()
         {
             lock (DesignationLock)

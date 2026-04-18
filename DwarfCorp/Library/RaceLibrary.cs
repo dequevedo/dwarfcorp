@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -9,6 +10,7 @@ namespace DwarfCorp
         private static Dictionary<string, Race> Races = null;
         private static bool RacesInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeRaces()
         {
             if (RacesInitialized)

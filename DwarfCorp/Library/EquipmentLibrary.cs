@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using System.Runtime.Serialization;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -14,6 +15,7 @@ namespace DwarfCorp
         public static List<EquipmentSlotType> EquipmentSlotTypes;
         private static bool EquipmentSlotsInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeEquipmentSlotTypes()
         {
             if (EquipmentSlotsInitialized) return;

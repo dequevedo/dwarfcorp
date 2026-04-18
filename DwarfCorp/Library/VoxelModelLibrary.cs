@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -15,6 +16,7 @@ namespace DwarfCorp
 
         private static bool VoxelModelsInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeVoxelModels()
         {
             if (VoxelModelsInitialized) return;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -12,6 +13,7 @@ namespace DwarfCorp
         private static List<BiomeData> Biomes = null;
         private static bool BiomesInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeBiomes()
         {
             if (BiomesInitialized)

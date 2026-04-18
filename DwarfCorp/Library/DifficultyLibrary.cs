@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -20,6 +21,7 @@ namespace DwarfCorp
         private static List<Difficulty> Difficulties = null;
         private static bool DifficultiesInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeDifficulties()
         {
             if (DifficultiesInitialized)

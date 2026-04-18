@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -12,6 +13,7 @@ namespace DwarfCorp
         private static List<String> PossibleTags = null;
         private static bool ResourcesInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeResources()
         {
             if (ResourcesInitialized)
@@ -70,6 +72,7 @@ namespace DwarfCorp
 
         private static Dictionary<String, Func<CreatureAI, Resource, List<Resource>, MaybeNull<Resource>>> MetaResourceFactories;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeMetaResourceFactories()
         {
             if (MetaResourceFactories != null)

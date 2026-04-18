@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -68,6 +69,7 @@ namespace DwarfCorp
             return cube;
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeVoxels()
         {
             if (VoxelsInitialized) return;

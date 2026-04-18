@@ -32,18 +32,19 @@ namespace DwarfCorp
             Chunks = chunks;
         }
 
-        public void FirstBuild() { 
+        public void FirstBuild() {
             foreach (var chunk in Chunks.GetChunkEnumerator())
                 EnqueueDirtyChunk(chunk);
         }
 
         private Queue<LiquidCellHandle> DirtyCells = new Queue<LiquidCellHandle>();
+        private HashSet<LiquidCellHandle> DirtyCellMembers = new HashSet<LiquidCellHandle>();
 
         public void EnqueueDirtyCell(LiquidCellHandle Cell)
         {
             lock (DirtyCells)
             {
-                if (!Cell.IsValid || DirtyCells.Contains(Cell)) return;
+                if (!Cell.IsValid || !DirtyCellMembers.Add(Cell)) return;
                 DirtyCells.Enqueue(Cell);
 
                 EnqueueDirtyChunk(Cell.Chunk);
@@ -51,15 +52,17 @@ namespace DwarfCorp
         }
 
         private Queue<VoxelChunk> DirtyChunks = new Queue<VoxelChunk>();
+        private HashSet<VoxelChunk> DirtyChunkMembers = new HashSet<VoxelChunk>();
 
         private void EnqueueDirtyChunk(VoxelChunk Chunk)
         {
             lock (DirtyChunks)
             {
-                if (DirtyChunks.Contains(Chunk)) return;
+                if (!DirtyChunkMembers.Add(Chunk)) return;
                 DirtyChunks.Enqueue(Chunk);
             }
         }
+
 
         public void HandleLiquidInteraction(VoxelHandle Vox, byte From, byte To)
         {
@@ -102,8 +105,9 @@ namespace DwarfCorp
             List<VoxelChunk> localDirty = null;
             lock (DirtyChunks)
             {
-                localDirty = DirtyChunks.ToList();
+                localDirty = new List<VoxelChunk>(DirtyChunks);
                 DirtyChunks.Clear();
+                DirtyChunkMembers.Clear();
             }
             foreach (var chunk in localDirty)
                 if (chunk != null) chunk.RebuildLiquidGeometry();
@@ -213,8 +217,9 @@ namespace DwarfCorp
             List<LiquidCellHandle> localDirty = null;
             lock (DirtyCells)
             {
-                localDirty = DirtyCells.ToList();
+                localDirty = new List<LiquidCellHandle>(DirtyCells);
                 DirtyCells.Clear();
+                DirtyCellMembers.Clear();
             }
             foreach (var cell in localDirty)
                 UpdateCell(Chunks, cell);

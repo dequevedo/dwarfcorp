@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -10,6 +11,7 @@ namespace DwarfCorp
         private static Dictionary<string, Func<String, WorldManager, Zone>> ZoneFactoryFunctions = null;
         private static bool ZoneTypesInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeZoneTypes()
         {
             if (ZoneTypesInitialized)

@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace DwarfCorp
 {
@@ -10,6 +11,7 @@ namespace DwarfCorp
         private static Dictionary<String, CreatureClass> Classes = null;
         private static bool ClassesInitialized = false;
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void InitializeClasses()
         {
             if (ClassesInitialized)
