@@ -162,7 +162,9 @@ namespace DwarfCorp
         {
             InitializeVoxels();
 
-            var shader = new Shader(Content.Load<Effect>(ContentPaths.Shaders.TexturedShaders), true);
+            var shader = Shader.TryGetSharedIconShader(Content, ContentPaths.Shaders.TexturedShaders);
+            if (shader == null)
+                return MakePlaceholderIconSheet(device, Sheet, VoxelPrimitives.Count);
 
             var sqrt = (int)(Math.Ceiling(Math.Sqrt(VoxelPrimitives.Count)));
             var width = MathFunctions.NearestPowerOf2(sqrt * Sheet.TileWidth);

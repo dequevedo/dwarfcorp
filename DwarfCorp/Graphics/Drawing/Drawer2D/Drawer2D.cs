@@ -57,7 +57,16 @@ namespace DwarfCorp
         public static void Initialize(ContentManager content, GraphicsDevice graphics)
         {
             Content = content;
-            DefaultFont = content.Load<SpriteFont>(AssetManager.ResolveContentPath(ContentPaths.Fonts.Default));
+            try
+            {
+                DefaultFont = content.Load<SpriteFont>(AssetManager.ResolveContentPath(ContentPaths.Fonts.Default));
+            }
+            catch (Exception e)
+            {
+                CrashBreadcrumbs.Push("Drawer2D: DefaultFont failed to load — " + e.GetType().Name + " — text rendering will be unavailable");
+                Console.Error.WriteLine("Drawer2D font load failed: " + e.Message);
+                DefaultFont = null;
+            }
             PointMagLinearMin = new SamplerState();
             PointMagLinearMin.AddressU = TextureAddressMode.Clamp;
             PointMagLinearMin.AddressV = TextureAddressMode.Clamp;

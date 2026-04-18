@@ -6,9 +6,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
-using SharpRaven.Data;
-
-//Todo: Why can't I use SharpRaven on FNA?
 
 namespace DwarfCorpCore
 {
@@ -41,6 +38,45 @@ namespace DwarfCorp
             }
             catch (Exception e) { Console.Error.WriteLine($"Failed to read version.txt: {e.Message}"); }
             System.Net.ServicePointManager.ServerCertificateValidationCallback = SSLCallback;
+
+            // Global crash-capture handlers — installed unconditionally (no #if guard) so
+            // Debug builds also get a crash log when the game dies unexpectedly. Managed
+            // exceptions hit AppDomain.UnhandledException; ProcessExit always fires and
+            // flushes our breadcrumb trail, which covers native fatal crashes too (heap
+            // corruption, GL driver aborts) that don't raise managed exceptions at all.
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                try
+                {
+                    var ex = e.ExceptionObject as Exception
+                        ?? new Exception("Non-Exception object: " + (e.ExceptionObject?.ToString() ?? "null"));
+                    CrashBreadcrumbs.Push("AppDomain.UnhandledException: " + ex.GetType().Name + " — " + ex.Message);
+                    WriteExceptionLog(ex);
+                }
+                catch { /* swallow — already crashing */ }
+            };
+            System.Threading.Tasks.TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                try
+                {
+                    CrashBreadcrumbs.Push("TaskScheduler.UnobservedTaskException: " + e.Exception.Message);
+                    WriteExceptionLog(e.Exception);
+                    e.SetObserved();
+                }
+                catch { /* swallow */ }
+            };
+            AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+            {
+                try
+                {
+                    var path = DwarfGame.GetGameDirectory() + Path.DirectorySeparatorChar
+                        + "Logging" + Path.DirectorySeparatorChar + "breadcrumbs_last.txt";
+                    CrashBreadcrumbs.Push("ProcessExit");
+                    CrashBreadcrumbs.Flush(path);
+                }
+                catch { /* swallow */ }
+            };
+            CrashBreadcrumbs.Push("Main start — v" + Version + " commit " + Commit);
 #if CREATE_CRASH_LOGS
             try
 #endif
@@ -78,9 +114,11 @@ namespace DwarfCorp
         {
             SignalShutdown();
             DirectoryInfo worldDirectory = Directory.CreateDirectory(DwarfGame.GetGameDirectory() + Path.DirectorySeparatorChar + "Logging");
-            StreamWriter file =
-                new StreamWriter(worldDirectory.FullName + Path.DirectorySeparatorChar + DateTime.Now.ToString("yyyyMMddHHmmssffff") + "_" + "Crashlog.txt", true);
-            file.WriteLine("DwarfCorp Version " + Version);
+            var crashPath = worldDirectory.FullName + Path.DirectorySeparatorChar
+                + DateTime.Now.ToString("yyyyMMddHHmmssffff") + "_" + "Crashlog.txt";
+            StreamWriter file = new StreamWriter(crashPath, true);
+            file.WriteLine("DwarfCorp Version " + Version + " (commit " + Commit + ")");
+            file.WriteLine("Crash UTC: " + DateTime.UtcNow.ToString("o"));
             OperatingSystem os = Environment.OSVersion;
             if (os != null)
             {
@@ -89,7 +127,7 @@ namespace DwarfCorp
                 file.WriteLine("OS SP: " + os.ServicePack);
                 file.WriteLine("OS Version String: " + os.VersionString);
             }
-            
+
             if (GameState.Game != null && GameState.Game.GraphicsDevice != null)
             {
                 GraphicsAdapter adapter = GameState.Game.GraphicsDevice.Adapter;
@@ -102,9 +140,55 @@ namespace DwarfCorp
                     file.WriteLine(mode.Width + "x" + mode.Height + " (" + mode.AspectRatio + ")");
                 }
             }
-            
+
+            // Exception + stack trace
+            file.WriteLine();
+            file.WriteLine("--- Exception ---");
             file.WriteLine(exception.ToString());
+
+            // Breadcrumbs leading up to the crash (best effort — swallow errors so we never
+            // double-fault while logging a crash).
+            try
+            {
+                file.WriteLine();
+                file.WriteLine("--- Breadcrumbs (most recent last) ---");
+                foreach (var line in CrashBreadcrumbs.DumpToLines())
+                    file.WriteLine(line);
+            }
+            catch (Exception e) { file.WriteLine("Breadcrumb dump failed: " + e.Message); }
+
+            // PerformanceMonitor metrics + recent frames, if available.
+            try
+            {
+                file.WriteLine();
+                file.WriteLine("--- Metrics ---");
+                foreach (var m in PerformanceMonitor.EnumerateMetrics())
+                    file.WriteLine(m.Key + " = " + (m.Value == null ? "null" : m.Value.ToString()));
+
+                file.WriteLine();
+                file.WriteLine("--- Top functions (last captured frame, µs) ---");
+                var swFreq = System.Diagnostics.Stopwatch.Frequency;
+                foreach (var f in PerformanceMonitor.GetLastFrameFunctions())
+                {
+                    long micros = swFreq > 0 ? (f.FrameTicks * 1_000_000L) / swFreq : 0;
+                    file.WriteLine(f.Name + " — " + f.FrameCalls + " calls, " + micros + " µs");
+                }
+
+                file.WriteLine();
+                file.WriteLine("--- Frame history (oldest→newest, last 60) ---");
+                file.WriteLine("t_seconds,fps,frame_ms");
+                foreach (var s in PerformanceMonitor.GetFrameHistory(60))
+                    file.WriteLine(s.WallClockSeconds.ToString("F3") + "," + s.Fps.ToString("F1") + "," + s.FrameTimeMs.ToString("F3"));
+            }
+            catch (Exception e) { file.WriteLine("Metrics dump failed: " + e.Message); }
+
             file.Close();
+
+            // Also flush breadcrumbs to the canonical last-session file so the ProcessExit
+            // handler doesn't overwrite with a trimmed trail.
+            try { CrashBreadcrumbs.Flush(worldDirectory.FullName + Path.DirectorySeparatorChar + "breadcrumbs_last.txt"); }
+            catch { /* swallow */ }
+
             throw exception;
         }
 
@@ -155,7 +239,9 @@ namespace DwarfCorp
 
         public static void LogSentryBreadcrumb(string category, string message, BreadcrumbLevel level = BreadcrumbLevel.Info)
         {
-            Console.Out.WriteLine(String.Format("{0} : {1}", category, message));
+            var line = String.Format("[{0}] {1} : {2}", level, category, message);
+            Console.Out.WriteLine(line);
+            CrashBreadcrumbs.Push(line);
         }
 
         public static bool ShowErrorDialog(String Message)

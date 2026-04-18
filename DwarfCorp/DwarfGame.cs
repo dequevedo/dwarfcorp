@@ -9,8 +9,6 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Linq;
 using Newtonsoft.Json;
 using SDL2;
-using SharpRaven;
-using SharpRaven.Data;
 using System.Collections.Generic;
 using DwarfCorp.Gui.Widgets;
 
@@ -201,6 +199,7 @@ namespace DwarfCorp
         protected override void LoadContent()
         {
             LogSentryBreadcrumb("Loading", "LoadContent was called.", BreadcrumbLevel.Info);
+            CrashBreadcrumbs.Push("DwarfGame.LoadContent enter");
             AssetManager.Initialize(Content, GraphicsDevice, GameSettings.Current);
 
             //DwarfSprites.LayerLibrary.ConvertTestPSD();

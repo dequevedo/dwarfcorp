@@ -131,7 +131,9 @@ namespace DwarfCorp
         {
             InitializeRailLibrary();
 
-            var shader = new Shader(Content.Load<Effect>(ContentPaths.Shaders.TexturedShaders), true);
+            var shader = Shader.TryGetSharedIconShader(Content, ContentPaths.Shaders.TexturedShaders);
+            if (shader == null)
+                return MakePlaceholderIconSheet(device, Sheet, RailPatterns.Count);
 
             var sqrt = (int)(Math.Ceiling(Math.Sqrt(RailPatterns.Count)));
             var width = MathFunctions.NearestPowerOf2(sqrt * Sheet.TileWidth);
@@ -224,5 +226,16 @@ namespace DwarfCorp
             return (Texture2D)toReturn;
         }
 
+        private static Texture2D MakePlaceholderIconSheet(GraphicsDevice device, Gui.TileSheetDefinition Sheet, int count)
+        {
+            var sqrt = Math.Max(1, (int)Math.Ceiling(Math.Sqrt(Math.Max(1, count))));
+            var width = Math.Max(Sheet.TileWidth, MathFunctions.NearestPowerOf2(sqrt * Sheet.TileWidth));
+            var height = Math.Max(Sheet.TileHeight, MathFunctions.NearestPowerOf2(sqrt * Sheet.TileHeight));
+            var placeholder = new Texture2D(device, width, height, false, SurfaceFormat.Color);
+            var pixels = new Color[width * height];
+            for (int i = 0; i < pixels.Length; i++) pixels[i] = Color.Transparent;
+            placeholder.SetData(pixels);
+            return placeholder;
+        }
     }
 }

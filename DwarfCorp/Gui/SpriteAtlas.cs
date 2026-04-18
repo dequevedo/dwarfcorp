@@ -55,9 +55,22 @@ namespace DwarfCorp.Gui
                         realTexture = AssetManager.GetContentTexture(s.Texture);
                         break;
                     case TileSheetType.Generated:
-                        realTexture = SheetGenerators[s.Texture](Device, Content, s);
+                        try
+                        {
+                            if (SheetGenerators.TryGetValue(s.Texture, out var gen))
+                                realTexture = gen(Device, Content, s);
+                        }
+                        catch (Exception e)
+                        {
+                            CrashBreadcrumbs.Push("SpriteAtlas: generator '" + s.Texture + "' threw — " + e.GetType().Name);
+                            Console.Error.WriteLine("SpriteAtlas generator '" + s.Texture + "' failed: " + e);
+                            realTexture = null;
+                        }
                         break;
                 }
+
+                if (realTexture == null)
+                    realTexture = MakeFallbackTexture(Device, Math.Max(1, s.TileWidth), Math.Max(1, s.TileHeight));
 
                 var r = new TextureAtlas.SpriteAtlasEntry
                 {
@@ -186,6 +199,15 @@ namespace DwarfCorp.Gui
                return new JsonFont(Sheet.SourceDefinition.Texture, AtlasBounds, Sheet.AtlasBounds);
             else
                return new TileSheet(AtlasBounds.Width, AtlasBounds.Height, Sheet.AtlasBounds, Sheet.SourceDefinition.TileWidth, Sheet.SourceDefinition.TileHeight, Sheet.SourceDefinition.RepeatWhenUsedAsBorder);
+        }
+
+        private static Texture2D MakeFallbackTexture(GraphicsDevice device, int width, int height)
+        {
+            var tex = new Texture2D(device, width, height, false, SurfaceFormat.Color);
+            var px = new Color[width * height];
+            for (int i = 0; i < px.Length; i++) px[i] = Color.Transparent;
+            tex.SetData(px);
+            return tex;
         }
 
         public void Dispose()

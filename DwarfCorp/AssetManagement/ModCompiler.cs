@@ -1,62 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.CodeDom.Compiler;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace DwarfCorp
 {
+    // CodeDOM-based runtime C# compilation was removed when migrating to .NET 10.
+    // .cs files inside mods are now ignored. To restore this, rewrite using
+    // Microsoft.CodeAnalysis.CSharp (Roslyn). See TODO_LIST.md.
     public static class ModCompiler
     {
         public static Assembly CompileCode(IEnumerable<String> Files)
         {
-            var codeProvider = CodeDomProvider.CreateProvider("CSharp");
-
-            var parameters = new CompilerParameters();
-            parameters.GenerateInMemory = true;
-            parameters.GenerateExecutable = false;
-
-            parameters.ReferencedAssemblies.Add("mscorlib.dll");
-            parameters.ReferencedAssemblies.Add("System.dll");
-            parameters.ReferencedAssemblies.Add("System.Core.dll");
-            parameters.ReferencedAssemblies.Add("System.Data.Linq.dll");
-            //parameters.ReferencedAssemblies.Add("Microsoft.Xna.Framework.dll");
-            //parameters.ReferencedAssemblies.Add("Microsoft.Xna.Framework.Game.dll");
-            //parameters.ReferencedAssemblies.Add("Microsoft.Xna.Framework.Graphics.dll");
-            parameters.ReferencedAssemblies.Add("DwarfCorp.exe");
-
-            //foreach (var file in System.IO.Directory.EnumerateFiles(Environment.CurrentDirectory))
-            //{
-            //    if (System.IO.Path.GetExtension(file) == ".dll")
-            //        parameters.ReferencedAssemblies.Add(file);
-            //}
-
-            parameters.ReferencedAssemblies.Add("Newtonsoft.Json.dll");
-
-
-            Console.Out.WriteLine("Compiling mod files...");
-            foreach (var file in Files)
-                Console.Out.WriteLine(file);
-
-            var compilationResults = codeProvider.CompileAssemblyFromFile(parameters, Files.ToArray());
-
-            foreach (var msg in compilationResults.Output)
-                Console.Out.WriteLine(msg);
-
-            bool realError = false;
-                foreach (var error in compilationResults.Errors)
-                {
-                    var cError = error as CompilerError;
-                    if (!cError.IsWarning) realError = true;
-                    Console.Out.WriteLine(String.Format("{0} {1}: {2}", cError.FileName, cError.Line, cError.ErrorText));
-                }
-
-            Console.Out.WriteLine("Done.");
-
-            if (realError) return null;
-            return compilationResults.CompiledAssembly;
+            Console.Out.WriteLine("ModCompiler: runtime .cs compilation is disabled on .NET 10+ (pending Roslyn port). Skipping.");
+            return null;
         }
     }
 }

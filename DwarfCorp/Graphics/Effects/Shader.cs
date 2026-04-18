@@ -1,6 +1,8 @@
 
 using System;
+using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
+using System.Security;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
@@ -10,6 +12,40 @@ namespace DwarfCorp
     public class Shader : Effect
     {
         public const int MaxLights = 64;
+
+        // Cached clone of TexturedShaders reused across GUI icon generators. Cloning the
+        // effect repeatedly triggers an AccessViolationException inside MOJOSHADER_cloneEffect
+        // on FNA 19.07 (TODO #24). Creating one clone and reusing it avoids the repeat path
+        // and lets a single failure short-circuit to a placeholder instead of crashing the game.
+        private static Shader _sharedIconShader;
+        private static readonly object _sharedIconShaderLock = new object();
+        private static bool _sharedIconShaderFailed;
+
+        [HandleProcessCorruptedStateExceptions, SecurityCritical]
+        public static Shader TryGetSharedIconShader(Microsoft.Xna.Framework.Content.ContentManager Content, string effectPath)
+        {
+            lock (_sharedIconShaderLock)
+            {
+                if (_sharedIconShader != null) return _sharedIconShader;
+                if (_sharedIconShaderFailed) return null;
+
+                CrashBreadcrumbs.Push("Shader.TryGetSharedIconShader: cloning " + effectPath);
+                try
+                {
+                    var source = Content.Load<Effect>(effectPath);
+                    _sharedIconShader = new Shader(source, true);
+                    CrashBreadcrumbs.Push("Shader.TryGetSharedIconShader: clone succeeded");
+                    return _sharedIconShader;
+                }
+                catch (Exception e)
+                {
+                    _sharedIconShaderFailed = true;
+                    CrashBreadcrumbs.Push("Shader.TryGetSharedIconShader: FAILED — " + e.GetType().Name + ": " + e.Message);
+                    Console.Error.WriteLine("Shader clone failed (will use placeholder icons): " + e);
+                    return null;
+                }
+            }
+        }
 
         public Vector3[] LightPositions
         {

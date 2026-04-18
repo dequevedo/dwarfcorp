@@ -163,7 +163,7 @@ namespace DwarfCorp.GameStates
                     DwarfTime.LastTimeX.IsPaused = false;
                     DwarfTime.LastTimeX.Speed = 1.0f;
                     World = null;
-                    DwarfGame.LogSentryBreadcrumb("Loading", "Loading failed.", SharpRaven.Data.BreadcrumbLevel.Error);
+                    DwarfGame.LogSentryBreadcrumb("Loading", "Loading failed.", BreadcrumbLevel.Error);
                     GuiRoot.ShowModalPopup(new Gui.Widgets.Confirm()
                     {
                         CancelText = "",

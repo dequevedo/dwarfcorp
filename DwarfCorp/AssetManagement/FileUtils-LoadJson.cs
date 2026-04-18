@@ -75,7 +75,7 @@ namespace DwarfCorp
                 }
                 catch (Exception e)
                 {
-                    DwarfGame.LogSentryBreadcrumb("AssetManager", String.Format("Could not load json: {0} msg: {1}", resolvedAssetPath, e.Message), SharpRaven.Data.BreadcrumbLevel.Error);
+                    DwarfGame.LogSentryBreadcrumb("AssetManager", String.Format("Could not load json: {0} msg: {1}", resolvedAssetPath, e.Message), BreadcrumbLevel.Error);
                     Console.WriteLine("Error loading asset {0}: {1}", resolvedAssetPath, e.Message);
                 }
             }
