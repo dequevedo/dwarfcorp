@@ -26,8 +26,6 @@ namespace DwarfCorp
         private HashSet<VoxelChunk> RebuildQueueMembers = new HashSet<VoxelChunk>();
         private readonly object RebuildQueueLock = new object();
         private AutoResetEvent RebuildEvent = new AutoResetEvent(true);
-        // Reused across rebuild ticks to avoid per-drain List<> allocation.
-        private readonly List<VoxelChunk> _rebuildBatchScratch = new List<VoxelChunk>();
         public bool NeedsMinimapUpdate = true;
 
         private Queue<GlobalChunkCoordinate> InvalidColumns = new Queue<GlobalChunkCoordinate>();
@@ -170,56 +168,40 @@ namespace DwarfCorp
                         continue;
                     }
 
-                    // Drain all pending chunks into a local batch, then rebuild them in parallel.
-                    // Each chunk.Rebuild() is self-contained on the CPU side (mesh generation reads
-                    // voxel data, which is immutable during the rebuild tick) and FNA3D serializes
-                    // the GPU buffer upload internally, so worker contention is minimal.
-                    var batch = _rebuildBatchScratch;
-                    batch.Clear();
-                    VoxelChunk chunk;
-                    while ((chunk = PopInvalidChunk()) != null)
+                    // Reverted parallel chunk rebuild — was causing heap corruption (STATUS_HEAP_CORRUPTION
+                    // 0xC0000374) when entering PlayState. chunk.Rebuild() allocates native
+                    // vertex/index buffers via FNA3D and disposes the previous Primitive under
+                    // PrimitiveMutex — running N of these in parallel produced native-side races
+                    // under the AMD Vulkan driver. Back to serial; revisit when we have a proper
+                    // CPU-side mesh-gen phase that doesn't touch the GraphicsDevice.
+                    VoxelChunk chunk = null;
+
+                    do
                     {
-                        if (chunk.Visible) // skip chunks that won't be rendered
-                            batch.Add(chunk);
-                    }
-
-                    if (batch.Count > 0)
-                    {
-                        PerformanceMonitor.PushFrame("Parallel chunk rebuild");
-                        var device = GameState.Game.GraphicsDevice;
-                        // Partition across worker cores; cap at batch.Count to avoid spawning
-                        // idle tasks. One chunk rebuild is O(ms), so Parallel.ForEach overhead
-                        // is negligible relative to the work.
-                        try
+                        chunk = PopInvalidChunk();
+                        if (chunk != null)
                         {
-                            System.Threading.Tasks.Parallel.ForEach(batch,
-                                new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount - 1) },
-                                c => c.Rebuild(device));
-                        }
-                        catch (AggregateException ae)
-                        {
-                            foreach (var inner in ae.InnerExceptions)
-                                Console.Error.WriteLine("Chunk rebuild failed: " + inner);
-                        }
-                        PerformanceMonitor.PopFrame();
+                            if (!chunk.Visible) continue;
+                            chunk.Rebuild(GameState.Game.GraphicsDevice);
 
-                        // Serialized list bookkeeping after parallel rebuild.
-                        for (int i = 0; i < batch.Count; i++)
-                            liveChunks.Add(batch[i]);
+                            liveChunks.Add(chunk);
 
-                        if (liveChunks.Count > GameSettings.Current.MaxLiveChunks)
-                        {
-                            liveChunks.Sort((a, b) => a.RenderCycleWhenLastVisible - b.RenderCycleWhenLastVisible);
-                            while (liveChunks.Count > GameSettings.Current.MaxLiveChunks)
+                            if (liveChunks.Count > GameSettings.Current.MaxLiveChunks)
                             {
-                                if (liveChunks[0].Visible) break;
-                                liveChunks[0].DiscardPrimitive();
-                                liveChunks.RemoveAt(0);
-                            }
-                        }
+                                liveChunks.Sort((a, b) => a.RenderCycleWhenLastVisible - b.RenderCycleWhenLastVisible);
 
-                        NeedsMinimapUpdate = true; // Soon to be redundant.
+                                while (liveChunks.Count > GameSettings.Current.MaxLiveChunks)
+                                {
+                                    if (liveChunks[0].Visible) break;
+                                    liveChunks[0].DiscardPrimitive();
+                                    liveChunks.RemoveAt(0);
+                                }
+                            }
+
+                            NeedsMinimapUpdate = true;
+                        }
                     }
+                    while (chunk != null);
 
                     PerformanceMonitor.SetMetric("VISIBLE CHUNKS", liveChunks.Count);
                 }
