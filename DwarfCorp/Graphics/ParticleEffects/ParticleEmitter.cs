@@ -48,6 +48,7 @@ namespace DwarfCorp
         public float MaxAngular;
         public float AngularDamping;
         public float LinearDamping;
+        public SpriteSheet SpriteSheet;
         public Animation Animation;
         public float EmissionRadius;
         public float EmissionSpeed;
@@ -156,9 +157,9 @@ namespace DwarfCorp
             for (var t = 0; t < Data.Animation.GetFrameCount(); ++t)
             {
                 var primitive = new BillboardPrimitive();
-                Data.Animation.UpdatePrimitive(primitive, t);
+                primitive.SetFrame(Data.SpriteSheet, Data.SpriteSheet.GetTileRectangle(Data.Animation.Frames[t]), 1.0f, 1.0f, Color.White, Data.Animation.Tint);
                 Sprites.Add(new FixedInstanceArray(name, primitive,
-                    Data.Animation.SpriteSheet.AssetName,
+                    Data.SpriteSheet.AssetName,
                     Data.MaxParticles, Data.BlendMode));
             }
             AnimPlayer.Play(Data.Animation);
@@ -340,8 +341,8 @@ namespace DwarfCorp
                     {
                         BoundingBox b = new BoundingBox(p.Position - Vector3.One * p.Scale * 0.5f, p.Position + Vector3.One * p.Scale * 0.5f);
                         BoundingBox vBox = v.GetBoundingBox();
-                        Physics.Contact contact = new Physics.Contact();
-                        if (Physics.TestStaticAABBAABB(b, vBox, ref contact))
+                        var contact = new Collision.Contact();
+                        if (Collision.TestStaticAABBAABB(b, vBox, ref contact))
                         {
                             p.Position += contact.NEnter * contact.Penetration;
                             Vector3 newVelocity = Vector3.Reflect(p.Velocity, -contact.NEnter);

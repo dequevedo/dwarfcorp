@@ -35,7 +35,7 @@ namespace DwarfCorp
             base
             (
                 manager,
-                new CreatureStats("Necrosnake", "Necrosnake", 0),
+                new CreatureStats("Necrosnake", "Necrosnake", null),
                 manager.World.Factions.Factions["Evil"],
                 name
             )
@@ -68,24 +68,33 @@ namespace DwarfCorp
             AI.Movement.SetCan(MoveType.ClimbWalls, true);
             AI.Movement.SetCan(MoveType.Dig, true);
             AI.Stats.FullName = "Giant Snake";
-            AI.Stats.LevelIndex = 0;
 
             Physics.AddChild(new Flammable(Manager, "Flames"));
         }
 
         public override void CreateCosmeticChildren(ComponentManager Manager)
         {
-            CreateSprite(ContentPaths.Entities.Animals.Snake.bonesnake_animation, Manager, 0.35f);
+            var spriteSheet = new SpriteSheet("Entities\\Animals\\Snake\\bonesnake", 64, 64);
+            var sprite = new CharacterSprite(Manager, "Sprite", Matrix.CreateTranslation(0, 0.35f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Animals\\Snake\\snake-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
 
             #region Create Tail Pieces
 
             Tail = new List<TailSegment>();
-            var tailAnimations = Library.LoadCompositeAnimationSet(ContentPaths.Entities.Animals.Snake.bonetail_animation, "Necrosnake");
+            var tailAnimations = Library.LoadNewLayeredAnimationFormat("Entities\\Animals\\Snake\\tail-animations.json");
 
             for (int i = 0; i < 10; ++i)
             {
                 var tailPiece = new CharacterSprite(Manager, "Sprite", Matrix.CreateTranslation(0, 0.25f, 0));
                 tailPiece.SetAnimations(tailAnimations);
+                tailPiece.SpriteSheet = spriteSheet;
 
                 tailPiece.SetFlag(Flag.ShouldSerialize, false);
 
@@ -102,7 +111,8 @@ namespace DwarfCorp
 
                 var inventory = tailPiece.AddChild(new Inventory(Manager, "Inventory", Physics.BoundingBox.Extents(), Physics.LocalBoundingBoxOffset)) as Inventory;
                 inventory.SetFlag(Flag.ShouldSerialize, false);
-                inventory.AddResource(new Resource("Bone") { DisplayName = Stats.CurrentClass.Name + " Bone" });
+                if (Stats.CurrentClass.HasValue(out var c))
+                    inventory.AddResource(new Resource("Bone") { DisplayName = c.Name + " Bone" });
             }
 
             #endregion

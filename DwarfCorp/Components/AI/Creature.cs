@@ -16,15 +16,15 @@ namespace DwarfCorp
         [JsonIgnore] public CreatureAI AI => _get(ref _ai);
         private CreatureAI _ai = null;
         public Physics Physics { get; set; }
-        private CharacterSprite _characterSprite = null;
-        [JsonIgnore] public CharacterSprite Sprite => _get(ref _characterSprite);
+        [JsonIgnore] private ISprite _characterSprite = null;
+        [JsonIgnore] public ISprite Sprite => _get(ref _characterSprite);
         [JsonIgnore] public EnemySensor Sensor => _get(ref _sensor);
         private EnemySensor _sensor = null;
         [JsonIgnore] public NoiseMaker NoiseMaker { get; set; }
         [JsonIgnore] public Inventory Inventory => _get(ref _inventory);
         private Inventory _inventory = null;
         public Timer MigrationTimer { get; set; }
-        [JsonIgnore] public List<Attack> Attacks;
+        //[JsonIgnore] public List<Attack> Attacks;
         public Faction Faction { get; set; }
         public PIDController Controller { get; set; }
         public CreatureStats Stats { get; set; }
@@ -74,16 +74,15 @@ namespace DwarfCorp
 
         private void InitializeAttacks()
         {
-            Attacks = Stats.CurrentClass.Weapons.Select(a => new Attack(a)).ToList();
-            for (var i = 0; i <= Stats.LevelIndex && i < Stats.CurrentClass.Levels.Count; ++i)
-                Attacks.AddRange(Stats.CurrentClass.Levels[i].ExtraWeapons.Select(w => new Attack(w)));
+            //Attacks = Stats.CurrentClass.Weapons.Select(a => new Attack(a)).ToList();
+            //for (var i = 0; i <= Stats.LevelIndex && i < Stats.CurrentClass.Levels.Count; ++i)
+            //    Attacks.AddRange(Stats.CurrentClass.Levels[i].ExtraWeapons.Select(w => new Attack(w)));
         }
 
-        private T _get<T>(ref T cached) where T : GameComponent
+        private T _get<T>(ref T cached)
         {
             if (cached == null)
                 cached = Parent.EnumerateAll().OfType<T>().FirstOrDefault();
-            //System.Diagnostics.Debug.Assert(cached != null, string.Format("No {0} created on creature.", typeof(T).Name));
             return cached;
         }
 
@@ -102,10 +101,10 @@ namespace DwarfCorp
                 _currentCharacterMode = value;
                 if (Parent != null && Sprite != null)
                 {
-                    if (Sprite.HasAnimation(_currentCharacterMode, OrientedAnimatedSprite.Orientation.Forward))
-                        Sprite.SetCurrentAnimation(value.ToString());
+                    if (Sprite.HasAnimation(_currentCharacterMode, SpriteOrientation.Forward))
+                        Sprite.SetCurrentAnimation(_currentCharacterMode.ToString(), false);
                     else
-                        Sprite.SetCurrentAnimation(_currentCharacterMode != CharacterMode.Walking ? CharacterMode.Walking.ToString() : CharacterMode.Idle.ToString());
+                        Sprite.SetCurrentAnimation(_currentCharacterMode != CharacterMode.Walking ? CharacterMode.Walking.ToString() : CharacterMode.Idle.ToString(), false);
                 }
             }
         }
@@ -113,6 +112,13 @@ namespace DwarfCorp
         override public void Update(DwarfTime gameTime, ChunkManager chunks, Camera camera)
         {
             base.Update(gameTime, chunks, camera);
+
+            if (!Stats.CurrentClass.HasValue() || !Stats.Species.HasValue())
+            {
+                // Oh fuck - we have no class! Die of shame.
+                this.Die(); 
+                return;
+            }
 
             if (FirstUpdate)
             {
@@ -171,7 +177,7 @@ namespace DwarfCorp
 
         private void UpdateMigration(DwarfTime gameTime)
         {
-            if (Stats.Species.IsMigratory && !AI.IsPositionConstrained())
+            if (Stats.Species.HasValue(out var species) && species.IsMigratory && !AI.IsPositionConstrained())
             {
                 if (MigrationTimer == null)
                     MigrationTimer = new Timer(3600f + MathFunctions.Rand(-120, 120), false);
@@ -248,7 +254,8 @@ namespace DwarfCorp
             else if (CurrentCharacterMode == CharacterMode.Sleeping)
                 CurrentCharacterMode = CharacterMode.Idle;
 
-            if (/*World.Time.IsDay() && */Stats.IsAsleep && !Stats.Energy.IsDissatisfied() && !Stats.Health.IsCritical())
+            // Break out of sleeping if appropriate - just in case the sleep act is interupted before it finishes.
+            if (Stats.IsAsleep && Stats.Health.IsSatisfied() && !Stats.Buffs.Any(buff => buff is Disease))
                 Stats.IsAsleep = false;
         }
 
@@ -266,7 +273,7 @@ namespace DwarfCorp
         /// This somewhat janky messaging system is rarely used anymore and should
         /// probably be removed for clarity.
         /// </summary>
-        public override void ReceiveMessageRecursive(Message messageToReceive)
+        public override void ReceiveMessageRecursive(Message messageToReceive, DwarfTime time)
         {
             switch (messageToReceive.Type)
             {
@@ -283,7 +290,7 @@ namespace DwarfCorp
             }
 
 
-            base.ReceiveMessageRecursive(messageToReceive);
+            base.ReceiveMessageRecursive(messageToReceive, time);
         }
 
         public Thought AddThought(String Description, TimeSpan TimeLimit, float HappinessModifier)
@@ -302,109 +309,106 @@ namespace DwarfCorp
             return r;
         }
 
-        /// <summary>
-        /// Updates the creature's animation based on its current state.
-        /// </summary>
         public void UpdateAnimation(DwarfTime gameTime, ChunkManager chunks, Camera camera)
         {
-            if (CurrentCharacterMode == Stats.CurrentClass.AttackMode)
-                return;
+            if (Stats.CurrentClass.HasValue(out var c) && c.AttackMode != CurrentCharacterMode)
+                Physics.Velocity = MathFunctions.ClampXZ(Physics.Velocity, Stats.MaxSpeed);
+        }
 
-            Physics.Velocity = MathFunctions.ClampXZ(Physics.Velocity, Stats.MaxSpeed);
+        /// <summary>
+        /// Find the default attack for this creature. Use an equipped tool if they have one and it has an attack, otherwise look at the class.
+        /// </summary>
+        /// <returns></returns>
+        public MaybeNull<Attack> GetDefaultAttack()
+        {
+            if (Stats != null && Stats.CurrentClass.HasValue(out var c) && c.Weapons.Count > 0)
+                return new Attack(c.Weapons[0]);
+            var tool = ActHelper.GetEquippedItem(this, "Tool");
+            if (tool != null && tool.Equipment_Weapon != null)
+                return new Attack(tool.Equipment_Weapon);
+            return null;
         }
 
         /// <summary>
         /// Basic Act that causes the creature to wait for the specified time.
         /// Also draws a loading bar above the creature's head when relevant.
         /// </summary>
-        public IEnumerable<Act.Status> HitAndWait(float f, bool loadBar, Func<Vector3> pos)
+        public IEnumerable<Act.Status> HitAndWait( // Todo: Kill the two calls to this.
+            float f,
+            bool loadBar,
+            Func<Vector3> pos)
         {
-            var waitTimer = new Timer(f, true);
-
-            CurrentCharacterMode = Stats.CurrentClass.AttackMode;
-            Sprite.ResetAnimations(CurrentCharacterMode);
-            Sprite.PlayAnimations(CurrentCharacterMode);
-
-            while (!waitTimer.HasTriggered)
-            {
-                waitTimer.Update(DwarfTime.LastTime);
-
-                if (loadBar)
-                    Drawer2D.DrawLoadBar(Manager.World.Renderer.Camera, AI.Position + Vector3.Up, Color.LightGreen, Color.Black, 64, 4, waitTimer.CurrentTimeSeconds / waitTimer.TargetTimeSeconds);
-
-                Physics.Active = false;
-
-                Attacks[0].PerformNoDamage(this, DwarfTime.LastTime, pos());
-                Physics.Velocity = Vector3.Zero;
-                Sprite.ReloopAnimations(Stats.CurrentClass.AttackMode);
-
-                yield return Act.Status.Running;
-            }
-
-            Sprite.PauseAnimations(Stats.CurrentClass.AttackMode);
-            CurrentCharacterMode = CharacterMode.Idle;
-            Physics.Active = true;
-
-            yield return Act.Status.Success;
-            yield break;
+            var progress = 0.0f;
+            foreach (var x in HitAndWait(loadBar, () => 1.0f, () => progress, () => progress += 1.0f / f, pos))
+                yield return x;
         }
 
-        public IEnumerable<Act.Status> HitAndWait(bool loadBar, Func<float> maxProgress, 
-            Func<float> progress, Action incrementProgress, 
-            Func<Vector3> pos, string playSound = "", Func<bool> continueHitting = null, bool maintainPos = true)
+        public IEnumerable<Act.Status> HitAndWait(
+            bool loadBar, 
+            Func<float> maxProgress, 
+            Func<float> progress, 
+            Action incrementProgress, 
+            Func<Vector3> pos, 
+            string playSound = "", 
+            Func<bool> continueHitting = null, 
+            bool maintainPos = true)
         {
-            Vector3 currentPos = Physics.LocalTransform.Translation;
-            CurrentCharacterMode = Stats.CurrentClass.AttackMode;
-            Sprite.ResetAnimations(CurrentCharacterMode);
-            Sprite.PlayAnimations(CurrentCharacterMode);
-            var p_current = pos();
-            Timer incrementTimer = new Timer(1.0f, false);
-            while (progress() < maxProgress())
+            if (Stats.CurrentClass.HasValue(out var c))
             {
-                if (continueHitting != null && !continueHitting())
-                {
-                    yield break;
-                }
+                Vector3 currentPos = Physics.LocalTransform.Translation;
 
-                if (loadBar)
+                CurrentCharacterMode = c.AttackMode;
+                Sprite.ResetAnimations(CurrentCharacterMode);
+                Sprite.PlayAnimations();
+                var p_current = pos();
+                Timer incrementTimer = new Timer(1.0f, false);
+                var defaultAttack = GetDefaultAttack();
+                while (progress() < maxProgress())
                 {
-                    Drawer2D.DrawLoadBar(Manager.World.Renderer.Camera, AI.Position + Vector3.Up, Color.LightGreen, Color.Black, 64, 4,
-                        progress() / maxProgress());
-                }
-                Physics.Active = false;
-                Physics.Face(p_current);
-                if(Attacks[0].PerformNoDamage(this, DwarfTime.LastTime, p_current))
-                {
+                    if (continueHitting != null && !continueHitting())
+                        yield break;
+
+                    if (loadBar)
+                        Drawer2D.DrawLoadBar(Manager.World.Renderer.Camera, AI.Position + Vector3.Up, Color.LightGreen, Color.Black, 64, 4, progress() / maxProgress());
+
+                    Physics.Active = false;
+                    Physics.Face(p_current);
+                    if (defaultAttack.HasValue(out var attack))
+                        attack.PerformNoDamage(this, AI.FrameDeltaTime, p_current);
+
                     p_current = pos();
-                }
-                Physics.Velocity = Vector3.Zero;
+                    Physics.Velocity = Vector3.Zero;
 
-                if (!String.IsNullOrEmpty(playSound))
-                {
-                    NoiseMaker.MakeNoise(playSound, AI.Position, true);
-                }
+                    if (!String.IsNullOrEmpty(playSound))
+                        NoiseMaker.MakeNoise(playSound, AI.Position, true);
 
-                incrementTimer.Update(DwarfTime.LastTime);
-                if (incrementTimer.HasTriggered)
-                {
-                    Sprite.ReloopAnimations(Stats.CurrentClass.AttackMode);
-                    incrementProgress();
-                }
+                    incrementTimer.Update(AI.FrameDeltaTime);
+                    if (incrementTimer.HasTriggered)
+                    {
+                        Sprite.ReloopAnimations(c.AttackMode);
+                        incrementProgress();
+                    }
 
-                if (maintainPos)
-                {
-                    var matrix = Physics.LocalTransform;
-                    matrix.Translation = currentPos;
-                    Physics.LocalTransform = matrix;
-                }
+                    if (maintainPos)
+                    {
+                        var matrix = Physics.LocalTransform;
+                        matrix.Translation = currentPos;
+                        Physics.LocalTransform = matrix;
+                    }
 
-                yield return Act.Status.Running;
+                    yield return Act.Status.Running;
+                }
+                Sprite.PauseAnimations();
+                CurrentCharacterMode = CharacterMode.Idle;
+                Physics.Active = true;
+                yield return Act.Status.Success;
+                yield break;
             }
-            Sprite.PauseAnimations(Stats.CurrentClass.AttackMode);
-            CurrentCharacterMode = CharacterMode.Idle;
-            Physics.Active = true;
-            yield return Act.Status.Success;
-            yield break;
+            else
+            {
+                yield return Act.Status.Fail;
+                yield break;
+            }
         }
 
        
@@ -412,10 +416,10 @@ namespace DwarfCorp
         /// <summary>
         /// Called whenever the creature takes damage.
         /// </summary>
-        public override float Damage(float amount, DamageType type = DamageType.Normal)
+        public override float Damage(DwarfTime Time, float amount, DamageType type = DamageType.Normal)
         {
             IsCloaked = false;
-            float damage = base.Damage(amount, type);
+            float damage = base.Damage(Time, amount, type);
 
             string prefix = damage > 0 ? "-" : "+";
             Color color = damage > 0 ? GameSettings.Current.Colors.GetColor("Negative", Color.Red) : GameSettings.Current.Colors.GetColor("Positive", Color.Green);
@@ -458,17 +462,5 @@ namespace DwarfCorp
             else
                 AI.AssignTask(task);
         }
-
-        protected CharacterSprite CreateSprite(string animations, ComponentManager manager, float VerticalOffset)
-        {
-            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, VerticalOffset, 0));
-
-            Physics.AddChild(sprite);
-            sprite.SetAnimations(Library.LoadCompositeAnimationSet(animations, Name));
-            sprite.SetFlag(Flag.ShouldSerialize, false);
-
-            return sprite;
-        }
-
     }
 }

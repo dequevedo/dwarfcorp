@@ -30,7 +30,7 @@ namespace DwarfCorp.GameStates
                         var file = NewOverworldFile.Load(GameToContinue.FullName);
                         GameStateManager.PopState();
                         var overworldSettings = file.CreateSettings();
-                        overworldSettings.InstanceSettings.LoadType = LoadType.LoadFromFile;
+                        overworldSettings.InstanceSettings = new InstanceSettings() { LoadType = LoadType.LoadFromFile };
                         GameStateManager.PushState(new LoadState(Game, overworldSettings, LoadTypes.UseExistingOverworld));
                     });
             }
@@ -38,7 +38,7 @@ namespace DwarfCorp.GameStates
             CreateMenuItem(frame,
                 Library.GetString("new-game"),
                 Library.GetString("new-game-tooltip"),
-                (sender, args) => GameStateManager.PushState(new WorldGeneratorState(Game, Overworld.Create(), WorldGeneratorState.PanelStates.Generate)));
+                (sender, args) => GameStateManager.PushState(new WorldGeneratorState(Game, Overworld.Create(), WorldGeneratorState.WorldType.NewWorld)));
 
             CreateMenuItem(frame, 
                 Library.GetString("load-game"),
@@ -67,21 +67,26 @@ namespace DwarfCorp.GameStates
 
                     var overworldSettings = Overworld.Create();
                     overworldSettings.InstanceSettings.InitalEmbarkment = new Embarkment(overworldSettings);
-                    overworldSettings.InstanceSettings.InitalEmbarkment.Funds = 1000u;
-                    overworldSettings.InstanceSettings.InitalEmbarkment.Employees.Add(Applicant.Random("Crafter", overworldSettings.Company));
-                    overworldSettings.InstanceSettings.InitalEmbarkment.Employees.Add(Applicant.Random("Manager", overworldSettings.Company));
-                    overworldSettings.InstanceSettings.InitalEmbarkment.Employees.Add(Applicant.Random("Miner", overworldSettings.Company));
-                    overworldSettings.InstanceSettings.InitalEmbarkment.Employees.Add(Applicant.Random("Wizard", overworldSettings.Company));
-                    overworldSettings.InstanceSettings.InitalEmbarkment.Employees.Add(Applicant.Random("Soldier", overworldSettings.Company));
-                    overworldSettings.InstanceSettings.InitalEmbarkment.Employees.Add(Applicant.Random("Musketeer", overworldSettings.Company));
-
+                    var biomeList = new List<BiomeData>();
+                    for (var x = 0; x < 4; ++x)
+                        biomeList.Add(Library.EnumerateBiomes().Where(b => !b.Underground).SelectRandom());
+                    overworldSettings.InstanceSettings.SelectedBiomes = biomeList.Distinct().ToList();
+                    foreach (var loadout in Library.EnumerateLoadouts())
+                        overworldSettings.InstanceSettings.InitalEmbarkment.Employees.Add(Applicant.Random(loadout, overworldSettings.Company));
                     GameStateManager.PushState(new LoadState(Game, overworldSettings, LoadTypes.GenerateOverworld));
                 });
 
-            CreateMenuItem(frame, "GIANT QUICKPLAY", "",
+            CreateMenuItem(frame, "DEBUG WORLD", "",
                 (sender, args) =>
                 {
-                    GameStateManager.PushState(new CheckMegaWorldState(Game));
+                    DwarfGame.LogSentryBreadcrumb("Menu", "User generating a debug world.");
+
+                    var overworldSettings = Overworld.Create();
+                    overworldSettings.InstanceSettings.InitalEmbarkment = new Embarkment(overworldSettings);
+                    overworldSettings.PlayerCorporationFunds = 1000000u;
+                    overworldSettings.DebugWorld = true;
+                    overworldSettings.SizeInChunks = new Point(2, 2);
+                    GameStateManager.PushState(new LoadState(Game, overworldSettings, LoadTypes.GenerateOverworld));
                 });
 
             CreateMenuItem(frame, "Dwarf Designer", "Open the dwarf designer.",
@@ -90,11 +95,11 @@ namespace DwarfCorp.GameStates
                     GameStateManager.PushState(new Debug.DwarfDesignerState(GameState.Game));
                 });
 
-#if DEBUG
-            CreateMenuItem(frame, "Yarn test", "", (sender, args) =>
+            CreateMenuItem(frame, "What's New", "", (sender, args) =>
             {
-                GameStateManager.PushState(new YarnState(null, "test.conv", "Start", new Yarn.MemoryVariableStore()));
+                GameStateManager.PushState(new YarnState(null, "whats-new.conv", "Start", new Yarn.MemoryVariableStore()));
             });
+#if DEBUG
 
             CreateMenuItem(frame, "Debug GUI", "", (sender, args) =>
             {
@@ -112,6 +117,8 @@ namespace DwarfCorp.GameStates
 
         public override void OnEnter()
         {
+            //DwarfSprites.FixDwarfSprites.Process();
+
             // Make sure that this memory gets cleaned up!!
             EntityFactory.Cleanup();
             Drawer3D.Cleanup();
@@ -136,7 +143,7 @@ namespace DwarfCorp.GameStates
             MakeMenu(dirs.FirstOrDefault());
             IsInitialized = true;
 
-            DwarfTime.LastTime.Speed = 1.0f;
+            DwarfTime.LastTimeX.Speed = 1.0f;
             SoundManager.PlayMusic("menu_music");
             SoundManager.StopAmbience();
         }

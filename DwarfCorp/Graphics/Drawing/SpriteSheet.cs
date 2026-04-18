@@ -34,6 +34,11 @@ namespace DwarfCorp
         private Texture2D FixedTexture { get; set; }
         public string AssetName { get; set; }
 
+        public void SwapFixedTexture(Texture2D Texture)
+        {
+            this.FixedTexture = Texture; // Better be same size!
+        }
+
         public SpriteSheet()
         {
             FrameWidth = -1;
@@ -168,6 +173,15 @@ namespace DwarfCorp
             return uvs;
         }
 
+        public Vector4 GetTileUVBounds(Point Tile)
+        {
+            float normalizeX = FrameWidth / (float)(Width);
+            float normalizeY = FrameHeight / (float)(Height);
+            Vector2 pixelCoords = new Vector2(Tile.X * FrameWidth, Tile.Y * FrameHeight);
+            Vector2 normalizedCoords = new Vector2(pixelCoords.X / (float)Width, pixelCoords.Y / (float)Height);
+            return new Vector4(normalizedCoords.X + 0.001f, normalizedCoords.Y + 0.001f, normalizedCoords.X + normalizeX - 0.001f, normalizedCoords.Y + normalizeY - 0.001f);
+        }
+
         public int Columns { get { return FrameWidth > 0 ? Width / FrameWidth : 0; } }
         public int Rows { get { return FrameHeight > 0 ? Height / FrameHeight : 0; } }
         public int Row(int TileIndex) { return Columns > 0 ? TileIndex / Columns : 0; }
@@ -190,6 +204,11 @@ namespace DwarfCorp
         public Matrix TileMatrix(int Column, int Row, int ColumnSpan, int RowSpan)
         {
             return Matrix.CreateScale(ColumnSpan, RowSpan, 1.0f) * TileMatrix(Column, Row);
+        }
+
+        public Rectangle GetTileRectangle(Point Tile)
+        {
+            return new Rectangle(Tile.X * FrameWidth, Tile.Y * FrameHeight, FrameWidth, FrameHeight);
         }
     }
 }

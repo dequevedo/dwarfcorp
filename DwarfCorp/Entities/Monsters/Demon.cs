@@ -15,7 +15,7 @@ namespace DwarfCorp
         private static GameComponent __factory(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
             return new Demon(
-                new CreatureStats("Demon", "Demon", 0),
+                new CreatureStats("Demon", "Demon", null),
                 Manager.World.Factions.Factions["Demon"],
                 Manager,
                 "Demon",
@@ -26,7 +26,7 @@ namespace DwarfCorp
         private static GameComponent __factory0(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
             return new Demon(
-                new CreatureStats("Demon", "Demon", 0),
+                new CreatureStats("Demon", "Demon", null),
                 Manager.World.PlayerFaction,
                 Manager,
                 "Demon",
@@ -63,7 +63,17 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateSprite(ContentPaths.Entities.Demon.demon_animations, manager, 0.15f);
+            var spriteSheet = new SpriteSheet("Entities\\Demon\\demon", 48, 40);
+            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.15f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Demon\\demon-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
+
             Physics.AddChild(Shadow.Create(0.75f, manager));
             Physics.AddChild(new MinimapIcon(Manager, new NamedImageFrame(ContentPaths.GUI.map_icons, 16, 3, 1))).SetFlag(Flag.ShouldSerialize, false);
 

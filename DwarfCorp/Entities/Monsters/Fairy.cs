@@ -26,7 +26,7 @@ namespace DwarfCorp
         }
 
         public Fairy(ComponentManager manager, Vector3 position) :
-            base(manager, new CreatureStats("Fairy", "Fairy", 0), manager.World.Factions.Factions["Player"], "Fairy")
+            base(manager, new CreatureStats("Fairy", "Fairy", null), manager.World.Factions.Factions["Player"], "Fairy")
         {
             Physics = new Physics(manager, "Fairy", Matrix.CreateTranslation(position),
                       new Vector3(0.5f, 0.5f, 0.5f), new Vector3(0.0f, -0.25f, 0.0f), 1.0f, 1.0f, 0.999f, 0.999f, new Vector3(0, -10, 0));
@@ -62,9 +62,21 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateSprite(ContentPaths.Entities.Dwarf.Sprites.fairy_animation, manager, 0.15f);
-            Sprite.AddChild(new Bobber(Manager, 0.25f, 3.0f, MathFunctions.Rand(), Sprite.LocalTransform.Translation.Y)).SetFlag(Flag.ShouldSerialize, false);
-            Sprite.LightsWithVoxels = false;
+            var spriteSheet = new SpriteSheet("Entities\\fairy", 32, 32);
+            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.15f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\fairy-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
+            if (Sprite is Tinter tinter)
+            {
+                tinter.AddChild(new Bobber(Manager, 0.25f, 3.0f, MathFunctions.Rand(), tinter.LocalTransform.Translation.Y)).SetFlag(Flag.ShouldSerialize, false);
+                tinter.LightsWithVoxels = false;
+            }
 
             Physics.AddChild(Shadow.Create(0.75f, manager));
             Physics.AddChild(new MinimapIcon(Manager, new NamedImageFrame(ContentPaths.GUI.map_icons, 16, 0, 0))).SetFlag(Flag.ShouldSerialize, false);
@@ -101,7 +113,7 @@ namespace DwarfCorp
             {
                 if (ParticleTimer.HasTriggered)
                 {
-                    Manager.World.ParticleManager.Trigger("star_particle", Sprite.Position, Color.White, 1);
+                    Manager.World.ParticleManager.Trigger("star_particle", Position, Color.White, 1);
                 }
                 DeathTimer.Update(World.Time.CurrentDate);
                 ParticleTimer.Update(gameTime);

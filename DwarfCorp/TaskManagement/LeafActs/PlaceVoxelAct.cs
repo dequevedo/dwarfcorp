@@ -81,8 +81,16 @@ namespace DwarfCorp
                         }
                     }
 
-                    // Todo: Shitbox - what happens if the player saves while this animation is in progress?? How is the OnComplete restored?
-                    var motion = new TossMotion(1.0f, 2.0f, grabbed.LocalTransform, Location.Coordinate.ToVector3() + new Vector3(0.5f, 0.5f, 0.5f));
+                    // Fail if something is in the way.
+                    foreach (var phys in Creature.World.EnumerateIntersectingRootObjects(Location.GetBoundingBox(), CollisionType.Dynamic).OfType<Physics>())
+                    {
+                        Agent.SetTaskFailureReason("Something was in the way.");
+                        yield return Status.Fail;
+                        yield break;
+                    }
+
+                        // Todo: Shitbox - what happens if the player saves while this animation is in progress?? How is the OnComplete restored?
+                        var motion = new TossMotion(1.0f, 2.0f, grabbed.LocalTransform, Location.Coordinate.ToVector3() + new Vector3(0.5f, 0.5f, 0.5f));
                     if (grabbed.GetRoot().GetComponent<Physics>().HasValue(out var grabbedPhysics))
                         grabbedPhysics.CollideMode = Physics.CollisionMode.None;
                     grabbed.AnimationQueue.Add(motion);
@@ -94,7 +102,7 @@ namespace DwarfCorp
                     PlaceVoxel(Location, vType, Creature.Manager.World);
 
                 Creature.Stats.NumBlocksPlaced++;
-                Creature.AI.AddXP(1);
+                Creature.AI.AddXP(GameSettings.Current.XP_craft);
                 ActHelper.ApplyWearToTool(Creature.AI, GameSettings.Current.Wear_Craft);
 
                 yield return Status.Success;
@@ -112,22 +120,20 @@ namespace DwarfCorp
                 World.ParticleManager.Trigger("puff", MathFunctions.RandVector3Box(Vox.GetBoundingBox().Expand(0.25f)), Color.White, 5);
 
             // Todo: Should this be handled by the chunk manager while processing voxel update events?
-            foreach (var phys in World.EnumerateIntersectingObjects(Vox.GetBoundingBox(), CollisionType.Dynamic).OfType<Physics>())
+            foreach (var phys in World.EnumerateIntersectingRootObjects(Vox.GetBoundingBox(), CollisionType.Dynamic).OfType<Physics>())
             {
                 phys.ApplyForce((phys.GlobalTransform.Translation - (Vox.WorldPosition + new Vector3(0.5f, 0.5f, 0.5f))) * 100, 0.01f);
                 BoundingBox box = Vox.GetBoundingBox();
-                Physics.Contact contact = new Physics.Contact();
-                Physics.TestStaticAABBAABB(box, phys.GetBoundingBox(), ref contact);
+                var contact = new Collision.Contact();
+                Collision.TestStaticAABBAABB(box, phys.GetBoundingBox(), ref contact);
 
-                if (!contact.IsIntersecting)
+                if (contact.IsIntersecting)
                 {
-                    continue;
+                    Vector3 diff = contact.NEnter * contact.Penetration;
+                    Matrix m = phys.LocalTransform;
+                    m.Translation += diff;
+                    phys.LocalTransform = m;
                 }
-
-                Vector3 diff = contact.NEnter * contact.Penetration;
-                Matrix m = phys.LocalTransform;
-                m.Translation += diff;
-                phys.LocalTransform = m;
             }
         }
     }

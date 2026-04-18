@@ -15,6 +15,10 @@ namespace DwarfCorp.SteamPipes
             return new SteamSystem();
         }
 
+        public override ModuleManager.UpdateTypes UpdatesWanted => ModuleManager.UpdateTypes.ComponentCreated 
+            | ModuleManager.UpdateTypes.ComponentDestroyed 
+            | ModuleManager.UpdateTypes.Update;
+
         private List<SteamPoweredObject> Objects = new List<SteamPoweredObject>();
 
         public override void ComponentCreated(GameComponent C)
@@ -29,7 +33,7 @@ namespace DwarfCorp.SteamPipes
                 Objects.Remove(steamObject);
         }
 
-        public override void Update(DwarfTime GameTime)
+        public override void Update(DwarfTime GameTime, WorldManager World)
         {
             // Todo: Limit update rate.
 

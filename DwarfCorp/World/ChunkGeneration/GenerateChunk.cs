@@ -19,7 +19,7 @@ namespace DwarfCorp.Generation
         {
             var origin = new GlobalVoxelCoordinate(ID, new LocalVoxelCoordinate(0, 0, 0));
             var worldDepth = Settings.WorldSizeInChunks.Y * VoxelConstants.ChunkSizeY;
-            var waterHeight = NormalizeHeight(Settings.Overworld.GenerationSettings.SeaLevel + 1.0f / worldDepth);
+            var waterHeight = NormalizeHeight(Settings, Settings.Overworld.GenerationSettings.SeaLevel + 1.0f / worldDepth);
 
             var c = new VoxelChunk(Settings.World.ChunkManager, ID);
 
@@ -28,11 +28,11 @@ namespace DwarfCorp.Generation
             for (int x = 0; x < VoxelConstants.ChunkSizeX; x++)
                 for (int z = 0; z < VoxelConstants.ChunkSizeZ; z++)
                 {
-                    var overworldPosition = OverworldMap.WorldToOverworld(new Vector2(x + origin.X, z + origin.Z), Settings.Overworld.InstanceSettings.Origin);
+                    var overworldPosition = OverworldMap.WorldToOverworld(new Vector2(x + origin.X, z + origin.Z));
 
-                    if (Settings.Overworld.Map.GetBiomeAt(new Vector3(x + origin.X, 0, z + origin.Z), Settings.Overworld.InstanceSettings.Origin).HasValue(out var biomeData))
+                    if (Settings.Overworld.Map.GetBiomeAt(new Vector3(x + origin.X, 0, z + origin.Z)).HasValue(out var biomeData))
                     {
-                        var normalizedHeight = NormalizeHeight(Settings.Overworld.Map.LinearInterpolate(overworldPosition, OverworldField.Height));
+                        var normalizedHeight = NormalizeHeight(Settings, Settings.Overworld.Map.LinearInterpolate(overworldPosition, OverworldField.Height));
                         var height = MathFunctions.Clamp(normalizedHeight * worldDepth, 0.0f, worldDepth - 2);
                         var stoneHeight = (int)MathFunctions.Clamp((int)(height - (biomeData.SoilLayer.Depth + (Math.Sin(overworldPosition.X) + Math.Cos(overworldPosition.Y)))), 1, height);
 
@@ -78,6 +78,35 @@ namespace DwarfCorp.Generation
                                 voxel.RawSetType(Library.GetVoxelType(biomeData.SoilLayer.VoxelType));
                         }
                     }
+                }
+
+            return c;
+        }
+
+        public static VoxelChunk GenerateDebugChunk(GlobalChunkCoordinate ID, ChunkGeneratorSettings Settings)
+        {
+            var origin = new GlobalVoxelCoordinate(ID, new LocalVoxelCoordinate(0, 0, 0));
+            var worldDepth = Settings.WorldSizeInChunks.Y * VoxelConstants.ChunkSizeY;
+            var waterHeight = NormalizeHeight(Settings, Settings.Overworld.GenerationSettings.SeaLevel + 1.0f / worldDepth);
+
+            var c = new VoxelChunk(Settings.World.ChunkManager, ID);
+
+            if (origin.Y != 0) return c;
+
+            var bedrock = Library.GetVoxelType("Bedrock");
+            var dirt = Library.GetVoxelType("Dirt");
+            var grass = Library.GetGrassType("grass");
+
+
+            for (int x = 0; x < VoxelConstants.ChunkSizeX; x++)
+                for (int z = 0; z < VoxelConstants.ChunkSizeZ; z++)
+                {
+                    var bottom = VoxelHandle.UnsafeCreateLocalHandle(c, new LocalVoxelCoordinate(x, 0, z));
+                    bottom.RawSetType(bedrock);
+
+                    var top = VoxelHandle.UnsafeCreateLocalHandle(c, new LocalVoxelCoordinate(x, 1, z));
+                    top.RawSetType(dirt);
+                    top.RawSetGrass(grass.ID);
                 }
 
             return c;

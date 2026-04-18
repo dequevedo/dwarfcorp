@@ -15,7 +15,7 @@ namespace DwarfCorp
         private static GameComponent __factory(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
             return new Troll(
-                new CreatureStats("Troll", "Troll", 0),
+                new CreatureStats("Troll", "Troll", null),
                 Manager.World.Factions.Factions["Goblins"],
                 Manager,
                 "Troll",
@@ -25,7 +25,7 @@ namespace DwarfCorp
         [EntityFactory("Player Troll")]
         private static GameComponent __factory5(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
-            var toReturn = new Troll(new CreatureStats("Troll", "Troll", 0), Manager.World.PlayerFaction, Manager, "Troll", Position);
+            var toReturn = new Troll(new CreatureStats("Troll", "Troll", null), Manager.World.PlayerFaction, Manager, "Troll", Position);
             return toReturn.Physics;
         }
 
@@ -64,7 +64,16 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateSprite(ContentPaths.Entities.Troll.troll_animation, manager, 0.15f);
+            var spriteSheet = new SpriteSheet("Entities\\Troll\\troll", 64, 64);
+            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.15f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Troll\\troll-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
             Physics.AddChild(Shadow.Create(0.75f, manager));
             Physics.AddChild(new MinimapIcon(Manager, new NamedImageFrame(ContentPaths.GUI.map_icons, 16, 1, 3))).SetFlag(Flag.ShouldSerialize, false);
 

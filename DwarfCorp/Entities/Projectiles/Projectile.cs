@@ -17,20 +17,35 @@ namespace DwarfCorp
         public Health.DamageAmount Damage { get; set; }
         public GameComponent Target { get; set; }
         public float DamageRadius { get; set; }
+        public GameComponent Shooter { get; set; }
 
-        [JsonIgnore]
-        public Animation HitAnimation { get; set; }
+        [JsonIgnore] public Library.SimpleAnimationTuple HitAnimation { get; set; }
 
         public Projectile()
         {
             
         }
 
-        public Projectile(ComponentManager manager, Vector3 position, Vector3 initialVelocity, Health.DamageAmount damage, float size, string asset, string hitParticles, string hitNoise, GameComponent target, bool animated = false, bool singleSprite = false) :
+        public Projectile(
+            ComponentManager manager, 
+            Vector3 position, 
+            Vector3 initialVelocity, 
+            Health.DamageAmount damage, 
+            float size, 
+            string asset, 
+            string hitParticles, 
+            string hitNoise, 
+            GameComponent target, 
+            GameComponent Shooter,
+            bool animated = false, 
+            bool singleSprite = false) :
             base(manager, "Projectile", Matrix.CreateTranslation(position), new Vector3(size, size, size), Vector3.One, 1.0f, 1.0f, 1.0f, 1.0f, new Vector3(0, -10, 0), OrientMode.Fixed)
         {
+            if (size == 0) throw new InvalidOperationException();
+
             this.AllowPhysicsSleep = false; 
             Target = target;
+            this.Shooter = Shooter;
             HitAnimation = null;
             IsSleeping = false;
             Velocity = initialVelocity;
@@ -50,11 +65,12 @@ namespace DwarfCorp
                 Sprite = AddChild(new AnimatedSprite(Manager, "Sprite", Matrix.CreateRotationY((float)Math.PI * 0.5f))
                 {
                     OrientationType = AnimatedSprite.OrientMode.Fixed
-                }) as AnimatedSprite;
+                }) as Tinter;
 
                 var anim = Library.CreateSimpleAnimation(asset);
-                anim.Loops = true;
-                (Sprite as AnimatedSprite).AddAnimation(anim);
+                anim.Animation.Loops = true;
+                (Sprite as AnimatedSprite).AddAnimation(anim.Animation);
+                (Sprite as AnimatedSprite).SpriteSheet = anim.SpriteSheet;
 
                 if (singleSprite)
                 {
@@ -69,11 +85,7 @@ namespace DwarfCorp
                 }) as SimpleSprite;
                 (Sprite as SimpleSprite).AutoSetWorldSize();
                 if (singleSprite)
-                {
                     (Sprite as SimpleSprite).OrientationType = SimpleSprite.OrientMode.Spherical;
-                }
-
-                
             }
 
             Sprite.SetFlag(Flag.ShouldSerialize, false);
@@ -89,8 +101,9 @@ namespace DwarfCorp
                     }) as AnimatedSprite;
 
                     var anim = Library.CreateSimpleAnimation(asset);
-                    anim.Loops = true;
-                    (Sprite2 as AnimatedSprite).AddAnimation(anim);
+                    anim.Animation.Loops = true;
+                    (Sprite2 as AnimatedSprite).AddAnimation(anim.Animation);
+                    (Sprite2 as AnimatedSprite).SpriteSheet = anim.SpriteSheet;
                 }
                 else
                 {
@@ -116,16 +129,28 @@ namespace DwarfCorp
 
         override public void Update(DwarfTime gameTime, ChunkManager chunks, Camera camera)
         {
+            if (IsDead)
+                return;
+
+            base.Update(gameTime, chunks, camera);
+
             if (Target != null && (Target.Position - LocalPosition).LengthSquared() < DamageRadius)
             {
                 if (Target.GetRoot().GetComponent<Health>().HasValue(out var health))
                 {
-                    health.Damage(Damage.Amount, Damage.DamageType);
+                    health.Damage(gameTime, Damage.Amount, Damage.DamageType);
                     var knock = (Target.Position - Position);
                     knock.Normalize();
                     knock *= 0.2f;
                     if (Target.AnimationQueue.Count == 0)
                         Target.AnimationQueue.Add(new KnockbackAnimation(0.15f, Target.LocalTransform, knock));
+                }
+
+                if (Target.IsDead && Shooter is Creature c)
+                {
+                    c.AI.AddXP(GameSettings.Current.XP_attack * 10); // Bonus XP for killing blow!
+                    c.Stats.NumThingsKilled++;
+                    c.AddThought("I killed somehing!", new TimeSpan(0, 8, 0, 0), 10.0f);
                 }
 
                 if (Damage.DamageType == Health.DamageType.Fire)
@@ -148,17 +173,18 @@ namespace DwarfCorp
                     Die();
             }
 
-            base.Update(gameTime, chunks, camera);
         }
 
         public override void Die()
         {
             if (HitAnimation != null)
             {
+                // This can't do anything, right? It's getting killed... isn't it?
                 if (Sprite is AnimatedSprite)
                 {
                     (Sprite as AnimatedSprite).AnimPlayer.Reset();
-                    (Sprite as AnimatedSprite).AnimPlayer.Play(HitAnimation);
+                    (Sprite as AnimatedSprite).AnimPlayer.Play(HitAnimation.Animation);
+                    (Sprite as AnimatedSprite).SpriteSheet = HitAnimation.SpriteSheet;
                 }
 
                 if (Target != null)
@@ -167,8 +193,8 @@ namespace DwarfCorp
                         Manager.World.Renderer.Camera.ProjectionMatrix, Manager.World.Renderer.Camera.ViewMatrix, Matrix.Identity);
                     Vector3 camvelocity1 = GameState.Game.GraphicsDevice.Viewport.Project(Position + Velocity,
                         Manager.World.Renderer.Camera.ProjectionMatrix, Manager.World.Renderer.Camera.ViewMatrix, Matrix.Identity);
-                    IndicatorManager.DrawIndicator(HitAnimation, Target.Position,
-                        HitAnimation.FrameHZ*HitAnimation.Frames.Count + 1.0f, 1.0f, Vector2.Zero, Color.White, camvelocity1.X - camvelocity0.X > 0);
+                    IndicatorManager.DrawIndicator(HitAnimation.SpriteSheet, HitAnimation.Animation, Target.Position,
+                        (1.0f/HitAnimation.Animation.FrameHZ)*HitAnimation.Animation.Frames.Count, 1.0f, Vector2.Zero, Color.White, camvelocity1.X - camvelocity0.X > 0);
                 }
             }
             base.Die();
@@ -179,7 +205,7 @@ namespace DwarfCorp
         {
             if (Target == null || Target.IsDead)
             {
-                Matrix transform = LocalTransform;
+                var transform = LocalTransform;
                 transform.Translation -= Velocity;
                 LocalTransform = transform;
 

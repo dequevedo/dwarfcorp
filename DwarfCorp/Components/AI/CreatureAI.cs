@@ -28,6 +28,7 @@ namespace DwarfCorp
         public Blackboard Blackboard = new Blackboard();
         public string Biography = "";
         public string LastFailedAct = null;
+        public DwarfTime FrameDeltaTime;
 
         protected struct FailedTask
         {
@@ -95,31 +96,39 @@ namespace DwarfCorp
         [JsonIgnore] // Todo: The problem with these wrappers is that everything works with CreatureAI instead of Creature.
         public Physics Physics
         {
-            get { return Creature.Physics; }
+            get { return Creature == null ? null : Creature.Physics; }
         }
 
         /// <summary> Wrapper around Creature.Faction </summary>
         [JsonIgnore]
         public Faction Faction
         {
-            get { return Creature.Faction; }
-            set { Creature.Faction = value; }
+            get { return Creature == null ? null : Creature.Faction; }
+            set { if (Creature != null) Creature.Faction = value; }
         }
 
         /// <summary> Wrapper around Creature.Stats </summary>
         [JsonIgnore]
         public CreatureStats Stats
         {
-            get { return Creature.Stats; }
+            get { return Creature == null ? null : Creature.Stats; }
         }
 
         /// <summary> Wrapper around Creature.Physics.GlobalTransform.Translation </summary>
         [JsonIgnore]
         public Vector3 Position // Todo: Remove wrapper
         {
-            get { return Creature.Physics.GlobalTransform.Translation; }
+            get
+            {
+                if (Creature == null || Creature.Physics == null)
+                    return Vector3.Zero;
+                return Creature.Physics.GlobalTransform.Translation;
+            }
             set
             {
+                if (Creature == null || Creature.Physics == null)
+                    return;
+
                 Matrix newTransform = Creature.Physics.LocalTransform;
                 newTransform.Translation = value;
                 Creature.Physics.LocalTransform = newTransform;
@@ -140,6 +149,19 @@ namespace DwarfCorp
         {
             PositionConstraint = new BoundingBox(new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue),
             new Vector3(float.MaxValue, float.MaxValue, float.MaxValue));
+        }
+
+        public virtual void OnAttacked(Creature By)
+        {
+            // Make the other creature defend itself.
+            var otherKill = new KillEntityTask(By.Physics, KillEntityTask.KillType.Auto)
+            {
+                AutoRetry = true,
+                ReassignOnDeath = false
+            };
+
+            if (!HasTaskWithName(otherKill))
+                AssignTask(otherKill);
         }
 
         public virtual void AddXP(int amount) { }
@@ -191,7 +213,7 @@ namespace DwarfCorp
 
                 Task newTask = null;
 
-                _preEmptTimer.Update(DwarfTime.LastTime);
+                _preEmptTimer.Update(FrameDeltaTime);
 
                 if (_preEmptTimer.HasTriggered)
                 {
@@ -269,23 +291,27 @@ namespace DwarfCorp
         public void HandleReproduction()
         {
             if (CurrentTask.HasValue()) return;
-            if (!Creature.Stats.Species.CanReproduce) return;
-            if (Creature.IsPregnant) return;
-            if (!MathFunctions.RandEvent(0.0002f)) return;
 
-            CreatureAI closestMate = null;
-            float closestDist = float.MaxValue;
-
-            foreach (var ai in Faction.Minions.Where(minion => minion != this && Mating.CanMate(minion.Creature, this.Creature)))
+            if (Creature.Stats.Species.HasValue(out var species))
             {
-                var dist = (ai.Position - Position).LengthSquared();
-                if (!(dist < closestDist)) continue;
-                closestDist = dist;
-                closestMate = ai;
-            }
+                if (!species.CanReproduce) return;
+                if (Creature.IsPregnant) return;
+                if (!MathFunctions.RandEvent(0.0002f)) return;
 
-            if (closestMate != null && closestDist < 30)
-                Tasks.Add(new MateTask(closestMate));
+                CreatureAI closestMate = null;
+                float closestDist = float.MaxValue;
+
+                foreach (var ai in Faction.Minions.Where(minion => minion != this && Mating.CanMate(minion.Creature, this.Creature)))
+                {
+                    var dist = (ai.Position - Position).LengthSquared();
+                    if (!(dist < closestDist)) continue;
+                    closestDist = dist;
+                    closestMate = ai;
+                }
+
+                if (closestMate != null && closestDist < 30)
+                    Tasks.Add(new MateTask(closestMate));
+            }
         }
 
         protected void ChangeAct(MaybeNull<Act> NewAct)
@@ -309,14 +335,16 @@ namespace DwarfCorp
         }
 
 
-        override public void Update(DwarfTime gameTime, ChunkManager chunks, Camera camera)
+        public virtual void AIUpdate(DwarfTime gameTime, ChunkManager chunks, Camera camera)
         {
             base.Update(gameTime, chunks, camera);
+
+            if (Creature == null || Stats == null) return;
 
             if (!Active)
                 return;
 
-            Creature.NoiseMaker.BasePitch = Stats.VoicePitch;
+            if (Creature.NoiseMaker != null) Creature.NoiseMaker.BasePitch = Stats.VoicePitch;
 
             // Non-dwarves are always at full energy.
             Stats.Energy.CurrentValue = 100.0f;
@@ -341,7 +369,7 @@ namespace DwarfCorp
                     }
 
                     if (Physics != null)
-                        foreach (var body in World.EnumerateIntersectingObjects(Physics.BoundingBox.Expand(3.0f)).OfType<ResourceEntity>().Where(r => r != null && r.Active && r.AnimationQueue.Count == 0))
+                        foreach (var body in World.EnumerateIntersectingRootObjects(Physics.BoundingBox.Expand(3.0f)).OfType<ResourceEntity>().Where(r => r != null && r.Active && r.AnimationQueue.Count == 0))
                         {
                             if (body.Resource != null && Library.GetResourceType(body.Resource.TypeName).HasValue(out var resource) && resource.Tags.Contains("Edible"))
                             {
@@ -374,6 +402,13 @@ namespace DwarfCorp
 
             if (CurrentTask.HasValue(out var currentTask))
             {
+#if DEBUG
+                if (this is GolemAI)
+                {
+                    var x = 5;
+                }
+#endif
+
                 if (!CurrentAct.HasValue()) // Should be impossible to have a current task and no current act.
                 {
                     // Try and recover the correct act.
@@ -387,31 +422,39 @@ namespace DwarfCorp
 
                 if (CurrentAct.HasValue(out Act currentAct))
                 {
-                    var status = currentAct.Tick();
-                    bool retried = false;
-
-                    if (CurrentAct.HasValue(out Act newCurrentAct) && currentTask != null)
+                    try
                     {
-                        if (status == Act.Status.Fail)
+                        var status = currentAct.Tick();
+                        bool retried = false;
+
+                        if (CurrentAct.HasValue(out Act newCurrentAct) && currentTask != null)
                         {
-                            LastFailedAct = newCurrentAct.Name;
+                            if (status == Act.Status.Fail)
+                            {
+                                LastFailedAct = newCurrentAct.Name;
 
-                            if (!FailedTasks.Any(task => task.TaskFailure.Equals(currentTask)))
-                                FailedTasks.Add(new FailedTask() { TaskFailure = currentTask, FailedTime = World.Time.CurrentDate });
+                                if (!FailedTasks.Any(task => task.TaskFailure.Equals(currentTask)))
+                                    FailedTasks.Add(new FailedTask() { TaskFailure = currentTask, FailedTime = World.Time.CurrentDate });
 
-                            if (currentTask.ShouldRetry(Creature))
-                                if (!Tasks.Contains(currentTask))
-                                {
-                                    ReassignCurrentTask();
-                                    retried = true;
-                                }
+                                if (currentTask.ShouldRetry(Creature))
+                                    if (!Tasks.Contains(currentTask))
+                                    {
+                                        ReassignCurrentTask();
+                                        retried = true;
+                                    }
+                            }
                         }
-                    }
 
-                    if (currentTask != null && currentTask.IsComplete(World))
-                        ChangeTask(null);
-                    else if (status != Act.Status.Running && !retried)
-                        ChangeTask(null);
+                        if (currentTask != null && currentTask.IsComplete(World))
+                            ChangeTask(null);
+                        else if (status != Act.Status.Running && !retried)
+                            ChangeTask(null);
+                    }
+                    catch (Exception e)
+                    {
+                        Program.LogSentryBreadcrumb("DATA", "Act: " + currentAct.Name + " - " + currentAct.GetType().Name);
+                        Program.CaptureException(new Exception("REPORT: Exception caught while ticking act.", e));
+                    }
                 }
             }
             else
@@ -436,7 +479,7 @@ namespace DwarfCorp
                 bool shouldDrown = (above.IsValid && (!above.IsEmpty || above.LiquidLevel > 0));
                 if ((Physics.IsInLiquid || (!Movement.CanSwim && (below.IsValid && (below.LiquidLevel > 5))))
                     && (!Movement.CanSwim || shouldDrown))
-                    Creature.Damage(Movement.CanSwim ? 1.0f : 30.0f, Health.DamageType.Normal);
+                    Creature.Damage(FrameDeltaTime, Movement.CanSwim ? 1.0f : 30.0f, Health.DamageType.Normal);
             }
 
             if (PositionConstraint.Contains(Physics.LocalPosition) == ContainmentType.Disjoint)
@@ -546,9 +589,14 @@ namespace DwarfCorp
 
         public override string GetDescription()
         {
-            string desc = Stats.FullName + ", level " + Stats.LevelIndex +
-                          " " +
-                          Stats.CurrentClass.Name + ", " + Stats.Gender.ToString() + "\n    " +
+            if (Stats == null || Creature == null)
+                return "This bloke got a problem.";
+
+            if (Stats.Happiness == null || Stats.Health == null || Stats.Hunger == null || Stats.Energy == null)
+                return "This bloke got no stats.";
+
+            string desc = (Stats.FullName == null ? "Who" : Stats.FullName) + ", level " + Stats.GetCurrentLevel() +
+                          ", " + Stats.Gender.ToString() + "\n    " +
                           "Happiness: " + GetHappinessDescription(Stats.Happiness) + ". Health: " + Stats.Health.Percentage +
                           ". Hunger: " + (100 - Stats.Hunger.Percentage) + ". Energy: " + Stats.Energy.Percentage +
                           "\n";
@@ -617,7 +665,7 @@ namespace DwarfCorp
             if (IsDead || creature == null || creature.IsDead)
                 return FightOrFlightResponse.Fight;
 
-            if (!Stats.Species.FeelsFear)
+            if (Stats.Species.HasValue(out var species) && !species.FeelsFear)
                 return FightOrFlightResponse.Fight;
 
             var fear = 0.0f;
@@ -632,14 +680,19 @@ namespace DwarfCorp
                 fear += 0.125f;
 
             // In this case, we have a very very weak weapon in comparison to our enemy.
-            if (Creature.Attacks[0].Weapon.DamageAmount * 20 < creature.Creature.Hp)
-                fear += 0.125f;
+            //if (Creature.Attacks[0].Weapon.DamageAmount * 20 < creature.Creature.Hp)
+            //    fear += 0.125f;
 
             // If the creature has formidible weapons, we're in trouble.
-            if (creature.Creature.Attacks[0].Weapon.DamageAmount * 4 > Creature.Hp)
-                fear += 0.125f;
+            //if (creature.Creature.Attacks[0].Weapon.DamageAmount * 4 > Creature.Hp)
+            //    fear += 0.125f;
+
+            // I have no means of attacking at all. Oh no!
+            if (!Creature.GetDefaultAttack().HasValue(out var attack))
+                fear += 1.0f;
 
             fear = Math.Min(fear, 0.99f);
+
 
             if (MathFunctions.RandEvent(1.0f - fear))
                 return FightOrFlightResponse.Fight;
@@ -716,7 +769,7 @@ namespace DwarfCorp
         {
             if (CurrentTask.HasValue(out var currentTask))
             {
-                if (currentTask.ReassignOnDeath && Faction == World.PlayerFaction)
+                if (World != null && World.TaskManager != null && currentTask.ReassignOnDeath && Faction == World.PlayerFaction)
                     World.TaskManager.AddTask(currentTask);
                 ChangeTask(null);
             }
@@ -734,9 +787,12 @@ namespace DwarfCorp
 
         public void Chat()
         {
-            World.Paused = true;
+#if !DEBUG
             try
+#endif
             {
+                World.Paused = true;
+
                 // Prepare conversation memory for an envoy conversation.
                 var cMem = World.ConversationMemory;
                 if (cMem == null
@@ -745,7 +801,7 @@ namespace DwarfCorp
                     || World.PlayerFaction == null
                     || World.PlayerFaction.Economy == null
                     || World.PlayerFaction.Economy.Information == null
-                    || Stats.CurrentClass == null)
+                    || !Stats.CurrentClass.HasValue())
                     return;
 
                 cMem.SetValue("$world", new Yarn.Value(World));
@@ -785,15 +841,15 @@ namespace DwarfCorp
                     cMem.SetValue("$motto", new Yarn.Value(World?.PlayerFaction?.Economy?.Information?.Motto));
                 cMem.SetValue("$company_name", new Yarn.Value(World?.PlayerFaction?.Economy?.Information?.Name));
                 cMem.SetValue("$employee_task", new Yarn.Value(CurrentTask.HasValue(out var currentTask) ? "Nothing" : currentTask.Name));
-                cMem.SetValue("$employee_class", new Yarn.Value(Stats.CurrentClass.Name));
+                cMem.SetValue("$employee_class", new Yarn.Value("Dwarf"));
                 var injuries = TextGenerator.GetListString(Creature.Stats.Buffs.OfType<Disease>().Select(disease => disease.Name));
                 if (injuries == "")
                 {
                     injuries = "no problems";
                 }
                 cMem.SetValue("$injuries", new Yarn.Value(injuries));
-                cMem.SetValue("$employee_pay", new Yarn.Value((float)(decimal)Stats.CurrentLevel.Pay));
-                cMem.SetValue("$employee_bonus", new Yarn.Value(4 * (float)(decimal)Stats.CurrentLevel.Pay));
+                cMem.SetValue("$employee_pay", new Yarn.Value((float)(decimal)Stats.DailyPay));
+                cMem.SetValue("$employee_bonus", new Yarn.Value(4 * (float)(decimal)Stats.DailyPay));
                 cMem.SetValue("$company_money", new Yarn.Value((float)(decimal)Faction?.Economy?.Funds));
 
                 if (Physics.GetComponent<Flammable>().HasValue(out var flames))
@@ -806,10 +862,12 @@ namespace DwarfCorp
                 state.SetVoicePitch(Stats.VoicePitch);
                 GameStateManager.PushState(state);
             }
+#if !DEBUG
             catch (Exception e)
             {
-                Program.CaptureException(new Exception("Exception thrown by chat initialization.", e));
+                Program.CaptureException(new Exception("REPORT: Exception thrown by chat initialization.", e));
             }
+#endif
         }
     }
 }

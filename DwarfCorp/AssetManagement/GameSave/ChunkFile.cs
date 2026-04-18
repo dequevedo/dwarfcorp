@@ -96,6 +96,10 @@ namespace DwarfCorp
             for (var i = 0; i < VoxelConstants.ChunkVoxelCount; ++i)
                 c.Data.Types[i] = Types[i];
 
+            for (var i = 0; i < VoxelConstants.ChunkVoxelCount; ++i)
+                if ((Decals[i] & VoxelConstants.PathingHintMask) == VoxelConstants.PathingHintMask)
+                    c.Data.PathHints += 1;
+
             // Remap the saved voxel ids to the ids of the currently loaded voxels.
             Remap(c.Data.Types.Length, VoxelTypeMap, Library.GetVoxelTypeMap(), (index) => Types[index], (index, value) => c.Data.Types[index] = (byte)value);
 
@@ -132,6 +136,12 @@ namespace DwarfCorp
                 (index, value) => c.Data.Decal[index] = (byte)((c.Data.Decal[index] & VoxelConstants.InverseDecalTypeMask) | (value & VoxelConstants.DecalTypeMask)));
 
             return c;
+        }
+
+        public void Write(String SaveDirectory)
+        {
+            var filename = SaveDirectory + System.IO.Path.DirectorySeparatorChar + "Chunks" + System.IO.Path.DirectorySeparatorChar + ID.X + "_" + ID.Y + "_" + ID.Z + ".";
+            FileUtils.SaveJSON(this, filename + ChunkFile.Extension);
         }
     }
 }

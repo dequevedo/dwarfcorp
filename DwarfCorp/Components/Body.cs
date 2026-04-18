@@ -122,11 +122,14 @@ namespace DwarfCorp
             Matrix mat = Matrix.CreateRotationY(angle);
             mat.Translation = LocalTransform.Translation;
             LocalTransform = mat;
-            PropogateTransforms();
+            //PropogateTransforms();
         }
 
         public virtual void Update(DwarfTime Time, ChunkManager Chunks, Camera Camera)
         {
+            if (IsDead)
+                return;
+
             if (AnimationQueue.Count > 0)
             {
                 var anim = AnimationQueue[0];
@@ -145,6 +148,9 @@ namespace DwarfCorp
 
         public void ProcessTransformChange()
         {
+            if (IsDead)
+                return;
+
             if (HasMoved)
             {
                 UpdateTransform();
@@ -170,11 +176,14 @@ namespace DwarfCorp
             return lastMinChunkID != newMinChunkID || lastMaxChunkID != newMaxChunkID;
         }
 
+        public virtual void OnOutsideWorld()
+        {
+            this.Die();
+        }
+
         public void UpdateTransform()
         {
             HasMoved = false;
-
-            PerformanceMonitor.PushFrame("Body.UpdateTransform");
 
             if (Parent != null)
                 globalTransform = LocalTransform * Parent.GlobalTransform;
@@ -185,30 +194,29 @@ namespace DwarfCorp
 
             if (NeedsSpacialStorageUpdate(LastBounds, BoundingBox))
             {
-                Manager.World.RemoveGameObject(this, LastBounds);
-                Manager.World.AddGameObject(this, BoundingBox);
-
                 if (IsRoot() && !IsFlagSet(Flag.DontUpdate))
                 {
                     Manager.World.RemoveRootGameObject(this, LastBounds);
-                    Manager.World.AddRootGameObject(this, BoundingBox);
+                    if (Manager.World.AddRootGameObject(this, BoundingBox) == 0)
+                        this.OnOutsideWorld();
                 }
+
+                this.OnSpacialStorageUpdate(LastBounds, BoundingBox);
             }
 
             LastBounds = BoundingBox;
-           
-            PerformanceMonitor.PopFrame();
+        }
+
+        public virtual void OnSpacialStorageUpdate(BoundingBox LastBounds, BoundingBox NewBounds)
+        {
+
         }
 
         public void PropogateTransforms()
         {
-            PerformanceMonitor.PushFrame("Propogate Transforms");
-
             UpdateTransform();
             for (var i = 0; i < Children.Count; ++i)
                 Children[i].PropogateTransforms();
-
-            PerformanceMonitor.PopFrame();
         }
 
         public BoundingBox GetBoundingBox()
@@ -238,7 +246,7 @@ namespace DwarfCorp
         
         public virtual void CreateCosmeticChildren(ComponentManager Manager)
         {
-            PropogateTransforms();
+            //PropogateTransforms();
             //base.CreateCosmeticChildren(Manager);
         }
 
@@ -250,11 +258,11 @@ namespace DwarfCorp
             LocalTransform = newTransform;
         }
 
-        private void RemoveFromOctTree()
+        public virtual void RemoveFromOctTree()
         {
             if (Manager != null)
             {
-                Manager.World.RemoveGameObject(this, LastBounds);
+                //Manager.World.RemoveGameObject(this, LastBounds);
                 if (IsRoot() && !IsFlagSet(Flag.DontUpdate))
                     Manager.World.RemoveRootGameObject(this, LastBounds);
             }

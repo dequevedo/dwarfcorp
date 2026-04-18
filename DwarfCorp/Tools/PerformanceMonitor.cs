@@ -69,6 +69,7 @@ namespace DwarfCorp
         public static void Render()
         {
             var FPS = 0;
+            double elapsedMilliseconds = 0.0;
 
             if (FPSWatch == null)
                 FPSWatch = Stopwatch.StartNew();
@@ -76,6 +77,7 @@ namespace DwarfCorp
             {
                 FPSWatch.Stop();
                 FPS = (int)Math.Floor(1.0f / (float)FPSWatch.Elapsed.TotalSeconds);
+                elapsedMilliseconds = FPSWatch.Elapsed.TotalMilliseconds;
                 FPSWatch = Stopwatch.StartNew();
             }
 
@@ -89,9 +91,9 @@ namespace DwarfCorp
 
                 var output = DwarfGame.GetConsoleTile("PERFORMANCE");
                 output.Lines.Clear();
-                output.Lines.Add(String.Format("Frame time: {0:000.000}", FPSWatch.Elapsed.TotalMilliseconds));
+                output.Lines.Add(String.Format("Frame time: {0:000.000}", elapsedMilliseconds));
 
-                foreach (var function in Functions)
+                foreach (var function in Functions.OrderBy(f => f.Value.FrameTicks).Reverse())
                     output.Lines.Add(String.Format("{1:0000} {2:000} {0}\n", function.Value.Name, function.Value.FrameCalls, function.Value.FrameTicks / 1000));
 
                 output.Invalidate();
@@ -103,6 +105,7 @@ namespace DwarfCorp
                     fps.AddChild(new Gui.Widgets.Graph()
                     {
                         AutoLayout = AutoLayout.DockFill,
+                        ScaleGraphRange = 5.0f
                     });
 
                     fps.Layout();

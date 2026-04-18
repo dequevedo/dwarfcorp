@@ -26,20 +26,14 @@ namespace DwarfCorp
         public TaskCategory Actions = TaskCategory.None;
         public CharacterMode AttackMode;
         public bool PlayerClass = false;
-        public bool Managerial = false;
         public bool RequiresSupervision = true;
         public string FallbackTool = "";
         public string JobDescription = "There is no description for this class.";
-        public bool RequiresTools = true;
+        public bool RequiresTools = false;
         public bool TriggersMourning = true;
         public List<Resource> StartingEquipment = new List<Resource>();
 
         // Todo: Should just include name of attack animation. Kinda what the AttackMode is.
-
-        public bool IsTaskAllowed(TaskCategory TaskCategory)
-        {
-            return (Actions & TaskCategory) == TaskCategory;
-        }
 
         public CreatureClass()
         {

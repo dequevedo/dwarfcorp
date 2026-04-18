@@ -70,7 +70,7 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateDwarfSprite(Stats.CurrentClass, manager);
+            CreateDwarfSprite(manager);
             Physics.AddChild(Shadow.Create(0.75f, manager));
             Physics.AddChild(new VoxelRevealer(manager, Physics, 5)).SetFlag(Flag.ShouldSerialize, false);
             Physics.AddChild(new MinimapIcon(Manager, new NamedImageFrame(ContentPaths.GUI.map_icons, 16, 0, 0))).SetFlag(Flag.ShouldSerialize, false);
@@ -125,13 +125,13 @@ namespace DwarfCorp
                 SoundToPlay = ContentPaths.Entities.Dwarf.Audio.dwarfhurt1,
             }).SetFlag(Flag.ShouldSerialize, false);
 
-            if (Equipment.HasValue(out var equipment) && GetRoot().GetComponent<DwarfSprites.LayeredCharacterSprite>().HasValue(out var sprite))
+            if (Equipment.HasValue(out var equipment) && GetRoot().GetComponent<DwarfSprites.DwarfCharacterSprite>().HasValue(out var sprite))
                 equipment.AddLayersToSprite(sprite);
 
             base.CreateCosmeticChildren(manager);
         }
 
-        protected void CreateDwarfSprite(CreatureClass employeeClass, ComponentManager manager)
+        protected void CreateDwarfSprite(ComponentManager manager)
         {
             if (Physics == null)
             {
@@ -168,21 +168,21 @@ namespace DwarfCorp
             if (Stats.Energy.IsDissatisfied())
             {
                 DrawIndicator(IndicatorManager.StandardIndicators.Sleepy);
-                statAdjustments.Strength += -2.0f;
-                statAdjustments.Intelligence += -2.0f;
-                statAdjustments.Dexterity += -2.0f;
+                statAdjustments.Strength += -2;
+                statAdjustments.Intelligence += -2;
+                statAdjustments.Dexterity += -2;
             }
 
             if (Stats.CanEat && Stats.Hunger.IsDissatisfied() && !Stats.IsAsleep)
             {
                 DrawIndicator(IndicatorManager.StandardIndicators.Hungry);
 
-                statAdjustments.Intelligence += -1.0f;
-                statAdjustments.Dexterity += -1.0f;
+                statAdjustments.Intelligence += -1;
+                statAdjustments.Dexterity += -1;
 
                 if (Stats.Hunger.CurrentValue <= 1e-12 && (DateTime.Now - LastHungerDamageTime).TotalSeconds > Stats.HungerDamageRate)
                 {
-                    Damage(1.0f / (Stats.HungerResistance) * Stats.HungerDamageRate);
+                    Damage(gameTime, 1.0f / (Stats.HungerResistance) * Stats.HungerDamageRate);
                     LastHungerDamageTime = DateTime.Now;
                 }
             }

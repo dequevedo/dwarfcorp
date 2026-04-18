@@ -23,7 +23,10 @@ namespace DwarfCorp
             var resourceList = FileUtils.LoadJsonListFromDirectory<ResourceType>("World\\ResourceItems", null, r => r.TypeName);
 
             foreach (var resource in resourceList)
+            {
                 Resources[resource.TypeName] = resource;
+                resource.InitializeStrings();
+            }
 
             PossibleTags = resourceList.SelectMany(r => r.Tags).Distinct().OrderBy(t => t).ToList();
 
@@ -105,7 +108,7 @@ namespace DwarfCorp
             }
             catch (Exception e)
             {
-                Program.CaptureException(new Exception("Exception caught while creating meta-resource: " + FactoryName, e));
+                Program.CaptureException(new Exception("REPORT: Exception caught while creating meta-resource: " + FactoryName, e));
                 return null;
             }
         }
@@ -231,7 +234,7 @@ namespace DwarfCorp
         {
             InitializeResources();
 
-            if (Ingredients.Count == 0)
+            if (Ingredients == null || Ingredients.Count == 0)
                 return null;
 
             return Base;

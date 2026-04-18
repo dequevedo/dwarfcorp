@@ -51,6 +51,7 @@ namespace DwarfCorp
         public SkyRenderer Sky;
         public SelectionBuffer SelectionBuffer;
         public InstanceRenderer InstanceRenderer;
+        public DwarfSprites.DwarfInstanceGroup DwarfInstanceRenderer;
         public ContentManager Content;
         public DwarfGame Game;
         public GraphicsDevice GraphicsDevice { get { return GameState.Game.GraphicsDevice; } }
@@ -94,7 +95,7 @@ namespace DwarfCorp
                         SurfaceFormat.Color, DepthFormat.Depth24))
                 {
                     var frustum = Camera.GetDrawFrustum();
-                    var renderables = World.EnumerateIntersectingObjects(frustum)
+                    var renderables = World.EnumerateIntersectingRootObjectsLoose(frustum).SelectMany(r => r.EnumerateAll())
                         .Where(r => r.IsVisible && !World.ChunkManager.IsAboveCullPlane(r.GetBoundingBox()));
 
                     var oldProjection = Camera.ProjectionMatrix;
@@ -112,6 +113,8 @@ namespace DwarfCorp
                         ComponentRenderer.WaterRenderType.None, 0);
                     InstanceRenderer.Flush(GraphicsDevice, DefaultShader, Camera,
                         InstanceRenderMode.Normal);
+                    DwarfInstanceRenderer.Update(GraphicsDevice);
+                    DwarfInstanceRenderer.Render(GraphicsDevice, DefaultShader, Camera, InstanceRenderMode.Normal);
 
 
                     GraphicsDevice.SetRenderTarget(null);
@@ -288,7 +291,7 @@ namespace DwarfCorp
             }
             ValidateShader();
             var frustum = Camera.GetDrawFrustum();
-            var renderables = World.EnumerateIntersectingObjects(frustum,
+            var renderables = World.EnumerateIntersectingRootObjectsLoose(frustum).SelectMany(r => r.EnumerateAll()).Where(
                 r => (Debugger.Switches.DrawInvisible || r.IsVisible) && !World.ChunkManager.IsAboveCullPlane(r.GetBoundingBox()));
 
             // Controls the sky fog
@@ -296,9 +299,6 @@ namespace DwarfCorp
             x = x * x;
             DefaultShader.FogColor = new Color(0.32f * x, 0.58f * x, 0.9f * x);
             DefaultShader.LightPositions = LightPositions;
-
-            CompositeLibrary.Render(GraphicsDevice);
-            CompositeLibrary.Update();
 
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             GraphicsDevice.BlendState = BlendState.Opaque;
@@ -337,6 +337,9 @@ namespace DwarfCorp
             var level = PersistentSettings.MaxViewingLevel >= World.WorldSizeInVoxels.Y ? 1000.0f : PersistentSettings.MaxViewingLevel + 0.25f;
             Plane slicePlane = WaterRenderer.CreatePlane(level, new Vector3(0, -1, 0), Camera.ViewMatrix, false);
 
+            
+            DwarfInstanceRenderer.Update(GraphicsDevice);
+
             if (SelectionBuffer.Begin(GraphicsDevice))
             {
                 // Draw the whole world, and make sure to handle slicing
@@ -356,8 +359,8 @@ namespace DwarfCorp
                 //GamePerformance.Instance.StopTrackPerformance("Render - Selection Buffer - Components");
 
                 //GamePerformance.Instance.StartTrackPerformance("Render - Selection Buffer - Instances");
-                InstanceRenderer.Flush(GraphicsDevice, DefaultShader, Camera,
-                    InstanceRenderMode.SelectionBuffer);
+                InstanceRenderer.Flush(GraphicsDevice, DefaultShader, Camera, InstanceRenderMode.SelectionBuffer);
+                DwarfInstanceRenderer.Render(GraphicsDevice, DefaultShader, Camera, InstanceRenderMode.SelectionBuffer);
                 //GamePerformance.Instance.StopTrackPerformance("Render - Selection Buffer - Instances");
 
                 SelectionBuffer.End(GraphicsDevice);
@@ -419,6 +422,7 @@ namespace DwarfCorp
                 DwarfGame.SpriteBatch, GraphicsDevice, DefaultShader,
                 ComponentRenderer.WaterRenderType.None, lastWaterHeight);
             InstanceRenderer.Flush(GraphicsDevice, DefaultShader, Camera, InstanceRenderMode.Normal);
+            DwarfInstanceRenderer.Render(GraphicsDevice, DefaultShader, Camera, InstanceRenderMode.Normal);
 
             WaterRenderer.DrawWater(
                 GraphicsDevice,
@@ -443,17 +447,17 @@ namespace DwarfCorp
             {
                 if (UseFXAA)
                 {
-                    fxaa.Begin(DwarfTime.LastTime);
+                    fxaa.Begin(DwarfTime.LastTimeX);
                 }
                 bloom.DrawTarget = UseFXAA ? fxaa.RenderTarget : null;
 
                 bloom.Draw(gameTime.ToRealTime());
                 if (UseFXAA)
-                    fxaa.End(DwarfTime.LastTime);
+                    fxaa.End(DwarfTime.LastTimeX);
             }
             else if (UseFXAA)
             {
-                fxaa.End(DwarfTime.LastTime);
+                fxaa.End(DwarfTime.LastTimeX);
             }
 
             RasterizerState rasterizerState = new RasterizerState()
@@ -491,15 +495,6 @@ namespace DwarfCorp
                 }
             }
 
-            if (Debugger.Switches.DrawComposites)
-            {
-                Vector2 offset = Vector2.Zero;
-                foreach (var composite in CompositeLibrary.Composites)
-                {
-                    offset = composite.Value.DebugDraw(DwarfGame.SpriteBatch, (int)offset.X, (int)offset.Y);
-                }
-            }
-
             if (Debugger.Switches.DrawTiledInstanceAtlas)
             {
                 var tiledInstanceGroup = InstanceRenderer.GetCombinedTiledInstance();
@@ -514,8 +509,7 @@ namespace DwarfCorp
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             GraphicsDevice.BlendState = BlendState.Opaque;
 
-            foreach (var module in World.UpdateSystems)
-                module.Render(gameTime, World.ChunkManager, Camera, DwarfGame.SpriteBatch, GraphicsDevice, DefaultShader);
+                World.ModuleManager.Render(gameTime, World.ChunkManager, Camera, DwarfGame.SpriteBatch, GraphicsDevice, DefaultShader);
 
             lock (ScreenshotLock)
             {

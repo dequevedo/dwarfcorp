@@ -45,7 +45,7 @@ namespace DwarfCorp
                 new Point(3, 0)
             };
 
-            var forgeAnimation = Library.CreateAnimation(spriteSheet, frames, "ConveyorAnimation");
+            var forgeAnimation = Library.CreateAnimation(frames, "ConveyorAnimation");
             forgeAnimation.Loops = true;
 
             var sprite = AddChild(new AnimatedSprite(Manager, "sprite", Matrix.CreateRotationX((float)Math.PI * 0.5f) * Matrix.CreateTranslation(0.0f, -0.4f, 0.0f))
@@ -54,6 +54,7 @@ namespace DwarfCorp
             }) as AnimatedSprite;
 
             sprite.AddAnimation(forgeAnimation);
+            sprite.SpriteSheet = spriteSheet;
             sprite.AnimPlayer.Play(forgeAnimation);
             sprite.SetFlag(Flag.ShouldSerialize, false);
 
@@ -77,7 +78,7 @@ namespace DwarfCorp
             pushVector = Vector3.Transform(pushVector, rot * Quaternion.CreateFromAxisAngle(Vector3.UnitY, -(float)Math.PI / 2.0f));
             pushVector *= (float)Time.ElapsedGameTime.TotalSeconds * 4.0f;
 
-            foreach (var body in Manager.World.EnumerateIntersectingObjects(GetBoundingBox(), CollisionType.Dynamic))
+            foreach (var body in Manager.World.EnumerateIntersectingRootObjects(GetBoundingBox(), CollisionType.Dynamic))
                 if (GetBoundingBox().Contains(body.LocalPosition) == ContainmentType.Contains)
                     body.LocalPosition += pushVector;
         }

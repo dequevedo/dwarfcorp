@@ -8,17 +8,7 @@ namespace DwarfCorp
     {
         public void CreateInitialEmbarkment(Generation.ChunkGeneratorSettings Settings)
         {
-            PlayerFaction.Economy.Funds = Settings.Overworld.InstanceSettings.InitalEmbarkment.Funds;
-            Settings.Overworld.PlayerCorporationFunds -= Settings.Overworld.InstanceSettings.InitalEmbarkment.Funds;
-            Settings.Overworld.PlayerCorporationFunds -= Settings.Overworld.InstanceSettings.CalculateLandValue();
-
-            foreach (var res in Settings.Overworld.InstanceSettings.InitalEmbarkment.Resources.Enumerate())
-            {
-                AddResources(res);
-                Settings.Overworld.PlayerCorporationResources.Remove(res);
-            }
-
-            if (GenerateInitialBalloonPort(Renderer.Camera.Position.X, Renderer.Camera.Position.Z, 1, Settings).HasValue(out var port))
+            if (GenerateInitialBalloonPort(Settings.Overworld.SpawnPoint.X, Settings.Overworld.SpawnPoint.Y, 1, Settings).HasValue(out var port))
             {
                 var portBox = port.GetBoundingBox();
 
@@ -36,6 +26,9 @@ namespace DwarfCorp
                 Settings.Overworld.PlayerCorporationFunds -= applicant.SigningBonus;
                 HireImmediately(applicant);
             }
+
+            PlayerFaction.Economy.Funds = Settings.Overworld.PlayerCorporationFunds;
+            Settings.Overworld.PlayerCorporationFunds = 0;
         }
 
         public static MaybeNull<Zone> GenerateInitialBalloonPort(float x, float z, int size, Generation.ChunkGeneratorSettings Settings)

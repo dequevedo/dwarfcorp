@@ -50,20 +50,12 @@ namespace DwarfCorp.GameStates
             Debugger.SetConsoleCommandContext(World);
             InfoTray.ClearTopMessage();
 
-            // Hide tutorial while menu is up
-            if (PausePanel == null || PausePanel.Hidden)
-                World.TutorialManager.ShowTutorial();
-            else
-                World.TutorialManager.HideTutorial();
-
 #if !DEBUG
             try
             {
 #endif
             if (IsMouseOverGui)
                 ShowInfo(InfoTray.TopEntry, "MOUSE OVER GUI");
-            else
-                BottomToolBar.RefreshVisibleTray();
 
             #region Handle keyboard input
 
@@ -151,12 +143,6 @@ namespace DwarfCorp.GameStates
                             };
                         }
                     }
-                    // Main Toolbar Hotkeys
-                    else if (FlatToolTray.Tray.Hotkeys.Contains((Keys)args.KeyValue))
-                    {
-                        if (PausePanel == null || PausePanel.Hidden)
-                            (BottomToolBar.Children.First(w => w.Hidden == false) as FlatToolTray.Tray).Hotkey((Keys)args.KeyValue);
-                    }
                     else if ((Keys)args.KeyValue == Keys.Escape)
                     {
                         BrushTray.Select(0);
@@ -164,10 +150,11 @@ namespace DwarfCorp.GameStates
 
                         if (World.TutorialManager.HasCurrentTutorial())
                             World.TutorialManager.DismissCurrentTutorial();
-                        else if (TogglePanels.Any(p => p.Hidden == false))
-                            HideTogglePanels();
-                        else if (MainMenu.Hidden && PausePanel == null)
-                            (BottomToolBar.Children.First(w => w.Hidden == false) as FlatToolTray.Tray).Hotkey(FlatToolTray.Tray.Hotkeys[0]);
+                        else if (CommandTray != null && CommandTray.ActiveMenu.Count > 0)
+                        {
+                            CommandTray.PopCategory();
+                            CommandTray.RefreshItems();
+                        }
                         else if (CurrentToolMode != "SelectUnits" && PausePanel == null)
                             ChangeTool("SelectUnits");
                         else if (PausePanel != null)
@@ -266,6 +253,7 @@ namespace DwarfCorp.GameStates
                             if (!GodMenu.Hidden)
                                 ChangeTool("SelectUnits");
                             GodMenu.Hidden = !GodMenu.Hidden;
+                            GodMenu.BringToFront();
                             GodMenu.Invalidate();
                         }
                     }
@@ -300,6 +288,8 @@ namespace DwarfCorp.GameStates
                         World.Renderer.SetMaxViewingLevel(World.WorldSizeInVoxels.Y);
                         args.Handled = true;
                     }
+                    else
+                        CommandTray.HandleHotkeyPress((Keys)args.KeyValue);
                 }
                 else if (@event == DwarfCorp.Gui.InputEvents.KeyDown)
                 {
@@ -329,10 +319,6 @@ namespace DwarfCorp.GameStates
             });
 
             #endregion
-
-            // Close the bottom menu if the only icon is the return icon.
-            if (BottomToolBar.Children.First(w => w.Hidden == false).Children.Count(c => c.Hidden == false) == 1)
-                (BottomToolBar.Children.First(w => w.Hidden == false) as FlatToolTray.Tray).Hotkey(FlatToolTray.Tray.Hotkeys[0]);
 
             #region Handle slice hotkeys being held down
 
@@ -413,12 +399,13 @@ namespace DwarfCorp.GameStates
                 // Todo: Employee AI debug display
 
                 var scheduleDisplay = DwarfGame.GetConsoleTile("FORECAST");
-                scheduleDisplay.TextSize = 1;
                 scheduleDisplay.Lines.Clear();
                 scheduleDisplay.Lines.Add(String.Format("Diff:{0:+00;-00;+00} Forecast:{1:+00;-00;+00}", World.EventScheduler.CurrentDifficulty, World.EventScheduler.ForecastDifficulty(World.Time.CurrentDate)));
                 foreach (var scheduledEvent in World.EventScheduler.Forecast)
                     scheduleDisplay.Lines.Add(String.Format("{2:+00;-00;+00} {1} {0}", scheduledEvent.Event.Name, (scheduledEvent.Date - World.Time.CurrentDate).ToString(@"hh\:mm"), scheduledEvent.Event.Difficulty));
                 scheduleDisplay.Invalidate();
+
+                World.ModuleManager.DebugOutput(DwarfGame.GetConsoleTile("MODULES"));
             }
             #endregion
 

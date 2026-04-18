@@ -66,7 +66,7 @@ namespace DwarfCorp
                             // Spread grass onto this tile - but only from the same biome.
 
                             // Don't spread if there's an entity here.
-                             var entityPresent = chunk.Manager.World.EnumerateIntersectingObjects(
+                             var entityPresent = chunk.Manager.World.EnumerateIntersectingRootObjects(
                                 new BoundingBox(voxel.WorldPosition + new Vector3(0.1f, 1.1f, 0.1f), voxel.WorldPosition + new Vector3(0.9f, 1.9f, 0.9f)),
                                 CollisionType.Static).Any();
                             if (entityPresent) continue;
@@ -76,7 +76,7 @@ namespace DwarfCorp
                             if (voxelAbove.IsValid && !voxelAbove.IsEmpty)
                                 continue;
 
-                            if (chunk.Manager.World.Overworld.Map.GetBiomeAt(voxel.Coordinate.ToVector3(), chunk.Manager.World.Overworld.InstanceSettings.Origin).HasValue(out var biome))
+                            if (chunk.Manager.World.Overworld.Map.GetBiomeAt(voxel.Coordinate.ToVector3()).HasValue(out var biome))
                             {
                                 var grassyNeighbors = VoxelHelpers.EnumerateManhattanNeighbors2D(voxel.Coordinate)
                                     .Select(c => new VoxelHandle(voxel.Chunk.Manager, c))
@@ -84,7 +84,7 @@ namespace DwarfCorp
                                     .Where(v => Library.GetGrassType(v.GrassType).Spreads)
                                     .Where(v =>
                                     {
-                                        if (chunk.Manager.World.Overworld.Map.GetBiomeAt(v.Coordinate.ToVector3(), chunk.Manager.World.Overworld.InstanceSettings.Origin).HasValue(out var otherBiome))
+                                        if (chunk.Manager.World.Overworld.Map.GetBiomeAt(v.Coordinate.ToVector3()).HasValue(out var otherBiome))
                                             return biome == otherBiome;
                                         return false;
                                     })

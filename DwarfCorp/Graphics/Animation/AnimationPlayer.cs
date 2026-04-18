@@ -1,36 +1,3 @@
-// AnimationPlayer.cs
-// 
-//  Modified MIT License (MIT)
-//  
-//  Copyright (c) 2015 Completely Fair Games Ltd.
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// The following content pieces are considered PROPRIETARY and may not be used
-// in any derivative works, commercial or non commercial, without explicit 
-// written permission from Completely Fair Games:
-// 
-// * Images (sprites, textures, etc.)
-// * 3D Models
-// * Sound Effects
-// * Music
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,22 +18,10 @@ namespace DwarfCorp
         private bool IsLooping = false;
         private float FrameTimer = 0.0f;
         private Animation CurrentAnimation = null;
-        public BillboardPrimitive Primitive = null;
-        public bool InstancingPossible { get; private set; }
 
         public Animation GetCurrentAnimation()
         {
             return CurrentAnimation;
-        }
-
-        public Vector2 GetCurrentFrameSize()
-        {
-            if (CurrentAnimation == null || CurrentAnimation.SpriteSheet == null || CurrentAnimation.SpriteSheet.FrameWidth == 0)
-            {
-                return Vector2.One;
-            }
-
-            return new Vector2(CurrentAnimation.SpriteSheet.FrameWidth / 32.0f, CurrentAnimation.SpriteSheet.FrameHeight / 32.0f);
         }
 
         public AnimationPlayer() { }
@@ -100,7 +55,6 @@ namespace DwarfCorp
         public void ChangeAnimation(Animation Animation, ChangeAnimationOptions Options)
         {
             CurrentAnimation = Animation;
-            IsLooping = Animation.Loops;
 
             if ((Options & ChangeAnimationOptions.Reset) == ChangeAnimationOptions.Reset)
                 CurrentFrame = 0;
@@ -113,11 +67,10 @@ namespace DwarfCorp
 
             if (CurrentAnimation != null)
             {
+                IsLooping = Animation.Loops;
                 if (CurrentFrame >= Animation.GetFrameCount())
                     CurrentFrame = Animation.GetFrameCount() - 1;
             }
-
-            OnAnimationChanged();
         }
 
         public void Play(Animation Animation)
@@ -127,7 +80,6 @@ namespace DwarfCorp
                 CurrentFrame = Animation.GetFrameCount() - 1;
             IsPlaying = true;
             IsLooping = Animation.Loops;
-            OnAnimationChanged();
         }
 
         public void Play()
@@ -143,10 +95,8 @@ namespace DwarfCorp
             CurrentFrame = 0;
         }
 
-        public virtual void Update(DwarfTime gameTime, bool WillUseInstancingIfPossible, Timer.TimerMode mode = Timer.TimerMode.Game)
+        public virtual void Update(DwarfTime gameTime, Timer.TimerMode mode = Timer.TimerMode.Game)
         {
-            InstancingPossible = false;
-
             if (CurrentAnimation == null)
                 return;
 
@@ -169,39 +119,6 @@ namespace DwarfCorp
                     FrameTimer = 0;
                 }
             }
-
-
-            if (!WillUseInstancingIfPossible || !CurrentAnimation.CanUseInstancing)
-            {
-                // Todo: Only update when actually needed.
-                if (Primitive == null)
-                    Primitive = new BillboardPrimitive();
-                CurrentAnimation.UpdatePrimitive(Primitive, CurrentFrame);
-            }
-            else
-                InstancingPossible = true;
-        }
-
-        private void OnAnimationChanged()
-        {
-            if (InstancingPossible && !CurrentAnimation.CanUseInstancing)
-            {
-                if (Primitive == null)
-                    Primitive = new BillboardPrimitive();
-                if (CurrentAnimation != null)
-                    CurrentAnimation.UpdatePrimitive(Primitive, CurrentFrame);
-                InstancingPossible = false;
-            }
-        }
-
-        public void UpdateInstance(NewInstanceData InstanceData)
-        {
-            if (CurrentAnimation == null || CurrentAnimation.Frames.Count <= CurrentFrame || CurrentFrame < 0)
-                return;
-            var sheet = CurrentAnimation.SpriteSheet;
-            var frame = CurrentAnimation.Frames[CurrentFrame];
-            InstanceData.SpriteBounds = new Rectangle(sheet.FrameWidth * frame.X, sheet.FrameHeight * frame.Y, sheet.FrameWidth, sheet.FrameHeight);
-            InstanceData.TextureAsset = sheet.AssetName;
         }
 
         public void NextFrame()
@@ -230,13 +147,6 @@ namespace DwarfCorp
                 return (int)(time * CurrentAnimation.FrameHZ) % CurrentAnimation.GetFrameCount();
             else
                 return Math.Min((int)(time * CurrentAnimation.FrameHZ), CurrentAnimation.GetFrameCount() - 1);
-        }
-
-        public Texture2D GetTexture()
-        {
-            if (CurrentAnimation != null)
-                return CurrentAnimation.GetTexture();
-            return null;
         }
 
         public bool HasValidAnimation()

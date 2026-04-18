@@ -9,22 +9,29 @@ using Microsoft.Xna.Framework;
 
 namespace DwarfCorp.Gui.Widgets
 {
-    public class TutorialPopup : Widget
+    public class TutorialPopup : Window
     {
         public TutorialManager.TutorialEntry Message = null;
         private Gui.Widgets.CheckBox DisableBox;
         public bool DisableChecked { get { return DisableBox.CheckState; } }
+        public Action<Widget> OnDismiss = null;
+
+        public void Refresh()
+        {
+            this.Clear();
+            SetText();
+        }
 
         public override void Construct()
         {
-            //Set size and center on screen.
-            Rect = new Rectangle(0, 0, 450, 300);
+            base.Construct();
+            SetText();
+        }
 
-            Border = "border-fancy";
-
+        public void SetText()
+        {
             Text = Message == null || String.IsNullOrEmpty(Message.Title) ? "Tutorial" : Message.Title;
-            Font = "font16";
-            InteriorMargin = new Margin(20, 0, 0, 0);
+            TextColor = new Vector4(0, 0, 0, 1);
 
             if (!String.IsNullOrEmpty(Message.Name) && AssetManager.DoesTextureExist("newgui\\tutorials\\" + Message.Name))
             {
@@ -55,28 +62,31 @@ namespace DwarfCorp.Gui.Widgets
             AddChild(new Button
             {
                 Text = "Dismiss",
-                Font = "font16",
+                Font = "font10",
                 TextHorizontalAlign = HorizontalAlign.Center,
                 TextVerticalAlign = VerticalAlign.Center,
                 Border = "border-button",
-                OnClick = (sender, args) => { this.Close(); SoundManager.PlaySound(ContentPaths.Audio.Oscar.sfx_gui_window_close, 0.015f); },
+                OnClick = (sender, args) => { this.OnDismiss(this); SoundManager.PlaySound(ContentPaths.Audio.Oscar.sfx_gui_window_close, 0.015f); },
                 AutoLayout = AutoLayout.FloatBottomRight,
                 ChangeColorOnHover = true,
+                TextColor = new Vector4(0, 0, 0, 1)
             });
 
             DisableBox = AddChild(new Gui.Widgets.CheckBox
             {
                 Text = "Disable tutorial",
                 ChangeColorOnHover = true,
-                Font = "font8",
-                AutoLayout = AutoLayout.FloatBottomLeft
+                Font = "font10",
+                AutoLayout = AutoLayout.FloatBottomLeft,
+                TextColor = new Vector4(0,0,0,1)
             }) as Gui.Widgets.CheckBox;
 
             AddChild(new Widget
             {
                 Text = Message == null ? "" : "\n" + Message.Text,
-                Font = "font10",
-                AutoLayout = AutoLayout.DockTop
+                Font = "aliasedFont20",
+                AutoLayout = AutoLayout.DockTop,
+                TextColor = new Vector4(0, 0, 0, 1)
             });
 
             Layout();

@@ -31,20 +31,6 @@ namespace DwarfCorp.GameStates
         public Overworld Overworld;
         private OverworldPreviewMesh Mesh;
 
-        public Matrix ZoomedPreviewMatrix
-        {
-            get
-            {
-                var previewRect = Overworld.InstanceSettings.Cell.Bounds;
-                var worldRect = new Rectangle(0, 0, Overworld.Width, Overworld.Height);
-                float vScale = 1.0f / worldRect.Width;
-                float uScale = 1.0f / worldRect.Height;
-
-                return Matrix.CreateScale(vScale * previewRect.Width, uScale * previewRect.Height, 1.0f) *
-                    Matrix.CreateTranslation(vScale * previewRect.X, uScale * previewRect.Y, 0.0f);
-            }
-        }
-
         public override void Construct()
         {
             PreviewPanel = AddChild(new Gui.Widget
@@ -62,19 +48,20 @@ namespace DwarfCorp.GameStates
                     if (args.MouseButton == 0)
                     {
                         var clickPoint = Camera.ScreenToWorld(new Vector2(args.X, args.Y));
+                        var x = clickPoint.X;
+                        var y = clickPoint.Y;
+                        if (x < 0) x = 0;
+                        if (x > Overworld.Width) x = Overworld.Width;
+                        if (y < 0) y = 0;
+                        if (y > Overworld.Height) y = Overworld.Height;
+                        clickPoint = new Point(x, y);
 
-                        var colonyCell = Overworld.ColonyCells.GetCellAt(clickPoint.X, clickPoint.Y);
-                        if (colonyCell != null)
-                        {
-                            Overworld.InstanceSettings.Cell = colonyCell;
-                            previewText = Generator.GetSpawnStats();
-                            Camera.SetGoalFocus(new Vector3((float)colonyCell.Bounds.Center.X / (float)Overworld.Width, 0, (float)colonyCell.Bounds.Center.Y / (float)Overworld.Height));
-                        }
+                        Camera.SetGoalFocus(new Vector3((float)clickPoint.X / (float)Overworld.Width, 0, (float)clickPoint.Y / (float)Overworld.Height));
 
                         UpdatePreview = true;
 
-
                         OnCellSelectionMade?.Invoke();
+                        Overworld.SpawnPoint = new Point(clickPoint.X * VoxelConstants.OverworldScale, clickPoint.Y * VoxelConstants.OverworldScale);
                     }
                 },
                 OnMouseMove = (sender, args) => 
@@ -157,10 +144,7 @@ namespace DwarfCorp.GameStates
             var maxWidth = 0;
 
             // Gather entries.
-            var colorKeyEntries = Library.CreateBiomeColors().ToList();
-            foreach (var native in Overworld.Natives.Where(n => n.InteractiveFaction && !n.IsCorporate))
-                colorKeyEntries.Add(new KeyValuePair<string, Color>(native.Name, native.PrimaryColor));
-            colorKeyEntries.Add(new KeyValuePair<string, Color>("Player", Overworld.Natives.FirstOrDefault(n => n.Name == "Player").PrimaryColor));
+            var colorKeyEntries = Library.CreateBiomeColors(Overworld.Map.EnumeratePresentBiomes()).ToList();
 
             // Calculate legend size.
             foreach (var color in colorKeyEntries)
@@ -296,7 +280,7 @@ namespace DwarfCorp.GameStates
                     if (Mesh.BalloonPrimitive == null)
                         Mesh.CreatBalloonMesh(Overworld);
 
-                    var balloonPos = Overworld.InstanceSettings.Cell.Bounds.Center;
+                    var balloonPos = new Vector2(Overworld.SpawnPoint.X / VoxelConstants.OverworldScale, Overworld.SpawnPoint.Y / VoxelConstants.OverworldScale);
 
                     PreviewEffect.Parameters["Texture"].SetValue(Mesh.IconTexture);
                     PreviewEffect.Parameters["World"].SetValue(Matrix.CreateTranslation((float)balloonPos.X / Overworld.Width, 0.1f, (float)balloonPos.Y / Overworld.Height));

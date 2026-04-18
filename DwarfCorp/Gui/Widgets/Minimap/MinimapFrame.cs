@@ -12,20 +12,51 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DwarfCorp.Gui.Widgets.Minimap
 {
-    public class MinimapFrame : Widget
+    public class MinimapFrame : Window
     {
         public String Frame = "minimap-frame";
         public MinimapRenderer Renderer;
+        private TextureAtlas.SpriteAtlasEntry DynamicAtlasEntry = null;
 
         public override Point GetBestSize()
         {
-            return new Point(Renderer.RenderWidth + 16, Renderer.RenderHeight + 12);
+            return new Point(Renderer.RenderWidth + 20, Renderer.RenderHeight + 20);
         }
 
         public override void Construct()
         {
             MinimumSize = GetBestSize();
             MaximumSize = GetBestSize();
+
+            this.OnUpdate = (sender, time) =>
+            {
+                if (Hidden)
+                    return;
+
+                if (IsAnyParentHidden())
+                    return;
+
+                Renderer.PreRender(DwarfGame.SpriteBatch);
+
+                if (DynamicAtlasEntry == null)
+                {
+                    var tex = new Texture2D(Root.RenderData.Device, Renderer.RenderWidth, Renderer.RenderHeight);
+                    DynamicAtlasEntry = Root.SpriteAtlas.AddDynamicSheet(null,
+                        new TileSheetDefinition
+                        {
+                            TileHeight = Renderer.RenderWidth,
+                            TileWidth = Renderer.RenderHeight,
+                            RepeatWhenUsedAsBorder = false,
+                            Type = TileSheetType.TileSheet
+                        },
+                        tex);
+                }
+
+                if (Renderer.RenderTarget != null)
+                    DynamicAtlasEntry.ReplaceTexture(Renderer.RenderTarget);
+
+                this.Invalidate();
+            };
 
             OnClick = (sender, args) =>
                 {
@@ -81,13 +112,19 @@ namespace DwarfCorp.Gui.Widgets.Minimap
                 Renderer.Zoom(args.ScrollValue * multiplier);
             };
 
+            Root.RegisterForUpdate(this);
             base.Construct();
         }
+
+        
 
         protected override Gui.Mesh Redraw()
         {
             var mesh = Mesh.EmptyMesh();
-            mesh.Scale9Part(Rect, Root.GetTileSheet("tray-border-transparent"), Scale9Corners.Top | Scale9Corners.Right);
+            if (DynamicAtlasEntry != null)
+                mesh.QuadPart().Scale(Renderer.RenderWidth, Renderer.RenderHeight).Translate(Rect.X + 10, Rect.Y + 10).Texture(DynamicAtlasEntry.TileSheet.TileMatrix(0));
+            mesh.Scale9Part(Rect, Root.GetTileSheet("window-transparent"), Scale9Corners.All);
+            AddCloseButtonMesh(mesh);
             return mesh;
         }
     }

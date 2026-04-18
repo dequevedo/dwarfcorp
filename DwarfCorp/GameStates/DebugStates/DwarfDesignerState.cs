@@ -11,7 +11,7 @@ namespace DwarfCorp.GameStates.Debug
     {
         private Gui.Root GuiRoot;
         private DwarfCorp.Gui.Widgets.EmployeePortrait SpriteFrame;
-        private List<DwarfSprites.DwarfAnimationProxy> Animations = new List<DwarfSprites.DwarfAnimationProxy>();
+        private List<Animation> Animations = new List<Animation>();
 
         public DwarfDesignerState(DwarfGame game) :
             base(game)
@@ -120,9 +120,8 @@ namespace DwarfCorp.GameStates.Debug
             SpriteFrame.Sprite = new DwarfSprites.LayerStack();
             foreach (var animation in Library.LoadNewLayeredAnimationFormat(ContentPaths.dwarf_animations))
             {
-                var proxyAnim = SpriteFrame.Sprite.ProxyAnimation(animation.Value);
-                proxyAnim.Loops = true;
-                Animations.Add(proxyAnim);
+                animation.Value.Loops = true;
+                Animations.Add(animation.Value);
             }
 
             SpriteFrame.AnimationPlayer = new AnimationPlayer();
@@ -177,7 +176,7 @@ namespace DwarfCorp.GameStates.Debug
                 }
             }
 
-            SpriteFrame.AnimationPlayer.Update(gameTime, false, Timer.TimerMode.Real);
+            SpriteFrame.AnimationPlayer.Update(gameTime, Timer.TimerMode.Real);
             SpriteFrame.Sprite.Update(Game.GraphicsDevice);
             GuiRoot.Update(gameTime.ToRealTime());
 

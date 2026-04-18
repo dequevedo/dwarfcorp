@@ -44,7 +44,7 @@ namespace DwarfCorp
                 new Point(3, 3)
             };
 
-            var forgeAnimation = Library.CreateAnimation(spriteSheet, frames, "ForgeLightAnimation");
+            var forgeAnimation = Library.CreateAnimation(frames, "ForgeLightAnimation");
             forgeAnimation.Loops = true;
 
             var sprite = AddChild(new AnimatedSprite(Manager, "sprite", Matrix.Identity)
@@ -53,6 +53,7 @@ namespace DwarfCorp
             }) as AnimatedSprite;
 
             sprite.AddAnimation(forgeAnimation);
+            sprite.SpriteSheet = spriteSheet;
             sprite.AnimPlayer.Play(forgeAnimation);
             sprite.SetFlag(Flag.ShouldSerialize, false);
 
@@ -62,7 +63,7 @@ namespace DwarfCorp
             }).SetFlag(Flag.ShouldSerialize, false);
 
             // This is a hack to make the animation update at least once even when the object is created inactive by the craftbuilder.
-            sprite.AnimPlayer.Update(new DwarfTime(), false);
+            sprite.AnimPlayer.Update(new DwarfTime());
 
             AddChild(new GenericVoxelListener(Manager, Matrix.Identity, new Vector3(0.5f, 0.5f, 0.5f), new Vector3(0.0f, -1.0f, 0.0f), (changeEvent) =>
             {

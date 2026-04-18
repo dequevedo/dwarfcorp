@@ -16,6 +16,7 @@ namespace DwarfCorp
         private Gui.Root GuiRoot;
         private Gui.Widgets.TextBox _Output;
         private Widget ChoicePanel;
+        private SpriteSheet SpeakerSpriteSheet;
         private AnimationPlayer SpeakerAnimationPlayer;
         private Animation SpeakerAnimation;
         private bool SpeakerVisible = false;
@@ -32,6 +33,7 @@ namespace DwarfCorp
         private CreatureAI _employee = null;
         private float _voicePitch = 0.0f;
         public WorldManager World;
+        private bool AlwaysTalk = false;
 
         public YarnState(
             WorldManager world,
@@ -42,6 +44,11 @@ namespace DwarfCorp
         {
             World = world;
             YarnEngine = new YarnEngine(ConversationFile, StartNode, Memory, this);
+        }
+
+        public void ActivateAlwaysTalk()
+        {
+            AlwaysTalk = true;
         }
 
         public void SetVoicePitch(float pitch)
@@ -61,7 +68,7 @@ namespace DwarfCorp
                 Rect = SpeakerBorder.Rect
             }) as Gui.Widgets.EmployeePortrait;
 
-            if (_employee.GetRoot().GetComponent<DwarfSprites.LayeredCharacterSprite>().HasValue(out var sprite))
+            if (_employee.GetRoot().GetComponent<DwarfSprites.DwarfCharacterSprite>().HasValue(out var sprite))
             {
                 Icon.Sprite = sprite.GetLayers();
                 Icon.AnimationPlayer = new AnimationPlayer(sprite.GetAnimation(_employee.Creature.CurrentCharacterMode.ToString() + "FORWARD"));
@@ -74,7 +81,7 @@ namespace DwarfCorp
 
             var label = Icon.AddChild(new Widget()
             {
-                Text = _employee.Stats.FullName + "\n(" + (_employee.Stats.Title ?? _employee.Stats.CurrentClass.Name) + ")",
+                Text = _employee.Stats.FullName + "\n(" + (_employee.Stats.Title ?? (_employee.Stats.CurrentClass.HasValue(out var c) ? c.Name : "")) + ")",
                 Font = "font10",
                 TextColor = Color.White.ToVector4(),
                 TextVerticalAlign = VerticalAlign.Center,
@@ -93,13 +100,30 @@ namespace DwarfCorp
 
         public void Speak(String S)
         {
-            _Output?.ClearText();
+            //_Output?.ClearText();
             var colon = S.IndexOf(":");
             if (colon != -1)
             {
                 var name = S.Substring(0, colon + 1);
                 S = S.Substring(colon + 1);
                 _Output?.AppendText(name+"\n");
+                TimeSinceOutput = 0.0f;
+
+                SpeakerAnimationPlayer?.Play();
+
+                if (Language != null)
+                {
+                    CurrentSpeach = Language.Say(S).GetEnumerator();
+                    YarnEngine.EnterSpeakState();
+                }
+                else
+                {
+                    _Output?.AppendText(S);
+                    TimeSinceOutput = 0.0f;
+                }
+            }
+            else if (AlwaysTalk)
+            {
                 TimeSinceOutput = 0.0f;
 
                 SpeakerAnimationPlayer?.Play();
@@ -134,7 +158,7 @@ namespace DwarfCorp
             {
                 if (CurrentSpeach.MoveNext())
                 {
-                    SpeakerAnimationPlayer?.Update(gameTime, false, Timer.TimerMode.Real);
+                    SpeakerAnimationPlayer?.Update(gameTime, Timer.TimerMode.Real);
                     Output(CurrentSpeach.Current);
                     return true;
                 }
@@ -169,8 +193,8 @@ namespace DwarfCorp
 
         public void SetPortrait(String Gfx, int FrameWidth, int FrameHeight, float Speed, List<int> Frames)
         {
-            var sheet = new SpriteSheet(Gfx, FrameWidth, FrameHeight);
-            SpeakerAnimation = Library.CreateAnimation(sheet, Frames.Select(f => new Point(sheet.Column(f), sheet.Row(f))).ToList(), "yarn__" + Gfx);
+            SpeakerSpriteSheet = new SpriteSheet(Gfx, FrameWidth, FrameHeight);
+            SpeakerAnimation = Library.CreateAnimation(Frames.Select(f => new Point(SpeakerSpriteSheet.Column(f), SpeakerSpriteSheet.Row(f))).ToList(), "yarn__" + Gfx);
             SpeakerAnimation.Speeds = new List<float> { 1.0f / Speed };
             SpeakerAnimation.Loops = true;
 
@@ -238,22 +262,15 @@ namespace DwarfCorp
 
         private void PositionItems()
         {
-            int w = global::System.Math.Min(GuiRoot.RenderData.VirtualScreen.Width - 256, 550);
-            int h = global::System.Math.Min(GuiRoot.RenderData.VirtualScreen.Height - 256, 300);
-            int x = GuiRoot.RenderData.VirtualScreen.Width / 2 - w / 2;
-            int y = global::System.Math.Max(GuiRoot.RenderData.VirtualScreen.Height / 2 - h / 2, 280);
+            var halfy = GuiRoot.RenderData.VirtualScreen.Height / 2;
+            int w = GuiRoot.RenderData.VirtualScreen.Width - 256 - 32;
+            int x = 256 + 16;
 
-            _Output.Rect = new Rectangle(x, y - 260, w, 260);
-            ChoicePanel.Rect = new Rectangle(x, y, w, h);
+            _Output.Rect = new Rectangle(x, 32, w, halfy - 32);
+            ChoicePanel.Rect = new Rectangle(x, halfy + 16, w, halfy - 16);
 
-                int inset = 32;
-            SpeakerBorder.Rect = new Rectangle(x - w / 2 + inset / 2, y - 260 + inset, 256 - inset, 256 - inset);
-
-            if (SpeakerBorder.Rect.X < 0)
-            {
-                _Output.Rect.X += -SpeakerBorder.Rect.X;
-                SpeakerBorder.Rect.X = 0;
-            }
+            int inset = 32;
+            SpeakerBorder.Rect = new Rectangle(16 + inset / 2, halfy - 256 + inset, 256 - inset, 256 - inset);
 
             SpeakerRectangle.EntireMeshAsPart()
                 .ResetQuad()
@@ -303,14 +320,13 @@ namespace DwarfCorp
         {
             GuiRoot.Draw();
 
-            if (SpeakerVisible && SpeakerAnimationPlayer != null && !_Output.Hidden)
+            if (SpeakerVisible && SpeakerSpriteSheet != null && SpeakerAnimationPlayer != null && !_Output.Hidden)
             {
-                var sheet = SpeakerAnimationPlayer.GetCurrentAnimation().SpriteSheet;
                 var frame = SpeakerAnimationPlayer.GetCurrentAnimation().Frames[SpeakerAnimationPlayer.CurrentFrame];
                 SpeakerRectangle.EntireMeshAsPart()
                     .ResetQuadTexture()
-                    .Texture(sheet.TileMatrix(frame.X, frame.Y));
-                GuiRoot.DrawMesh(SpeakerRectangle, sheet.GetTexture());
+                    .Texture(SpeakerSpriteSheet.TileMatrix(frame.X, frame.Y));
+                GuiRoot.DrawMesh(SpeakerRectangle, SpeakerSpriteSheet.GetTexture());
             }
 
             base.Render(gameTime);

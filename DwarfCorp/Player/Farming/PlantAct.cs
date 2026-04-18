@@ -34,14 +34,17 @@ namespace DwarfCorp
                 yield return Status.Success;
             else
             {
-                Creature.CurrentCharacterMode = Creature.Stats.CurrentClass.AttackMode;
-                Creature.Sprite.ResetAnimations(Creature.Stats.CurrentClass.AttackMode);
-                Creature.Sprite.PlayAnimations(Creature.Stats.CurrentClass.AttackMode);
+                if (Creature.Stats.CurrentClass.HasValue(out var c))
+                {
+                    Creature.CurrentCharacterMode = c.AttackMode;
+                    Creature.Sprite.ResetAnimations(c.AttackMode);
+                    Creature.Sprite.PlayAnimations();
+                }
 
                 while (Farm.Progress < Farm.TargetProgress && !Farm.Finished)
                 {
                     Creature.Physics.Velocity *= 0.1f;
-                    Farm.Progress += 3 * Creature.Stats.BaseFarmSpeed*DwarfTime.Dt;
+                    Farm.Progress += 3 * Creature.Stats.BaseFarmSpeed * (float)Creature.AI.FrameDeltaTime.ElapsedGameTime.TotalSeconds;
 
                     Drawer2D.DrawLoadBar(Agent.Manager.World.Renderer.Camera, Agent.Position + Vector3.Up, Color.LightGreen, Color.Black, 64, 4,
                         Farm.Progress / Farm.TargetProgress);
@@ -73,14 +76,17 @@ namespace DwarfCorp
                     if (MathFunctions.RandEvent(0.01f))
                         Creature.Manager.World.ParticleManager.Trigger("dirt_particle", Creature.AI.Position, Color.White, 1);
                     yield return Status.Running;
-                    Creature.Sprite.ReloopAnimations(Creature.Stats.CurrentClass.AttackMode);
+
+                    if (Creature.Stats.CurrentClass.HasValue(out var __c))
+                        Creature.Sprite.ReloopAnimations(__c.AttackMode);
                 }
 
                 Creature.CurrentCharacterMode = CharacterMode.Idle;
                 Creature.AddThought("I farmed something!", new TimeSpan(0, 4, 0, 0), 1.0f);
-                Creature.AI.AddXP(1);
+                Creature.AI.AddXP(GameSettings.Current.XP_farm);
                 ActHelper.ApplyWearToTool(Creature.AI, GameSettings.Current.Wear_Dig);
-                Creature.Sprite.PauseAnimations(Creature.Stats.CurrentClass.AttackMode);
+
+                Creature.Sprite.PauseAnimations();
                 yield return Status.Success;
             }
         }

@@ -190,7 +190,7 @@ namespace DwarfCorp
                 }
                 if (WaitingOnResponse && Debugger.Switches.DrawPaths)
                     Drawer3D.DrawLine(Creature.AI.Position, goalPos, Color.Blue, 0.25f);
-                PlannerTimer.Update(DwarfTime.LastTime);
+                PlannerTimer.Update(Agent.FrameDeltaTime);
 
                 ChunkManager chunks = Creature.Manager.World.ChunkManager;
                 if (PlannerTimer.HasTriggered || Timeouts == 0)
@@ -222,7 +222,7 @@ namespace DwarfCorp
                         Start = voxUnder,
                         MaxExpansions = MaxExpansions,
                         Sender = Agent,
-                        HeuristicWeight = Weights[Timeouts]
+                        HeuristicWeight = Timeouts >= Weights.Count ? 3.0f : Weights[Timeouts]
                     };
 
                     lastId = aspr.ID;
@@ -408,7 +408,7 @@ namespace DwarfCorp
                             }
                             yield return Act.Status.Running;
                         }
-                        planTimeout.Update(DwarfTime.LastTime);
+                        planTimeout.Update(Agent.FrameDeltaTime);
                     }
                     continue;
                 }

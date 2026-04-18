@@ -1,17 +1,8 @@
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using DwarfCorp.GameStates;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Graphics;
 using System.Threading;
-using Newtonsoft.Json;
-using System.Globalization;
-using System.Collections.Concurrent;
 
 namespace DwarfCorp
 {
@@ -22,7 +13,7 @@ namespace DwarfCorp
     /// </summary>
     public class ComponentManager
     {
-        public class ComponentSaveData //: Saving.ISaveableObject
+        public class ComponentSaveData
         {
             public List<GameComponent> SaveableComponents;
             public uint RootComponent;
@@ -31,7 +22,6 @@ namespace DwarfCorp
         private Dictionary<uint, GameComponent> Components;
         private uint MaxGlobalID = 0;
         public const int InvalidID = 0;
-        private List<MinimapIcon> MinimapIcons = new List<MinimapIcon>();
         private List<GameComponent> Removals = new List<GameComponent>();
         private List<GameComponent> Additions = new List<GameComponent>();
 
@@ -49,8 +39,6 @@ namespace DwarfCorp
 
         private Mutex AdditionMutex = new Mutex();
         private Mutex RemovalMutex = new Mutex();
-
-        public IEnumerable<MinimapIcon> GetMinimapIcons() { return MinimapIcons; }
 
         public WorldManager World { get; set; }
 
@@ -105,13 +93,7 @@ namespace DwarfCorp
             RootComponent = Components[SaveData.RootComponent] as GameComponent;
 
             foreach (var component in Components)
-            {
-                if (component.Value is MinimapIcon)
-                    MinimapIcons.Add(component.Value as MinimapIcon);
-
-                foreach (var system in World.UpdateSystems)
-                    system.ComponentCreated(component.Value);
-            }
+                World.ModuleManager.ComponentCreated(component.Value);
 
             MaxGlobalID = Components.Aggregate<KeyValuePair<uint, GameComponent>, uint>(0, (current, component) => Math.Max(current, component.Value.GlobalID));
 
@@ -120,9 +102,12 @@ namespace DwarfCorp
 
             foreach (var component in SaveData.SaveableComponents)
             {
-                component.ProcessTransformChange();
                 component.CreateCosmeticChildren(this);
+                component.HasMoved = true;
+                //component.ProcessTransformChange();
             }
+
+            RootComponent.ProcessTransformChange();
 
             var removals = SaveData.SaveableComponents.Where(p => p.Parent == null && p != RootComponent).ToList();
 
@@ -134,15 +119,6 @@ namespace DwarfCorp
             }
 
             StartThreads();
-
-            /*
-            foreach (var component in Components)
-            {
-                if (component.Value.Parent != null && (!HasComponent(component.Value.Parent.GlobalID) || !component.Value.Parent.Children.Contains(component.Value)))
-                {
-                    Console.Error.WriteLine("Component {0} parent: {1} is not in the list of components", component.Value.Name, component.Value.Parent.Name);
-                }
-            */
         }
 
         public ComponentManager(WorldManager state)
@@ -208,82 +184,67 @@ namespace DwarfCorp
             return Components.ContainsKey(id) || Additions.Any(a => a.GlobalID == id);
         }
 
-        private void RemoveComponentImmediate(GameComponent component)
+        private void RemoveComponentImmediate(GameComponent Component)
         {
-            if (!Components.ContainsKey(component.GlobalID))
+            if (!Components.ContainsKey(Component.GlobalID))
                 return;
 
-            Components.Remove(component.GlobalID);
+            Components.Remove(Component.GlobalID);
 
-            if (component is MinimapIcon)
-                MinimapIcons.Remove(component as MinimapIcon);
+            World.ModuleManager.ComponentDestroyed(Component);
 
-            foreach (var system in World.UpdateSystems)
-                system.ComponentDestroyed(component);
-
-            foreach (var child in new List<GameComponent>(component.EnumerateChildren()))
+            foreach (var child in new List<GameComponent>(Component.EnumerateChildren()))
                 RemoveComponentImmediate(child);
         }
 
-        private void AddComponentImmediate(GameComponent component)
+        private void AddComponentImmediate(GameComponent Component)
         {
-            if (Components.ContainsKey(component.GlobalID))
+            if (Components.ContainsKey(Component.GlobalID))
             {
-                if (Object.ReferenceEquals(Components[component.GlobalID], component)) return;
+                if (Object.ReferenceEquals(Components[Component.GlobalID], Component)) return;
                 throw new InvalidOperationException("Attempted to add component with same ID as existing component.");
             }
 
-            Components[component.GlobalID] = component;
+            Components[Component.GlobalID] = Component;
 
-            if (component is MinimapIcon)
-                MinimapIcons.Add(component as MinimapIcon);
+            World.ModuleManager.ComponentCreated(Component);
 
-            foreach (var system in World.UpdateSystems)
-                system.ComponentCreated(component);
-
-            component.ProcessTransformChange();
+            // Todo: Works if we remove this?
+            Component.ProcessTransformChange();
         }
 
-        public void Update(DwarfTime gameTime, ChunkManager chunks, Camera camera) // Todo: Camera redundant
+        public void FindComponentsToUpdate(HashSet<GameComponent> Into)
+        {
+            var playerPoint = World.Renderer.Camera.Position;
+            World.EnumerateIntersectingRootEntitiesLoose(playerPoint, GameSettings.Current.EntityUpdateDistance, Into);
+        }
+
+        public void Update(DwarfTime gameTime, ChunkManager chunks, HashSet<GameComponent> ComponentsToUpdate)
         {
             PerformanceMonitor.PushFrame("Component Update");
             PerformanceMonitor.SetMetric("COMPONENTS", NumComponents());
 
-
-            var playerPoint = World.Renderer.Camera.Position;
-            // Todo: Make this a sphere?
-            var distanceVec = new Vector3(GameSettings.Current.EntityUpdateDistance, GameSettings.Current.EntityUpdateDistance, GameSettings.Current.EntityUpdateDistance);
-            var updateBox = new BoundingBox(playerPoint - distanceVec, playerPoint + distanceVec);
-            var componentsToUpdate = World.EnumerateIntersectingRootEntitiesLoose(updateBox);
-
             var i = 0;
-            foreach (var body in componentsToUpdate)
+            foreach (var body in ComponentsToUpdate)
             {
                 i += 1;
-                body.Update(gameTime, chunks, camera);
-                body.ProcessTransformChange();
+                body.Update(gameTime, chunks, World.Renderer.Camera);
             }
 
             PerformanceMonitor.SetMetric("ENTITIES UPDATED", i);
-
-
-            if (Debugger.Switches.DrawUpdateBox)
-                foreach (var chunk in World.EnumerateChunksInBounds(updateBox))
-                    Drawer3D.DrawBox(chunk.GetBoundingBox(), Color.Red, 0.4f, false);
-
             PerformanceMonitor.PopFrame();
 
             AddRemove();
-            ReceiveMessage();
+            ReceiveMessage(gameTime);
         }
 
-        private void ReceiveMessage()
+        private void ReceiveMessage(DwarfTime Time)
         {
             lock (_msgLock)
             {
                 foreach (var msg in _msgList)
                 {
-                    msg.Key.ReceiveMessageRecursive(msg.Value);
+                    msg.Key.ReceiveMessageRecursive(msg.Value, Time);
                 }
                 _msgList.Clear();
             }
@@ -292,11 +253,14 @@ namespace DwarfCorp
         private void AddRemove()
         {
             AdditionMutex.WaitOne();
-            foreach (GameComponent component in Additions)
+            var local = Additions;
+            Additions = new List<GameComponent>();
+            AdditionMutex.ReleaseMutex();
+
+            foreach (GameComponent component in local)
                 AddComponentImmediate(component);
 
-            Additions.Clear();
-            AdditionMutex.ReleaseMutex();
+            local.Clear();
 
             RemovalMutex.WaitOne();
             var localRemovals = new List<GameComponent>(Removals);

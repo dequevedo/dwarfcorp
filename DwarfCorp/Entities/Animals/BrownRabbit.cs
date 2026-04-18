@@ -28,7 +28,7 @@ namespace DwarfCorp
             base
             (
                 manager,
-                new CreatureStats("Brown Rabbit", "Brown Rabbit", 0),
+                new CreatureStats("Brown Rabbit", "Brown Rabbit", null),
                 manager.World.Factions.Factions["Herbivore"],
                 "Brown Rabbit"
             )
@@ -63,7 +63,16 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateSprite(ContentPaths.Entities.Animals.Rabbit.rabbit0_animation, manager, 0.35f);
+            var spriteSheet = new SpriteSheet("Entities\\Animals\\Rabbit\\brown-rabbit", 24, 24);
+            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.35f, 0));
+            sprite.SpriteSheet = spriteSheet;
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Animals\\Rabbit\\rabbit-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
+
             Physics.AddChild(Shadow.Create(0.3f, manager));
 
             NoiseMaker = new NoiseMaker();

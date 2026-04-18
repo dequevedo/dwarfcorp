@@ -16,34 +16,36 @@ namespace DwarfCorp
         [EntityFactory("Chicken")]
         private static GameComponent __factory0(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
-            return new Chicken(Position, Manager, "Chicken");
+            return new Chicken(Position, Manager, "Chicken", 32, 32);
         }
 
         [EntityFactory("Turkey")]
         private static GameComponent __factory1(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
-            return new Chicken(Position, Manager, "Turkey");
+            return new Chicken(Position, Manager, "Turkey", 48, 48);
         }
 
         [EntityFactory("Penguin")]
         private static GameComponent __factory2(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
-            return new Chicken(Position, Manager, "Penguin");
+            return new Chicken(Position, Manager, "Penguin", 32, 32);
         }
 
         [JsonProperty] private String Asset = "";
+        [JsonProperty] private int SpriteWidth = 32;
+        [JsonProperty] private int SpriteHeight = 32;
 
         public Chicken()
         {
 
         }
 
-        public Chicken(Vector3 position, ComponentManager manager, string Asset) :
+        public Chicken(Vector3 position, ComponentManager manager, string Asset, int SpriteWidth, int SpriteHeight) :
             // Creature base constructor
             base
             (
                 manager,
-                new CreatureStats(Asset, "Fowl", 0),
+                new CreatureStats(Asset, "Fowl", null),
                 manager.World.Factions.Factions["Herbivore"],
                 Asset
             )
@@ -61,6 +63,8 @@ namespace DwarfCorp
 
             Physics.AddChild(this);
             this.Asset = Asset;
+            this.SpriteWidth = SpriteWidth;
+            this.SpriteHeight = SpriteHeight;
             Physics.Orientation = Physics.OrientMode.RotateY;
 
             CreateCosmeticChildren(Manager);
@@ -78,7 +82,16 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateSprite(ContentPaths.Entities.Animals.fowl[Asset], manager, 0.5f);
+            var spriteSheet = new SpriteSheet("Entities\\Animals\\" + Asset, SpriteWidth, SpriteHeight);
+            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.5f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Animals\\" + Asset + "-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
             Physics.AddChild(Shadow.Create(0.5f, manager));
 
             NoiseMaker = new NoiseMaker();

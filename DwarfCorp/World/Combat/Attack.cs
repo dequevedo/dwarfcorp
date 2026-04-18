@@ -36,11 +36,11 @@ namespace DwarfCorp
 
                 Drawer2D.DrawLoadBar(performer.World.Renderer.Camera, DigAct.Voxel.WorldPosition + Vector3.One * 0.5f, Color.White, Color.Black, 32, 1, (float)DigAct.VoxelHealth / DigAct.Voxel.Type.StartingHealth);
 
-                while (!performer.Sprite.AnimPlayer.HasValidAnimation() ||
-                    performer.Sprite.AnimPlayer.CurrentFrame < Weapon.TriggerFrame)
+                while (!performer.Sprite.HasValidAnimation() ||
+                    performer.Sprite.GetCurrentFrame() < Weapon.TriggerFrame)
                 {
-                    if (performer.Sprite.AnimPlayer.HasValidAnimation())
-                        performer.Sprite.AnimPlayer.Play();
+                    if (performer.Sprite.HasValidAnimation())
+                        performer.Sprite.PlayAnimations();
                     yield return Act.Status.Running;
                 }
 
@@ -51,7 +51,7 @@ namespace DwarfCorp
                     performer.Manager.World.ParticleManager.Trigger(Weapon.HitParticles, DigAct.Voxel.WorldPosition, Color.White, 5);
 
                 if (Weapon.HitAnimation != null)
-                    IndicatorManager.DrawIndicator(Weapon.HitAnimation, DigAct.Voxel.WorldPosition + Vector3.One * 0.5f,
+                    IndicatorManager.DrawIndicator(Weapon.HitAnimation.SpriteSheet, Weapon.HitAnimation.Animation, DigAct.Voxel.WorldPosition + Vector3.One * 0.5f,
                         10.0f, 1.0f, MathFunctions.RandVector2Circle() * 10, Weapon.HitColor, MathFunctions.Rand() > 0.5f);
 
                 yield return Act.Status.Success;
@@ -59,7 +59,7 @@ namespace DwarfCorp
             }
         }
 
-        public void LaunchProjectile(Vector3 start, Vector3 end, GameComponent target)
+        public void LaunchProjectile(Creature Performer, Vector3 start, Vector3 end, GameComponent target)
         {
             Vector3 velocity = (end - start);
             float dist = velocity.Length();
@@ -68,13 +68,14 @@ namespace DwarfCorp
             Blackboard data = new Blackboard();
             data.SetData("Velocity", velocity);
             data.SetData("Target", target);
+            data.SetData("Shooter", Performer);
             EntityFactory.CreateEntity<GameComponent>(Weapon.ProjectileType, start, data);
         }
 
         public bool PerformNoDamage(Creature performer, DwarfTime time, Vector3 pos)
         {
-            if (!performer.Sprite.AnimPlayer.HasValidAnimation() ||
-                performer.Sprite.AnimPlayer.CurrentFrame != Weapon.TriggerFrame)
+            if (!performer.Sprite.HasValidAnimation() ||
+                performer.Sprite.GetCurrentFrame() != Weapon.TriggerFrame)
             {
                 HasTriggered = false;
                 return false;
@@ -87,7 +88,7 @@ namespace DwarfCorp
 
                 if (Weapon.HitAnimation != null && !HasTriggered)
                 {
-                    IndicatorManager.DrawIndicator(Weapon.HitAnimation, pos, 10.0f, 1.0f, MathFunctions.RandVector2Circle(), Color.White, MathFunctions.Rand() > 0.5f);
+                    IndicatorManager.DrawIndicator(Weapon.HitAnimation.SpriteSheet, Weapon.HitAnimation.Animation, pos, 10.0f, 1.0f, MathFunctions.RandVector2Circle(), Color.White, MathFunctions.Rand() > 0.5f);
                     PlayNoise(pos);
                 }
             }
@@ -112,7 +113,7 @@ namespace DwarfCorp
             var health = other.GetRoot().EnumerateAll().OfType<Health>().FirstOrDefault();
             if (health != null)
             {
-                health.Damage(Weapon.DamageAmount + bonus);
+                health.Damage(performer.AI.FrameDeltaTime, Weapon.DamageAmount + bonus);
                 var injury = DiseaseLibrary.GetRandomInjury();
 
                 if (MathFunctions.RandEvent(injury.LikelihoodOfSpread))
@@ -142,7 +143,7 @@ namespace DwarfCorp
             }
 
             if (Weapon.HitAnimation != null)
-                IndicatorManager.DrawIndicator(Weapon.HitAnimation, other.BoundingBox.Center(), 10.0f, 1.0f, MathFunctions.RandVector2Circle(), Color.White, MathFunctions.Rand() > 0.5f);
+                IndicatorManager.DrawIndicator(Weapon.HitAnimation.SpriteSheet, Weapon.HitAnimation.Animation, other.BoundingBox.Center(), 10.0f, 1.0f, MathFunctions.RandVector2Circle(), Color.White, MathFunctions.Rand() > 0.5f);
 
             Physics physics = other as Physics;
 
@@ -161,8 +162,8 @@ namespace DwarfCorp
         public bool Perform(Creature performer, GameComponent other, DwarfTime time, float bonus, Vector3 pos, string faction)
         {
 
-            if (!performer.Sprite.AnimPlayer.HasValidAnimation() ||
-                performer.Sprite.AnimPlayer.CurrentFrame != Weapon.TriggerFrame)
+            if (!performer.Sprite.HasValidAnimation() ||
+                performer.Sprite.GetCurrentFrame() != Weapon.TriggerFrame)
             {
                 HasTriggered = false;
                 return false;
@@ -184,13 +185,14 @@ namespace DwarfCorp
                     {
                         var box = new BoundingBox(performer.AI.Position - Vector3.One * Weapon.Range, performer.AI.Position + Vector3.One * Weapon.Range);
 
-                        foreach (var body in performer.World.EnumerateIntersectingObjects(box, CollisionType.Both).Where(b => b.IsRoot()))
+                        foreach (var body in performer.World.EnumerateIntersectingRootObjects(box, CollisionType.Both))
                         {
-                            if (body.GetRoot().GetComponent<CreatureAI>().HasValue(out var creature))
+                            if (body.GetComponent<CreatureAI>().HasValue(out var creature))
                             {
                                 if (creature.Faction == performer.Faction)
                                     continue;
 
+                                
                                 if (performer.World.Overworld.GetPolitics(creature.Faction.ParentFaction, performer.Faction.ParentFaction).GetCurrentRelationship() != Relationship.Hateful)
                                     continue;
 
@@ -198,7 +200,7 @@ namespace DwarfCorp
                             }
                             else
                             {
-                                if (body.GetRoot().GetComponent<Health>().HasValue(out var health))
+                                if (body.GetComponent<Health>().HasValue(out var health))
                                     DoDamage(performer, body, bonus);
 
                                 continue;
@@ -209,7 +211,7 @@ namespace DwarfCorp
                 case Weapon.AttackMode.Ranged:
                     {
                         PlayNoise(other.GlobalTransform.Translation);
-                        LaunchProjectile(pos, other.Position, other);
+                        LaunchProjectile(performer, pos, other.Position, other);
 
                         var injury = DiseaseLibrary.GetRandomInjury();
 

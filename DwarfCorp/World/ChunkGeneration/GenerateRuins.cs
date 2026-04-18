@@ -52,14 +52,23 @@ namespace DwarfCorp.Generation
 
             var ruinWallType = Library.GetVoxelType("Cobble"); // Todo: Should make this data so this doesn't break if tile names change?
             var ruinFloorType = Library.GetVoxelType("Blue Tile");
-            if (Settings.Overworld.Map.GetBiomeAt(Chunk.Origin.ToVector3(), Settings.Overworld.InstanceSettings.Origin).HasValue(out var biome))
+            if (Settings.Overworld.Map.GetBiomeAt(Chunk.Origin.ToVector3()).HasValue(out var biome))
             {
                 ruinWallType = Library.GetVoxelType(biome.RuinWallType);
                 ruinFloorType = Library.GetVoxelType(biome.RuinFloorType);
             }
 
-            if (!ruinWallType.HasValue() || !ruinFloorType.HasValue())
+            if (!ruinWallType.HasValue(out var ruinWallTypeValue) || !ruinFloorType.HasValue(out var ruinFloorTypeValue))
                 return;
+
+            // Should this ruin be a monument?
+            if (Math.Abs(ruinsNoise) < GameSettings.Current.GenerationRuinsRate * GameSettings.Current.GenerationMonuments)
+            {
+                var worldPos = new Vector3(Chunk.Origin.X, avgHeight, Chunk.Origin.Z);
+                var baseVoxel = Settings.World.ChunkManager.CreateVoxelHandle(GlobalVoxelCoordinate.FromVector3(worldPos));
+                PlaceMonument(baseVoxel.Chunk, Library.EnumerateVoxelModels().SelectRandom(), ruinWallTypeValue, ruinFloorTypeValue, Settings);
+                return;
+            }
 
             int wallHeight = MathFunctions.RandInt(2, 6);
             var template = RuinTemplates[MathFunctions.RandInt(0, RuinTemplates.Count)];
@@ -107,6 +116,14 @@ namespace DwarfCorp.Generation
                         baseVoxel.RawSetType(ruinFloorType);
                     }
                 }
+        }
+
+        private static void PlaceMonument(VoxelChunk Chunk, VoxelModel Monument, VoxelType WallType, VoxelType FloorType, ChunkGeneratorSettings Settings)
+        {
+            var monument = Library.EnumerateVoxelModels().SelectRandom();
+            PlaceVoxelModel(Chunk, monument, WallType, FloorType, MathFunctions.RandInt(0, 3));
+            return;
+
         }
 
         private static void FillBelowRuins(ChunkGeneratorSettings Settings, MaybeNull<VoxelType> ruinWallType, VoxelHandle baseVoxel, VoxelHandle underVoxel)

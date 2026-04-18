@@ -50,11 +50,15 @@ namespace DwarfCorp
 
                             Creature.NoiseMaker.MakeNoise("Stockpile", Creature.AI.Position);
                             Creature.Stats.NumItemsGathered++;
-                            Creature.CurrentCharacterMode = Creature.Stats.CurrentClass.AttackMode;
-                            Creature.Sprite.ResetAnimations(Creature.Stats.CurrentClass.AttackMode);
-                            Creature.Sprite.PlayAnimations(Creature.Stats.CurrentClass.AttackMode);
 
-                            while (!Creature.Sprite.AnimPlayer.IsDone())
+                        if (Creature.Stats.CurrentClass.HasValue(out var c))
+                        {
+                            Creature.CurrentCharacterMode = c.AttackMode;
+                            Creature.Sprite.ResetAnimations(c.AttackMode);
+                            Creature.Sprite.PlayAnimations();
+
+                        }
+                            while (!Creature.Sprite.IsDone())
                                 yield return Status.Running;
 
                             yield return Status.Running;
@@ -84,11 +88,14 @@ namespace DwarfCorp
                 toss.OnComplete += () => newEntity.Die();
 
                 Agent.Creature.Inventory.AddResource(Resource, Inventory.RestockType.None);
-                Agent.Creature.Sprite.ResetAnimations(Creature.Stats.CurrentClass.AttackMode);
+
+                if (Creature.Stats.CurrentClass.HasValue(out var _c))
+                    Agent.Creature.Sprite.ResetAnimations(_c.AttackMode);
                 while (!waitTimer.HasTriggered)
                 {
-                    Agent.Creature.CurrentCharacterMode = Creature.Stats.CurrentClass.AttackMode;
-                    waitTimer.Update(DwarfTime.LastTime);
+                    if (Creature.Stats.CurrentClass.HasValue(out var __c))
+                        Agent.Creature.CurrentCharacterMode = __c.AttackMode;
+                    waitTimer.Update(Agent.FrameDeltaTime);
                     yield return Status.Running;
                 }
                 Agent.Creature.CurrentCharacterMode = CharacterMode.Idle;

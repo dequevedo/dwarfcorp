@@ -39,6 +39,13 @@ namespace DwarfCorp
             return new Slime("Entities\\Animals\\Slimes\\slime_yellow", "Yellow Slime", Position, Manager, "Slime");
         }
 
+        [EntityFactory("Slime - White")]
+        private static GameComponent __factory4(ComponentManager Manager, Vector3 Position, Blackboard Data)
+        {
+            return new Slime("Entities\\Animals\\Slimes\\slime_white", "White Slime", Position, Manager, "Slime");
+        }
+
+
         public string SpriteAsset { get; set; }
 
         public Slime()
@@ -50,7 +57,7 @@ namespace DwarfCorp
             base
             (
                 manager,
-                new CreatureStats("Slime", "Slime", 0),
+                new CreatureStats("Slime", "Slime", null),
                 manager.World.Factions.Factions["Carnivore"],
                 name
             )
@@ -98,10 +105,9 @@ namespace DwarfCorp
         {
             var spriteSheet = new SpriteSheet(SpriteAsset, 48, 48);
             var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.35f, 0));
+            sprite.SpriteSheet = spriteSheet;
 
             var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Animals\\Slimes\\slime-animations.json");
-            foreach (var anim in anims)
-                anim.Value.SpriteSheet = spriteSheet;
             sprite.SetAnimations(anims);
 
             Physics.AddChild(sprite);

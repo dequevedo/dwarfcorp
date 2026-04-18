@@ -19,7 +19,7 @@ namespace DwarfCorp
         {
             var r = new NonPlayerDwarf(
                 Manager,
-                new CreatureStats("Dwarf", "Miner", 0)
+                new CreatureStats("Dwarf", "Miner", null)
                 {
                     RandomSeed = MathFunctions.Random.Next(),
                 },
@@ -35,7 +35,7 @@ namespace DwarfCorp
         {
             var r = new NonPlayerDwarf(
                 Manager,
-                new CreatureStats("Dwarf", "Soldier", 0)
+                new CreatureStats("Dwarf", "Soldier", null)
                 {
                     RandomSeed = MathFunctions.Random.Next(),
                 },
@@ -51,7 +51,7 @@ namespace DwarfCorp
         {
             var r = new NonPlayerDwarf(
                 Manager,
-                new CreatureStats("Dwarf", "Crafter", 0)
+                new CreatureStats("Dwarf", "Crafter", null)
                 {
                     RandomSeed = MathFunctions.Random.Next(),
                 },
@@ -102,7 +102,7 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateDwarfSprite(Stats.CurrentClass, manager);
+            CreateDwarfSprite(manager);
             Physics.AddChild(Shadow.Create(0.75f, manager));
             Physics.AddChild(new VoxelRevealer(manager, Physics, 5)).SetFlag(Flag.ShouldSerialize, false);
             Physics.AddChild(new MinimapIcon(Manager, new NamedImageFrame(ContentPaths.GUI.map_icons, 16, 0, 0))).SetFlag(Flag.ShouldSerialize, false);
@@ -157,13 +157,13 @@ namespace DwarfCorp
                 SoundToPlay = ContentPaths.Entities.Dwarf.Audio.dwarfhurt1,
             }).SetFlag(Flag.ShouldSerialize, false);
 
-            if (Equipment.HasValue(out var equipment) && GetRoot().GetComponent<DwarfSprites.LayeredCharacterSprite>().HasValue(out var sprite))
+            if (Equipment.HasValue(out var equipment) && GetRoot().GetComponent<DwarfSprites.DwarfCharacterSprite>().HasValue(out var sprite))
                 equipment.AddLayersToSprite(sprite);
 
             base.CreateCosmeticChildren(manager);
         }
 
-        protected void CreateDwarfSprite(CreatureClass employeeClass, ComponentManager manager)
+        protected void CreateDwarfSprite(ComponentManager manager)
         {
             if (Physics == null)
             {

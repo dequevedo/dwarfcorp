@@ -23,10 +23,10 @@ namespace DwarfCorp.GameStates
         private Button HireButton;
         private Dictionary<String, GeneratedApplicant> Applicants = new Dictionary<string, GeneratedApplicant>();
 
-        public Applicant GenerateApplicant(String type)
+        public Applicant GenerateApplicant(MaybeNull<Loadout> Loadout)
         {
             Applicant applicant = new Applicant();
-            applicant.GenerateRandom(type, 0, Settings.Company);
+            applicant.GenerateRandom(Loadout, 0, Settings.Company);
             return applicant;
         }
 
@@ -40,9 +40,9 @@ namespace DwarfCorp.GameStates
             int h = Root.RenderData.VirtualScreen.Height;
             Rect = new Rectangle(Root.RenderData.VirtualScreen.Center.X - w / 2, Root.RenderData.VirtualScreen.Center.Y - h/2, w, h);
 
-            var playerClasses = Library.EnumerateClasses().Where(c => c.PlayerClass).ToList();
+            var playerClasses = Library.EnumerateLoadouts().ToList();
             foreach (var job in playerClasses)
-                Applicants.Add(job.Name, new GeneratedApplicant { Applicant = GenerateApplicant(job.Name) });
+                Applicants.Add(job.Name, new GeneratedApplicant { Applicant = GenerateApplicant(job) });
 
             var left = AddChild(new Widget()
             {
@@ -105,7 +105,7 @@ namespace DwarfCorp.GameStates
                     TextVerticalAlign = VerticalAlign.Bottom,
                     OnClick = (sender, args) =>
                     {
-                        jobDescription.Text = "\n\n" + applicant.Applicant.Class.JobDescription;
+                        jobDescription.Text = "\n\n" + (applicant.Applicant.Loadout.HasValue(out var loadout) ? loadout.Description : "");
                         jobDescription.Invalidate();
                         applicantInfo.Hidden = false;
                         HireButton.Hidden = false;
@@ -159,11 +159,14 @@ namespace DwarfCorp.GameStates
                         this.Invalidate();
                         applicantInfo.Invalidate();
                         HireButton.Invalidate();
-                        
-                        var newApplicant = GenerateApplicant(applicant.Class.Name);
-                        Applicants[applicant.Class.Name].Applicant = newApplicant;
-                        Applicants[applicant.Class.Name].Portrait.Sprite = newApplicant.GetLayers();
-                        Applicants[applicant.Class.Name].Portrait.AnimationPlayer = newApplicant.GetAnimationPlayer(Applicants[applicant.Class.Name].Portrait.Sprite, "WalkingFORWARD");
+
+                        if (applicant.Loadout.HasValue(out var loadout))
+                        {
+                            var newApplicant = GenerateApplicant(applicant.Loadout);
+                            Applicants[loadout.Name].Applicant = newApplicant;
+                            Applicants[loadout.Name].Portrait.Sprite = newApplicant.GetLayers();
+                            Applicants[loadout.Name].Portrait.AnimationPlayer = newApplicant.GetAnimationPlayer(Applicants[loadout.Name].Portrait.Sprite, "WalkingFORWARD");
+                        }
 
                     }
                 },
@@ -178,7 +181,7 @@ namespace DwarfCorp.GameStates
             {
                 foreach (var applicant in Applicants)
                 {
-                    applicant.Value.Portrait.AnimationPlayer.Update(new DwarfTime(time), false, Timer.TimerMode.Real);
+                    applicant.Value.Portrait.AnimationPlayer.Update(new DwarfTime(time), Timer.TimerMode.Real);
                     applicant.Value.Portrait.Invalidate();
                     applicant.Value.Portrait.Sprite.Update(GameStates.GameState.Game.GraphicsDevice);
                 }

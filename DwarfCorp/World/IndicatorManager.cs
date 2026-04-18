@@ -91,15 +91,18 @@ namespace DwarfCorp
     {
         public AnimationPlayer Player = new AnimationPlayer();
         public Animation Animation;
+        public SpriteSheet SpriteSheet;
         
         public override void Update(DwarfTime time)
         {
             base.Update(time);
 
             if (!Player.HasValidAnimation()) Player.Play(Animation);
-            Player.Update(time, false);
+            Player.Update(time);
 
-            Image = Animation.GetAsImageFrame(Player.CurrentFrame);
+            var frame = Animation.Frames[Player.CurrentFrame];
+            var frameRect = new Rectangle(frame.X * SpriteSheet.FrameWidth, frame.Y * SpriteSheet.FrameHeight, SpriteSheet.FrameWidth, SpriteSheet.FrameHeight);
+            Image = new NamedImageFrame(SpriteSheet.AssetName, frameRect);
 
             if (Player.IsDone())
                 ShouldDelete = true;
@@ -189,7 +192,7 @@ namespace DwarfCorp
             }
         }
 
-        public static void DrawIndicator(Animation image, Vector3 position, float time, float scale, Vector2 offset, Color tint, bool flip)
+        public static void DrawIndicator(SpriteSheet Sheet, Animation image, Vector3 position, float time, float scale, Vector2 offset, Color tint, bool flip)
         {
             lock (IndicatorLock)
             {
@@ -198,6 +201,7 @@ namespace DwarfCorp
                     CurrentTime = new Timer(time, true),
                     Image = null,
                     Animation = image,
+                    SpriteSheet = Sheet,
                     Position = position,
                     MaxScale = scale,
                     Offset = offset,

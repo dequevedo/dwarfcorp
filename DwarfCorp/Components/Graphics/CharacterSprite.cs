@@ -15,7 +15,7 @@ namespace DwarfCorp
     /// which has certain animations and can face in four directions. Also provides interfaces to
     /// certain effects such as blinking.
     /// </summary>
-    public class CharacterSprite : OrientedAnimatedSprite
+    public class CharacterSprite : OrientedAnimatedSprite, ISprite
     {
         [OnSerializing]
         new internal void OnSerializingMethod(StreamingContext context)
@@ -68,44 +68,7 @@ namespace DwarfCorp
         public CharacterSprite(ComponentManager manager, string name, Matrix localTransform) :
                 base(manager, name, localTransform)
         {
-            currentMode = "Idle";
-        }
-
-        public bool HasAnimation(CharacterMode mode, Orientation orient)
-        {
-            return Animations.ContainsKey(mode.ToString() + OrientationStrings[(int) orient]);
-        }
-
-        public List<Animation> GetAnimations(CharacterMode mode)
-        {
-            return
-                OrientationStrings.Where((t, i) => HasAnimation(mode, (Orientation) i))
-                    .Select(t => Animations[mode.ToString() + t])
-                    .ToList();
-        }
-
-        public void ReloopAnimations(CharacterMode mode)
-        {
-            SetCurrentAnimation(mode.ToString(), true);
-            if (AnimPlayer.IsDone()) AnimPlayer.Reset();
-        }
-
-        public void ResetAnimations(CharacterMode mode)
-        {
-            SetCurrentAnimation(mode.ToString());
-            AnimPlayer.Reset();
-        }
-
-        public void Blink(float blinkTime)
-        {
-            if(isBlinking || isCoolingDown)
-            {
-                return;
-            }
-
-            isBlinking = true;
-            tintOnBlink = VertexColorTint;
-            blinkTrigger.Reset(blinkTime);
+            CurrentAnimationName = "Idle";
         }
 
         override public void Update(DwarfTime gameTime, ChunkManager chunks, Camera camera)
@@ -136,14 +99,67 @@ namespace DwarfCorp
             base.Update(gameTime, chunks, camera);
         }
 
-        public void PauseAnimations(CharacterMode mode)
+        bool ISprite.HasAnimation(CharacterMode Mode, SpriteOrientation Orientation)
+        {
+            return Animations.ContainsKey(Mode.ToString() + SpriteOrientationHelper.OrientationStrings[(int)Orientation]);
+        }
+
+        void ISprite.SetCurrentAnimation(string name, bool Play)
+        {
+            this.SetCurrentAnimation(name, Play);
+        }
+
+        void ISprite.Blink(float blinkTime)
+        {
+            if (isBlinking || isCoolingDown)
+            {
+                return;
+            }
+
+            isBlinking = true;
+            tintOnBlink = VertexColorTint;
+            blinkTrigger.Reset(blinkTime);
+        }
+
+        void ISprite.ResetAnimations(CharacterMode mode)
+        {
+            SetCurrentAnimation(mode.ToString());
+            AnimPlayer.Reset();
+        }
+
+        void ISprite.ReloopAnimations(CharacterMode mode)
+        {
+            SetCurrentAnimation(mode.ToString(), true);
+            if (AnimPlayer.IsDone()) AnimPlayer.Reset();
+        }
+
+        void ISprite.PauseAnimations()
         {
             AnimPlayer.Pause();
         }
 
-        public void PlayAnimations(CharacterMode mode)
+        void ISprite.PlayAnimations()
         {
             AnimPlayer.Play();
+        }
+
+        int ISprite.GetCurrentFrame()
+        {
+            return AnimPlayer.CurrentFrame;
+        }
+
+        bool ISprite.HasValidAnimation()
+        {
+            return AnimPlayer.HasValidAnimation();
+        }
+
+        bool ISprite.IsDone()
+        {
+            return AnimPlayer.IsDone();
+        }
+
+        void ISprite.SetDrawSilhouette(bool DrawSilhouette)
+        {
         }
     }
 

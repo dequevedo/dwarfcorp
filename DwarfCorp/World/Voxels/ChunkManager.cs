@@ -233,9 +233,9 @@ namespace DwarfCorp
         {
             while(!ExitThreads && !DwarfGame.ExitGame)
             {
-                if (!DwarfTime.LastTime.IsPaused)
+                if (!DwarfTime.LastTimeX.IsPaused)
                 {
-                    ChunkUpdateTimer.Update(DwarfTime.LastTime);
+                    ChunkUpdateTimer.Update(DwarfTime.LastTimeX);
                     if (ChunkUpdateTimer.HasTriggered)
                     {
                         ChunkUpdate.RunUpdate(this);
@@ -245,7 +245,7 @@ namespace DwarfCorp
             }
         }
 
-        public void Update(DwarfTime gameTime, Camera camera, GraphicsDevice g)
+        public List<VoxelChangeEvent> GetAndClearChangedVoxelList()
         {
             List<VoxelChangeEvent> localList = null;
             lock (ChangedVoxels)
@@ -253,21 +253,7 @@ namespace DwarfCorp
                 localList = ChangedVoxels;
                 ChangedVoxels = new List<VoxelChangeEvent>();
             }
-
-            foreach (var voxel in localList)
-            {
-                var box = voxel.Voxel.GetBoundingBox();
-                var hashmap = World.EnumerateIntersectingObjects(box, CollisionType.Both);
-
-                foreach (var intersectingBody in hashmap)
-                {
-                    var listener = intersectingBody as IVoxelListener;
-                    if (listener != null)
-                        listener.OnVoxelChanged(voxel);
-                }
-
-                World.TaskManager.OnVoxelChanged(voxel);
-            }
+            return localList;
         }
 
         public void UpdateBounds()

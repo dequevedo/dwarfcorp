@@ -161,6 +161,7 @@ namespace DwarfCorp
     {
         public class Settings
         {
+            public String LastVersionChangesDisplayed = "";
             public bool TutorialDisabledGlobally = false;
             public int ResolutionX = 1280;
             public int ResolutionY = 720;
@@ -169,6 +170,7 @@ namespace DwarfCorp
             public int ChunkDrawDistance = 100;
             public float VertexCullDistance = 1000;
             public int EntityUpdateDistance = 128;
+            public int ChunkLoadDistance = 128;
             public int AntiAliasing = 0;
             public bool Fullscreen = false;
             public bool EnableGlow = true;
@@ -206,7 +208,7 @@ namespace DwarfCorp
             public List<String> EnabledMods = new List<String>();
             public int MaxSaves = 15;
             public bool EnableSlowMotion = false;
-            public int ConsoleTextSize = 2;
+            public int ConsoleTextSize = 1;
             public float HoursUnhappyBeforeQuitting = 4.0f;
             public ColorSettings Colors = new ColorSettings();
             public bool AllowAutoDigging = true;
@@ -216,19 +218,33 @@ namespace DwarfCorp
             public int MaxLiveChunks = 10; // How many chunks can have geometry saved
             public float SpeciesLimitAdjust = 1.0f;
             public int LandCost = 3;
+            public int MaxDwarfSpriteUpdates = 16;
+            public int MaxAIUpdates = 32;
 
             public bool DisableWeather = true;
 
             public bool AllowIdleCrafting = false;
+            public int DwarfBasePay = 2;
+            public int DwarfBaseLevelCost = 10;
+            public int DwarfSigningBonusFactor = 4;
+
+            public int MigrationAttempts = 10;
+
+            [AutoResetInt(10)] public int XP_attack = 10;
+            [AutoResetInt(2)] public int XP_dig = 2;
+            [AutoResetInt(1)] public int XP_craft = 1;
+            [AutoResetInt(10)] public int XP_farm = 10;
+
 
             [AutoResetBool(false)] public bool FastGen = false;
             [AutoResetFloat(0.15f)] public float GenerationRuinsRate = 0.15f;
+            [AutoResetFloat(0.25f)] public float GenerationMonuments = 0.25f;
             [AutoResetBool(false)] public bool NoStone = false;
 
             [AutoResetFloat(-10.0f)] public float Boredom_Gamble = -10.0f;
             [AutoResetFloat(0.1f)] public float Boredom_NormalTask = -0.1f;
             [AutoResetFloat(-0.1f)] public float Boredom_Sleep = 0.1f;
-            [AutoResetFloat(-0.1f)] public float Boredom_ExcitingTask = -0.5f;
+            [AutoResetFloat(-0.5f)] public float Boredom_ExcitingTask = -0.5f;
             [AutoResetFloat(0.5f)] public float Boredom_BoringTask = 0.5f;
             [AutoResetFloat(-0.1f)] public float Boredom_Eat = -0.1f;
             [AutoResetFloat(-0.2f)] public float Boredom_Walk = -0.2f;
@@ -246,7 +262,7 @@ namespace DwarfCorp
             [AutoResetFloat(0.2f)] public float IdleBehavior_Train = 0.2f;
             [AutoResetFloat(0.1f)] public float IdleBehavior_Walk = 0.1f;
             [AutoResetFloat(0.8f)] public float IdleBehavior_Relax = 0.8f;
-            [AutoResetFloat(0.8f)] public float IdleBehavior_Gamble = 0.4f;
+            [AutoResetFloat(0.4f)] public float IdleBehavior_Gamble = 0.4f;
             [AutoResetFloat(2.0f)] public float IdleBehavior_Research = 2.0f;
             [AutoResetFloat(0.1f)] public float IdleBehavior_Mourn = 0.1f;
             [AutoResetFloat(0.2f)] public float IdleBehavior_Potions = 0.2f;
@@ -293,6 +309,16 @@ namespace DwarfCorp
             public bool Value;
 
             public AutoResetBoolAttribute(bool Value)
+            {
+                this.Value = Value;
+            }
+        }
+
+        private class AutoResetIntAttribute : Attribute
+        {
+            public int Value;
+
+            public AutoResetIntAttribute(int Value)
             {
                 this.Value = Value;
             }
@@ -349,6 +375,12 @@ namespace DwarfCorp
                         {
                             member.SetValue(Current, resetBool.Value);
                             Console.Out.WriteLine("Auto Reset Bool Setting: {0} to {1}", member.Name, resetBool.Value);
+                        }
+
+                        if (attribute is AutoResetIntAttribute resetInt)
+                        {
+                            member.SetValue(Current, resetInt.Value);
+                            Console.Out.WriteLine("Auto Reset Int Setting: {0} to {1}", member.Name, resetInt.Value);
                         }
                     }
 

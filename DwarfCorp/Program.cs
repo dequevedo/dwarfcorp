@@ -11,8 +11,8 @@ namespace DwarfCorp
 {
     internal static class Program
     {
-        public static string Version = "20.06.28_XNA";
-        public static string[] CompatibleVersions = { "20.06.28_XNA", "20.06.28_FNA", "20.06.20_XNA", "20.06.20_FNA", "20.01.05_XNA", "20.01.05_FNA" };
+        public static string Version = "21.04.03_XNA";
+        public static string[] CompatibleVersions = { "21.01.26_XNA", "21.01.26_FNA", "20.12.10_XNA", "20.12.10_FNA", "21.04.03_XNA", "21.04.03_FNA" };
         public static string Commit = "UNKNOWN";
         public static char DirChar = Path.DirectorySeparatorChar;
         private static RavenClient ravenClient;
@@ -39,7 +39,6 @@ namespace DwarfCorp
             Thread.CurrentThread.CurrentUICulture = global::System.Globalization.CultureInfo.InvariantCulture;
 
             GameSettings.Load();
-
 
 #if !DEBUG
             try
@@ -95,8 +94,13 @@ namespace DwarfCorp
         public static void CaptureException(Exception exception)
         {
             Console.Error.WriteLine(exception.Message);
+#if !DEBUG
             if (ravenClient != null)
                 ravenClient.Capture(new SentryEvent(exception));
+#else
+            var x = 5;
+            //throw exception;
+#endif
         }
 
         public static void CaptureSentryMessage(String Message)
@@ -153,6 +157,7 @@ namespace DwarfCorp
             file.Close();
         }
 
+        // Todo: Kill this
         public static string CreatePath(params string[] args)
         {
             string toReturn = "";

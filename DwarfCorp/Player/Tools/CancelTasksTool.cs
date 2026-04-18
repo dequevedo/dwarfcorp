@@ -23,6 +23,7 @@ namespace DwarfCorp
 
         public override void OnBegin(Object Arguments)
         {
+            Options = Arguments as Gui.Widgets.CancelToolOptions;
             World.Tutorial("cancel-tasks");
             World.UserInterface.VoxSelector.SelectionColor = Color.Red;
             World.UserInterface.VoxSelector.DrawBox = true;
@@ -55,6 +56,11 @@ namespace DwarfCorp
 
         public override void Update(DwarfGame game, DwarfTime time)
         {
+            if (World == null || World.UserInterface == null || World.UserInterface.VoxSelector == null || World.UserInterface.BodySelector == null)
+                return;
+            if (Options == null || Options.Voxels == null || Options.Entities == null)
+                return;
+
             if (World.UserInterface.IsCameraRotationModeActive())
             {
                 World.UserInterface.VoxSelector.Enabled = false;

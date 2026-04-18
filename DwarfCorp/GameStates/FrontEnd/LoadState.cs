@@ -31,7 +31,6 @@ namespace DwarfCorp.GameStates
         public Tutorial.TutorialManager TutorialManager;
         private LoadTypes LoadType;
         private Embarkment InitialEmbarkment;
-        private ColonyCell InitialCell;
 
         private Timer TipTimer = new Timer(1, false, Timer.TimerMode.Real);
         public Overworld Settings { get; set; }
@@ -43,7 +42,6 @@ namespace DwarfCorp.GameStates
             Settings = settings;
             EnableScreensaver = true;
             InitialEmbarkment = settings.InstanceSettings.InitalEmbarkment;
-            InitialCell = settings.InstanceSettings.Cell;
 
             Runner = new DwarfRunner(game);
         }
@@ -52,7 +50,7 @@ namespace DwarfCorp.GameStates
         {
             TutorialManager = new Tutorial.TutorialManager();
             IsInitialized = true;
-            DwarfTime.LastTime.Speed = 1.0f;
+            DwarfTime.LastTimeX.Speed = 1.0f;
 
             IndicatorManager.SetupStandards();
 
@@ -98,15 +96,12 @@ namespace DwarfCorp.GameStates
         private void CreateWorld()
         {
             if (LoadType == LoadTypes.GenerateOverworld) // Generating the world erases some settings.
-            {
-                Settings.InstanceSettings.Cell = InitialCell;
                 Settings.InstanceSettings.InitalEmbarkment = InitialEmbarkment;
-            }
 
             World = new WorldManager(Game)
             {
                 // Todo: Just keep a reference to the settings OMG.
-                WorldSizeInChunks = new Point3(Settings.InstanceSettings.Cell.Bounds.Width, Settings.zLevels, Settings.InstanceSettings.Cell.Bounds.Height),
+                WorldSizeInChunks = Settings.WorldSizeInChunks,
                 Overworld = Settings,
             };
 
@@ -138,12 +133,6 @@ namespace DwarfCorp.GameStates
                     {
                         // World generation is finished!
                         LoadTicker.AddMessage("Checking spawn position...");
-                        while (InitialCell.Bounds.Width == 8 && InitialCell.Bounds.Height == 8 && !IsGoodSpawn())
-                        {
-                            LoadTicker.AddMessage("Selecting new spawn...");
-                            InitialCell = Settings.ColonyCells.EnumerateCells().Where(c => c.Bounds.Width == 8 && c.Bounds.Height == 8).SelectRandom();
-                        }
-
                         CreateWorld();
                     }
                     else
@@ -171,8 +160,8 @@ namespace DwarfCorp.GameStates
                         : World.LoadingException.ToString();
                     GuiRoot.MouseVisible = true;
                     GuiRoot.MousePointer = new Gui.MousePointer("mouse", 4, 0);
-                    DwarfTime.LastTime.IsPaused = false;
-                    DwarfTime.LastTime.Speed = 1.0f;
+                    DwarfTime.LastTimeX.IsPaused = false;
+                    DwarfTime.LastTimeX.Speed = 1.0f;
                     World = null;
                     DwarfGame.LogSentryBreadcrumb("Loading", "Loading failed.", SharpRaven.Data.BreadcrumbLevel.Error);
                     GuiRoot.ShowModalPopup(new Gui.Widgets.Confirm()
@@ -195,16 +184,6 @@ namespace DwarfCorp.GameStates
             }
 
             base.Update(gameTime);
-        }
-
-        private bool IsGoodSpawn()
-        {
-            var oceanFound = 0;
-            for (var x = InitialCell.Bounds.X; x < InitialCell.Bounds.X + InitialCell.Bounds.Width; ++x)
-                for (var y = InitialCell.Bounds.Y; y < InitialCell.Bounds.Y + InitialCell.Bounds.Height; ++y)
-                    if (Settings.Map.GetOverworldValueAt(x, y, OverworldField.Height) < Settings.GenerationSettings.SeaLevel)
-                        oceanFound += 1;
-            return oceanFound < (InitialCell.Bounds.Width * InitialCell.Bounds.Height) / 2;
         }
 
         public override void Render(DwarfTime gameTime)

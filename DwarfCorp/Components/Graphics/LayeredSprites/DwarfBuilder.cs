@@ -83,9 +83,9 @@ namespace DwarfCorp.DwarfSprites
             return chosenPalettes;
         }
 
-        public static LayeredCharacterSprite CreateDwarfCharacterSprite(ComponentManager Manager, CreatureStats Stats)
+        public static DwarfCharacterSprite CreateDwarfCharacterSprite(ComponentManager Manager, CreatureStats Stats)
         {
-            var sprite = new DwarfSprites.LayeredCharacterSprite(Manager, "Sprite", Matrix.CreateTranslation(new Vector3(0, 0.15f, 0)));
+            var sprite = new DwarfSprites.DwarfCharacterSprite(Manager, "Sprite", Matrix.CreateTranslation(new Vector3(0, 0.15f, 0)));
 
             var random = new Random(Stats.RandomSeed);
 
@@ -101,7 +101,7 @@ namespace DwarfCorp.DwarfSprites
             return sprite;
         }
 
-        public static LayerStack CreateDwarfLayerStack(CreatureStats Stats)
+        public static LayerStack CreateDwarfLayerStack(CreatureStats Stats, MaybeNull<Loadout> Loadout)
         {
             var sprite = new LayerStack();
 
@@ -114,15 +114,16 @@ namespace DwarfCorp.DwarfSprites
             foreach (var layer in layers)
                 sprite.AddLayer(layer.Layer, layer.Palette);
 
-            foreach (var item in Stats.CurrentClass.StartingEquipment)
-                if (!String.IsNullOrEmpty(item.Equipment_LayerName))
-                    if (LayerLibrary.FindLayerWithName(item.Equipment_LayerType, item.Equipment_LayerName).HasValue(out var layer))
-                    {
-                        if (LayerLibrary.FindPalette(item.Equipment_Palette).HasValue(out var palette))
-                            sprite.AddLayer(layer, palette);
-                        else
-                            sprite.AddLayer(layer, LayerLibrary.BasePalette);
-                    }
+            if (Loadout.HasValue(out var loadout))
+                foreach (var item in loadout.StartingEquipment)
+                    if (!String.IsNullOrEmpty(item.Equipment_LayerName))
+                        if (LayerLibrary.FindLayerWithName(item.Equipment_LayerType, item.Equipment_LayerName).HasValue(out var layer))
+                        {
+                            if (LayerLibrary.FindPalette(item.Equipment_Palette).HasValue(out var palette))
+                                sprite.AddLayer(layer, palette);
+                            else
+                                sprite.AddLayer(layer, LayerLibrary.BasePalette);
+                        }
 
             return sprite;
         }

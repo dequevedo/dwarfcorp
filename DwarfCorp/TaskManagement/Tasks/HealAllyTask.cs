@@ -59,7 +59,7 @@ namespace DwarfCorp
             {
                 Agent.Physics.Face(Ally.Position);
                 Agent.Creature.CurrentCharacterMode = CharacterMode.Sitting;
-                healTimer.Update(DwarfTime.LastTime);
+                healTimer.Update(Agent.FrameDeltaTime);
                 if (healTimer.HasTriggered)
                 {
                     int amount = MathFunctions.RandInt(1, (int)Agent.Stats.Wisdom);
@@ -134,12 +134,16 @@ namespace DwarfCorp
             while (!Ally.IsDead && !Ally.Stats.Health.IsSatisfied() && (Ally.Position - Agent.Position).Length() < 3)
             {
                 Agent.Physics.Face(Ally.Position);
-                Agent.Creature.CurrentCharacterMode = Agent.Creature.Stats.CurrentClass.AttackMode;
-                healTimer.Update(DwarfTime.LastTime);
+
+                if (Agent.Creature.Stats.CurrentClass.HasValue(out var c))
+                    Agent.Creature.CurrentCharacterMode = c.AttackMode;
+
+                healTimer.Update(Agent.FrameDeltaTime);
                 if (healTimer.HasTriggered)
                 {
-                    Agent.Creature.Sprite.ReloopAnimations(Agent.Creature.Stats.CurrentClass.AttackMode);
-                    int amount = Agent.Stats.CurrentLevel.HealingPower;
+                    if (Agent.Creature.Stats.CurrentClass.HasValue(out var _c))
+                        Agent.Creature.Sprite.ReloopAnimations(_c.AttackMode);
+                    int amount = (int)(Agent.Stats.Wisdom * 4);
                     Ally.Creature.Heal(amount);
                     IndicatorManager.DrawIndicator((amount).ToString() + " HP",
                     Ally.Position, 1.0f,
@@ -184,7 +188,7 @@ namespace DwarfCorp
 
         public override Feasibility IsFeasible(Creature agent)
         {
-            return agent.AI != Ally && !Ally.IsDead && !Ally.Stats.Health.IsSatisfied() && agent.Stats.CurrentLevel.HealingPower > 0 ? Feasibility.Feasible : Feasibility.Infeasible;
+            return agent.AI != Ally && !Ally.IsDead && !Ally.Stats.Health.IsSatisfied() && agent.Stats.Wisdom > 0 ? Feasibility.Feasible : Feasibility.Infeasible;
         }
 
         public override bool IsComplete(WorldManager World)

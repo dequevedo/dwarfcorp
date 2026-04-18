@@ -25,7 +25,7 @@ namespace DwarfCorp
         {
         }
 
-        override public void Update(DwarfTime gameTime, ChunkManager chunks, Camera camera) 
+        override public void AIUpdate(DwarfTime gameTime, ChunkManager chunks, Camera camera) 
         {
             if (!Active)
                 return;
@@ -36,7 +36,7 @@ namespace DwarfCorp
 
             if (AutoGatherTimer.HasTriggered)
             {
-                foreach (var body in World.EnumerateIntersectingObjects(Physics.BoundingBox.Expand(3.0f)).OfType<ResourceEntity>().Where(r => r.Active && r.AnimationQueue.Count == 0))
+                foreach (var body in World.EnumerateIntersectingRootObjects(Physics.BoundingBox.Expand(3.0f)).OfType<ResourceEntity>().Where(r => r.Active && r.AnimationQueue.Count == 0))
                     Creature.GatherImmediately(body, Inventory.RestockType.RestockResource);
 
                 OrderEnemyAttack();
@@ -113,7 +113,7 @@ namespace DwarfCorp
         {
             Manager.World.MakeAnnouncement(new Gui.Widgets.QueuedAnnouncement
             {
-                Text = String.Format("{0} is fighting {1}.", Stats.FullName, TextGenerator.IndefiniteArticle(Enemy.Stats.CurrentClass.Name)),
+                Text = String.Format("{0} is fighting {1}.", Stats.FullName, TextGenerator.IndefiniteArticle(Enemy.Stats.CurrentClass.HasValue(out var c) ? c.Name : "cretin")),
                 ClickAction = (gui, sender) => ZoomToMe()
             });
 

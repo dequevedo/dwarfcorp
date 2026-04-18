@@ -104,13 +104,14 @@ namespace DwarfCorp.Gui.Widgets
             {
                 // Todo: Just use one widget for all the text.
                 NameLabel.Text = Applicant.Name;
-                ClassLabel.Text = Applicant.Class.Name;
-                StartingWageLabel.Text = String.Format("Starts at {0}/day", Applicant.Level.Pay);
-                SigningBonusLabel.Text = String.Format("{0} signing bonus", Applicant.Level.Pay * 4);
+                ClassLabel.Text = Applicant.Loadout.HasValue(out var loadout) ? loadout.Name : "Dunno";
+                StartingWageLabel.Text = String.Format("Starts at {0}/day", Applicant.BasePay);
+                SigningBonusLabel.Text = String.Format("{0} signing bonus", Applicant.SigningBonus);
                 LastJobLabel.Text = String.Format("Last job - {0}", Applicant.FormerProfession);
                 LastJobLocation.Text = String.Format("Home town - {0}", Applicant.HomeTown);
                 Biography.Text = Applicant.Biography;
                 Resume.Text = Applicant.CoverLetter;
+
                 //var idx = EmployeePanel.GetIconIndex(Applicant.Class.Name);
                 //Portrait.Background = idx >= 0 ? new TileReference("dwarves", idx) : null;
                 Portrait.Sprite = Applicant.GetLayers();

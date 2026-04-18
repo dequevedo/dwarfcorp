@@ -33,8 +33,10 @@ namespace DwarfCorp
         private Timer checkFoodTimer = new Timer(60.0f, false, Timer.TimerMode.Real);
         public TaskManager TaskManager;
         private Timer orphanedTaskRateLimiter = new Timer(10.0f, false, Timer.TimerMode.Real);
-        public MonsterSpawner MonsterSpawner;
         public Faction PlayerFaction;
+        public HashSet<GameComponent> ComponentUpdateSet = new HashSet<GameComponent>();
+        public uint EntityUpdateFrame = 0;
+        public ModuleManager ModuleManager;
 
         #region Tutorial Hooks
 
@@ -64,8 +66,8 @@ namespace DwarfCorp
             {
                 paused_ = value;
 
-                if (DwarfTime.LastTime != null)
-                    DwarfTime.LastTime.IsPaused = paused_;
+                if (DwarfTime.LastTimeX != null)
+                    DwarfTime.LastTimeX.IsPaused = paused_;
             }
         }
 
@@ -130,14 +132,6 @@ namespace DwarfCorp
         private Splasher Splasher;
         #endregion
 
-        [JsonIgnore]
-        public List<EngineModule> UpdateSystems = new List<EngineModule>();
-
-        public T FindSystem<T>() where T: EngineModule
-        {
-            return UpdateSystems.FirstOrDefault(s => s is T) as T;
-        }
-
         /// <summary>
         /// Creates a new play state
         /// </summary>
@@ -175,10 +169,9 @@ namespace DwarfCorp
             LogStat("Resources", resources.Count());
             LogStat("Resource Value", (float)resources.Sum(r => r.MoneyValue));
             LogStat("Employees", PlayerFaction.Minions.Count);
-            LogStat("Employee Pay", (float)PlayerFaction.Minions.Select(m => m.Stats.CurrentLevel.Pay.Value).Sum());
+            LogStat("Employee Pay", (float)PlayerFaction.Minions.Select(m => m.Stats.DailyPay.Value).Sum());
             LogStat("Furniture",  PlayerFaction.OwnedObjects.Count);
             LogStat("Zones", EnumerateZones().Count());
-            LogStat("Employee Level", PlayerFaction.Minions.Sum(r => r.Stats.LevelIndex));
             LogStat("Employee Happiness", (float)PlayerFaction.Minions.Sum(m => m.Stats.Happiness.Percentage) / Math.Max(PlayerFaction.Minions.Count, 1));
         }
 
@@ -190,7 +183,7 @@ namespace DwarfCorp
         public void Update(DwarfTime gameTime)
         {
             IndicatorManager.Update(gameTime);
-            HandleAmbientSound();
+            HandleAmbientSound(gameTime);
 
             TaskManager.Update(PlayerFaction.Minions);
 
@@ -219,24 +212,24 @@ namespace DwarfCorp
             // If not paused, we want to just update the rest of the game.
             else
             {
+                EntityUpdateFrame += 1;
+
+                // Choose what entities to update.
+                ComponentUpdateSet.Clear();
+                ComponentManager.FindComponentsToUpdate(ComponentUpdateSet);
+                foreach (var component in ComponentUpdateSet)
+                    component.UpdateFrame = EntityUpdateFrame;
+
                 ParticleManager.Update(gameTime, this);
                 TutorialManager.Update(UserInterface.Gui);
 
-                foreach (var updateSystem in UpdateSystems)
-                {
-                    try
-                    {
-                        updateSystem.Update(gameTime);
-                    }
-                    catch (Exception) { }
-                }
-
+                ModuleManager.Update(gameTime, this);
                 UpdateZones(gameTime);
 
                 #region Mourn dead minions
-                foreach (var deadMinion in PlayerFaction.Minions.Where(m => m.IsDead && m.Stats.CurrentClass.TriggersMourning))
+                foreach (var deadMinion in PlayerFaction.Minions.Where(m => m.IsDead && m.Stats.CurrentClass.HasValue(out var c) && c.TriggersMourning))
                 {
-                    MakeAnnouncement(String.Format("{0} ({1}) died!", deadMinion.Stats.FullName, deadMinion.Stats.CurrentClass.Name));
+                    MakeAnnouncement(String.Format("{0} died!", deadMinion.Stats.FullName));
                     SoundManager.PlaySound(ContentPaths.Audio.Oscar.sfx_gui_negative_generic);
                     Tutorial("death");
 
@@ -275,9 +268,9 @@ namespace DwarfCorp
                 {
                     if (m.GetRoot().GetComponent<SelectionCircle>().HasValue(out var selectionCircle))
                         selectionCircle.SetFlagRecursive(GameComponent.Flag.Visible, false);
-
-                    m.Creature.Sprite.DrawSilhouette = false;
-                };
+                    if (m.Creature.Sprite != null)
+                        m.Creature.Sprite.SetDrawSilhouette(false);
+                }
 
                 foreach (var creature in PersistentData.SelectedMinions)
                 {
@@ -293,7 +286,7 @@ namespace DwarfCorp
                         selectionCircle.SetFlagRecursive(GameComponent.Flag.Visible, true);
                     }
 
-                    creature.Creature.Sprite.DrawSilhouette = true;
+                    creature.Creature.Sprite.SetDrawSilhouette(true);
                 }
                 #endregion
 
@@ -309,16 +302,28 @@ namespace DwarfCorp
 
 
 
-                ComponentManager.Update(gameTime, ChunkManager, Renderer.Camera);
-                MonsterSpawner.Update(gameTime);
-
+                ComponentManager.Update(gameTime, ChunkManager, ComponentUpdateSet);
             }
 
             // These things are updated even when the game is paused
 
             Splasher.Splash(gameTime, ChunkManager.Water.GetSplashQueue());
 
-            ChunkManager.Update(gameTime, Renderer.Camera, GraphicsDevice);
+            var changedVoxels = ChunkManager.GetAndClearChangedVoxelList();
+            foreach (var @event in changedVoxels)
+            {
+                var box = @event.Voxel.GetBoundingBox();
+                var hashmap = EnumerateIntersectingAnchors(box);
+
+                foreach (var intersectingBody in hashmap)
+                    if (intersectingBody is IVoxelListener listener) // Aren't they always listeners?
+                        listener.OnVoxelChanged(@event);
+
+                TaskManager.OnVoxelChanged(@event);
+            }
+
+            ModuleManager.VoxelChange(changedVoxels, this);
+
             SoundManager.Update(gameTime, Renderer.Camera, Time);
             Weather.Update(this.Time.CurrentDate, this);
 
@@ -344,6 +349,8 @@ namespace DwarfCorp
 
         public void Quit()
         {
+            ModuleManager.Shutdown();
+
             ChunkManager.Destroy();
             ComponentManager = null;
 
@@ -354,11 +361,6 @@ namespace DwarfCorp
 
         public void Dispose()
         {
-            // Todo: Move this to the composite library.
-            foreach(var composite in CompositeLibrary.Composites)
-                composite.Value.Dispose();
-            CompositeLibrary.Composites.Clear();
-
             if (LoadingThread != null && LoadingThread.IsAlive)
                 LoadingThread.Abort();
         }
@@ -384,6 +386,6 @@ namespace DwarfCorp
                     r.Destroy();
                 }
             }
-        }        
+        }
     }
 }

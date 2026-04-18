@@ -6,6 +6,12 @@
     "TileHeight": 8
   },
   {
+    "Name": "large-mono-font",
+    "Texture": "newgui/large-mono-font",
+    "TileWidth": 16,
+    "TileHeight": 16
+  },
+  {
     "Name": "font8",
     "Texture": "newgui/fonts/font8",
     "Type": "JsonFont"
@@ -13,6 +19,16 @@
   {
     "Name": "font10",
     "Texture": "newgui/fonts/font10",
+    "Type": "JsonFont"
+  },
+  {
+    "Name": "aliasedFont20",
+    "Texture": "newgui/fonts/aliased20",
+    "Type": "JsonFont"
+  },
+  {
+    "Name": "aliasedFont10",
+    "Texture": "newgui/fonts/aliased10",
     "Type": "JsonFont"
   },
   {
@@ -86,6 +102,19 @@
     "TileHeight": 30
   },
   {
+    "Name": "window-transparent",
+    "Texture": "newgui/window-transparent",
+    "TileWidth": 32,
+    "TileHeight": 32
+  },
+  {
+    "Name": "window",
+    "Texture": "newgui/window",
+    "TileWidth": 32,
+    "TileHeight": 32
+  },
+
+  {
     "Name": "border-dark",
     "Texture": "newgui/dark-border",
     "TileWidth": 11,
@@ -136,6 +165,12 @@
   {
     "Name": "vertical-scrollbar",
     "Texture": "newgui/vertical-scrollbar",
+    "TileWidth": 24,
+    "TileHeight": 24
+  },
+  {
+    "Name": "horizontal-scrollbar",
+    "Texture": "newgui/horizontal-scrollbar",
     "TileWidth": 24,
     "TileHeight": 24
   },

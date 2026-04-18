@@ -63,7 +63,8 @@ namespace DwarfCorp.Play
                         var popup = Root.ConstructWidget(new GameStates.Debug.GuiDebugPanel
                         {
                             Rect = Root.RenderData.VirtualScreen,
-                            IncludeCloseButton = true
+                            IncludeCloseButton = true,
+                            World = World
                         });
 
                         popup.Layout();
@@ -434,7 +435,7 @@ namespace DwarfCorp.Play
                                 OnClick = (sender, args) =>
                                 {
                                     foreach(var minion in World.PlayerFaction.Minions)
-                                        minion.AddXP(100);
+                                        minion.AddXP(10000);
                                 } 
                             },
                             new HorizontalMenuTray.MenuItem
@@ -478,8 +479,7 @@ namespace DwarfCorp.Play
                                 Text = "PASS OUT",
                                 OnClick = (sender, args) =>
                                 {
-                                    var employee = Datastructures.SelectRandom(World.PlayerFaction.Minions);
-                                    if (employee != null)
+                                    foreach (var employee in World.PlayerFaction.Minions)
                                         employee.Creature.Heal(-employee.Stats.Health.CurrentValue * employee.Creature.MaxHealth + 1);
                                 }
                             }

@@ -11,9 +11,11 @@ namespace DwarfCorp
 {
     public class DwarfAI : CreatureAI
     {
-        [JsonProperty] private int lastXPAnnouncement = -1;
+        [JsonProperty] private int lastXPAnnouncement = -1; // Todo: Kill
+        [JsonProperty] private int lastXPAnnouncementStat = -1;
         [JsonProperty] private int NumDaysNotPaid = 0;
         [JsonProperty] private double UnhappinessTime = 0.0f;
+        [JsonProperty] private double TimeSinceLastAssignedTask = 0.0f; // The time since this dwarf last took on a task from the order pool.
 
         [JsonIgnore] public bool BreakOnUpdate = false;
 
@@ -41,7 +43,21 @@ namespace DwarfCorp
             public Func<DwarfAI, WorldManager, bool> Available = (_ai, _world) => true;
         }
 
-        private static List<IdleTask> IdleTasks;
+        public override void OnAttacked(Creature By)
+        {
+            // Make the other creature defend itself.
+            var otherKill = new KillEntityTask(By.Physics, KillEntityTask.KillType.Auto)
+            {
+                AutoRetry = true,
+                ReassignOnDeath = false
+            };
+
+            if (!HasTaskWithName(otherKill))
+                AssignTask(otherKill);
+
+        }
+
+    private static List<IdleTask> IdleTasks;
 
         private static void InitializeIdleTasks()
         {
@@ -97,6 +113,7 @@ namespace DwarfCorp
                     Chance = () => GameSettings.Current.IdleBehavior_Binge,
                     Create = (AI) =>
                     {
+                        if (AI.World.GetResourcesWithTag("Alcohol").Count > 0)
                         return new ActWrapperTask(
                             new Repeat(
                                 new FindAndEatFoodAct(AI, true)
@@ -114,8 +131,13 @@ namespace DwarfCorp
                             BoredomIncrease = GameSettings.Current.Boredom_Eat,
                             EnergyDecrease = GameSettings.Current.Energy_Restful,
                         };
+                        else
+                        {
+                            AI.Creature.AddThought("I need a drink.", new TimeSpan(4, 0, 0), -25f);
+                            return null;
+                        }
                     },
-                    Available = (AI, World) => World.GetResourcesWithTag("Alcohol").Count > 0
+                    //Available = (AI, World) => World.GetResourcesWithTag("Alcohol").Count > 0
                 });
 
                 IdleTasks.Add(new IdleTask
@@ -187,7 +209,7 @@ namespace DwarfCorp
                             return new MagicHealAllyTask(minion);
                         return null;
                     },
-                    Available = (AI, world) => AI.Stats.CurrentLevel.HealingPower > 0 && AI.Faction.Minions.Any(minion => !minion.Creature.Stats.Health.IsSatisfied())
+                    Available = (AI, world) => AI.Creature.Equipment.HasValue(out var eq) && eq.GetItemInSlot("Tool").HasValue(out var tool) && tool.Tool_Magic && AI.Stats.Wisdom > 0 && AI.Faction.Minions.Any(minion => !minion.Creature.Stats.Health.IsSatisfied())
                 });
 
                 IdleTasks.Add(new IdleTask
@@ -332,7 +354,7 @@ namespace DwarfCorp
             AssignTask(Task);
         }
 
-        override public void Update(DwarfTime gameTime, ChunkManager chunks, Camera camera) 
+        override public void AIUpdate(DwarfTime gameTime, ChunkManager chunks, Camera camera) 
         {
             //base.Update(gameTime, chunks, camera);
 
@@ -341,6 +363,8 @@ namespace DwarfCorp
 
             if (!Active)
                 return;
+
+            TimeSinceLastAssignedTask += gameTime.ElapsedGameTime.TotalMinutes;
 
             //SetMessage("");
             Creature.NoiseMaker.BasePitch = Stats.VoicePitch;
@@ -351,7 +375,7 @@ namespace DwarfCorp
 
             if (AutoGatherTimer.HasTriggered && !Creature.Stats.IsAsleep)
             {
-                foreach (var body in World.EnumerateIntersectingObjects(Physics.BoundingBox.Expand(3.0f)).OfType<ResourceEntity>().Where(r => r.Active && r.AnimationQueue.Count == 0))
+                foreach (var body in World.EnumerateIntersectingRootObjects(Physics.BoundingBox.Expand(3.0f)).OfType<ResourceEntity>().Where(r => r.Active && r.AnimationQueue.Count == 0))
                     Creature.GatherImmediately(body, Inventory.RestockType.RestockResource);
 
                 OrderEnemyAttack();
@@ -359,6 +383,38 @@ namespace DwarfCorp
 
             DeleteBadTasks();
             PreEmptTasks();
+
+            // Check for managerial buff
+            var managerBufferComponent = Parent.GetComponent<RadiusBuffer>();
+            if (Stats.IsManager && !managerBufferComponent.HasValue())
+            {
+                var managerBuffer = new RadiusBuffer(Manager, "Manager Buffer", Matrix.Identity, new Vector3(16, 16, 16), Vector3.Zero)
+                {
+                    SenseRadius = 16,
+                    Buff = new ManagerMotivationStatusEffect(0.1f * Stats.Intelligence)
+                };
+
+                Parent.AddChild(managerBuffer);
+            }
+            else if (!Stats.IsManager && managerBufferComponent.HasValue(out var outdatedBuff))
+                outdatedBuff.Die();
+
+            if (Stats.IsManager)
+                Stats.AddBuff(new BaselineMotivationStatusEffect(1.0f)); // Managers are always highly motivated.
+            else
+            {
+                var employees = World.CalculateSupervisedEmployees();
+                if (employees != 0)
+                {
+                    // Make dwarves unhappy if there is too much supervision; or if there is too little.
+                    var supervisionFactor = (float)World.CalculateSupervisionCap() / (float)employees;
+                    var supervisionDelta = Math.Abs(supervisionFactor - 1);
+                    if (supervisionDelta > 0.25f) Creature.AddThought("Supervision here sucks.", new TimeSpan(4, 0, 0), -25.0f);
+                    if (Stats.Happiness.CurrentValue < 25.0f) Stats.AddBuff(new HappinessMotivationStatusEffect(-0.5f));
+                    if (Stats.Happiness.CurrentValue > 75.0f) Stats.AddBuff(new HappinessMotivationStatusEffect(0.25f));
+                    Stats.AddBuff(new BaselineMotivationStatusEffect(supervisionFactor));
+                }
+            }
 
             // Freak out if on fire!
             if (GetRoot().GetComponent<Flammable>().HasValue(out var flames) && flames.IsOnFire)
@@ -384,8 +440,8 @@ namespace DwarfCorp
                 });
 
             // If we haven't gotten paid, don't wait for idle to go collect.
-            if (NumDaysNotPaid > 0 && Faction.Economy.Funds >= Stats.CurrentLevel.Pay)
-                AssignGeneratedTask(new ActWrapperTask(new GetMoneyAct(this, Math.Min(Stats.CurrentLevel.Pay * NumDaysNotPaid, Faction.Economy.Funds)) { IncrementDays = false })
+            if (NumDaysNotPaid > 0 && Faction.Economy.Funds >= Stats.DailyPay) // Todo - Track how much we were owed for the day we weren't paid. Don't assume it's constant.
+                AssignGeneratedTask(new ActWrapperTask(new GetMoneyAct(this, Math.Min(Stats.DailyPay * NumDaysNotPaid, Faction.Economy.Funds)) { IncrementDays = false })
                 {
                     AutoRetry = true,
                     Name = "Get paid.",
@@ -395,6 +451,12 @@ namespace DwarfCorp
             // If we're bored, make sure we queue up a boredom reducing task.
             if (Stats.Boredom.IsDissatisfied() && !Tasks.Any(task => task.BoredomIncrease < 0) && ChooseIdleTask(true).HasValue(out var idleTask))
                 AssignGeneratedTask(idleTask);
+
+            // Track unhappiness time.
+            if (Stats.Happiness.IsSatisfied()) 
+                UnhappinessTime = 0.0f;
+            else
+                UnhappinessTime += gameTime.ElapsedGameTime.TotalMinutes;
 
             if (CurrentTask.HasValue(out var currentTask))
             {
@@ -498,11 +560,11 @@ namespace DwarfCorp
                 }
                 else if (Stats.Happiness.IsDissatisfied()) // We aren't on strike, but we hate this place.
                 {
-                    if (MathFunctions.Rand(0, 1) < 0.15f) // We hate it so much that we might just go on strike! This can probably be tweaked. As it stands,
-                                                          // dorfs go on strike almost immediately every time.
+                    UnhappinessTime += gameTime.ElapsedGameTime.TotalMinutes;
+                    if (MathFunctions.Rand(0, 10) < UnhappinessTime) // We hate it so much that we might just go on strike! The longer we are unhappy, the more likely to go on strike.
                     {
-                        Manager.World.UserInterface.MakeWorldPopup(String.Format("{0} ({1}) refuses to work!",
-                               Stats.FullName, Stats.CurrentClass.Name), Creature.Physics, -10, 10);
+                        Manager.World.UserInterface.MakeWorldPopup(String.Format("{0} refuses to work!",
+                               Stats.FullName), Creature.Physics, -10, 10);
                         Manager.World.Tutorial("happiness");
                         SoundManager.PlaySound(ContentPaths.Audio.Oscar.sfx_gui_negative_generic, 0.25f);
                         Stats.IsOnStrike = true;
@@ -512,8 +574,12 @@ namespace DwarfCorp
                 if (!Stats.IsOnStrike) // We aren't on strike, so find a new task.
                 {
                     var goal = GetEasiestTask(Tasks);
-                    if (goal == null)
-                        goal = World.TaskManager.GetBestTask(this);
+                    if (goal == null) // We don't have a queued task, so lets go get one.
+                    {
+                        var motivationThreshold = 5.0f * (1.0f - Stats.Motivation.CurrentValue); // The higher the value, the more likely they are to pick a new task.
+                        if (TimeSinceLastAssignedTask > motivationThreshold) // The longest a dwarf should wait even when incredibly unmotivated is 5 real life minutes.
+                            goal = World.TaskManager.GetBestTask(this);
+                    }
 
                     if (goal != null)
                     {
@@ -537,7 +603,7 @@ namespace DwarfCorp
                 if ((Physics.IsInLiquid || (!Movement.CanSwim && (below.IsValid && (below.LiquidLevel > 5)))) 
                     && (!Movement.CanSwim || shouldDrown))
                 {
-                    Creature.Damage(Movement.CanSwim ? 1.0f : 30.0f, Health.DamageType.Normal);
+                    Creature.Damage(FrameDeltaTime, Movement.CanSwim ? 1.0f : 30.0f, Health.DamageType.Normal);
                 }
             }
 
@@ -557,26 +623,27 @@ namespace DwarfCorp
             IndicatorManager.DrawIndicator(sign + XP + " XP",
                 Position + Vector3.Up + MathFunctions.RandVector3Cube() * 0.5f, 0.5f, XP > 0 ? GameSettings.Current.Colors.GetColor("Positive", Color.Green) : GameSettings.Current.Colors.GetColor("Negative", Color.Red));
 
-            if (Stats.IsOverQualified && lastXPAnnouncement != Stats.LevelIndex && Faction == Manager.World.PlayerFaction)
+            if (Faction == Manager.World.PlayerFaction && lastXPAnnouncementStat != Stats.GetCurrentLevel() && Stats.CanSpendXP)
             {
-                lastXPAnnouncement = Stats.LevelIndex;
+                lastXPAnnouncementStat = Stats.GetCurrentLevel();
 
                 Manager.World.MakeAnnouncement(new Gui.Widgets.QueuedAnnouncement
                 {
-                    Text = String.Format("{0} ({1}) wants a promotion!", Stats.FullName, Stats.CurrentClass.Name),
-                    ClickAction = (gui, sender) => GameStateManager.PushState(new EconomyState(Manager.World.Game, Manager.World))
+                    Text = String.Format("{0} is ready to spend some XP!", Stats.FullName),
+                    ClickAction = (gui, sender) => Manager.World.UserInterface.ShowEmployeeDialog(this, new Rectangle(0,0,0,0))
                 });
 
                 SoundManager.PlaySound(ContentPaths.Audio.Oscar.sfx_gui_positive_generic, 0.15f);
                 Manager.World.Tutorial("level up");
             }
+
         }
 
         protected override void MakeBattleAnnouncement(CreatureAI Enemy)
         {
             Manager.World.MakeAnnouncement(new Gui.Widgets.QueuedAnnouncement
             {
-                Text = String.Format("{0} is fighting {1}.", Stats.FullName, TextGenerator.IndefiniteArticle(Enemy.Stats.CurrentClass.Name)),
+                Text = String.Format("{0} is fighting {1}.", Stats.FullName, TextGenerator.IndefiniteArticle(Enemy.Stats.CurrentClass.HasValue(out var c) ? c.Name : "cretin")),
                 ClickAction = (gui, sender) => ZoomToMe()
             });
 

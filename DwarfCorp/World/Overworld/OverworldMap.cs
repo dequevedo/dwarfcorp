@@ -165,7 +165,8 @@ namespace DwarfCorp
                             var rx = (x * scale) + tx;
                             var ry = (y * scale) + ty;
                             var pixelIndex = ry * Map.GetLength(0) * scale + rx;
-                            worldData[pixelIndex] = cellColor;
+                            if (pixelIndex >= 0 && pixelIndex < worldData.Length)
+                                worldData[pixelIndex] = cellColor;
                         }
                 }
             }
@@ -254,27 +255,41 @@ namespace DwarfCorp
 
         }
 
-        public static Vector2 WorldToOverworld(Vector2 worldXZ, Vector2 origin)
+        public static Vector2 WorldToOverworld(Vector2 worldXZ)
         {
-            return worldXZ / 16.0f + origin;
+            return worldXZ / VoxelConstants.OverworldScale;
         }
 
         public static Vector2 WorldToOverworldRemainder(Vector2 World)
         {
-            var x = 16.0f * Math.Floor(World.X / 16.0f);
-            var y = 16.0f * Math.Floor(World.Y / 16.0f);
+            var x = (float)VoxelConstants.OverworldScale * Math.Floor(World.X / (float)VoxelConstants.OverworldScale);
+            var y = (float)VoxelConstants.OverworldScale * Math.Floor(World.Y / (float)VoxelConstants.OverworldScale);
             return new Vector2((float)(World.X - x), (float)(World.Y - y));
         }
 
-        public static Vector2 WorldToOverworld(Vector3 worldXYZ, Vector2 origin)
+        public static Vector2 WorldToOverworld(Vector3 worldXYZ)
         {
-            return WorldToOverworld(new Vector2(worldXYZ.X, worldXYZ.Z), origin);
+            return WorldToOverworld(new Vector2(worldXYZ.X, worldXYZ.Z));
         }
 
-        public MaybeNull<BiomeData> GetBiomeAt(Vector3 worldPos, Vector2 origin)
+        public IEnumerable<BiomeData> EnumeratePresentBiomes()
         {
-            var v = WorldToOverworld(worldPos, origin);
-            var r = WorldToOverworldRemainder(new Vector2(worldPos.X, worldPos.Z));
+            var presentBiomes = new List<byte>();
+
+            for (var x = 0; x < Map.GetLength(0); ++x)
+                for (var z = 0; z < Map.GetLength(1); ++z)
+                    if (!presentBiomes.Contains(Map[x, z].Biome))
+                        presentBiomes.Add(Map[x, z].Biome);
+
+            foreach (var biome in presentBiomes)
+                if (Library.GetBiome(biome).HasValue(out var biomeData))
+                    yield return biomeData;
+        }
+
+        public MaybeNull<BiomeData> GetBiomeAt(Vector3 worldPos)
+        {
+            var v = WorldToOverworld(worldPos);
+            var r = WorldToOverworldRemainder(new Vector2(worldPos.X, worldPos.Z)); // Todo: This needs to be fixed - biome blend aint gonna scale right anymore.
             var blendColor = BiomeBlend.Data[BiomeBlend.Index((int)MathFunctions.Clamp(r.X, 0, VoxelConstants.ChunkSizeX), (int)MathFunctions.Clamp(r.Y, 0, VoxelConstants.ChunkSizeZ))];
             var offsetV = v + new Vector2((blendColor.R - 127.0f) / 128.0f, (blendColor.G - 127.0f) / 128.0f);
             var biome1 = Map[(int)MathFunctions.Clamp(v.X, 0, Map.GetLength(0) - 1), (int)MathFunctions.Clamp(v.Y, 0, Map.GetLength(1) - 1)].Biome;
@@ -282,15 +297,10 @@ namespace DwarfCorp
             return Library.GetBiome(Math.Max(biome1, biome2));
         }
 
-        public float GetValueAt(Vector3 worldPos, OverworldField fieldType, Vector2 origin)
+        public float GetValueAt(Vector3 worldPos, OverworldField fieldType)
         {
-            Vector2 v = WorldToOverworld(worldPos, origin);
+            Vector2 v = WorldToOverworld(worldPos);
             return OverworldImageOperations.GetValue(Map, v, fieldType);
-        }
-
-        public float GetOverworldValueAt(int OverworldX, int OverworldY, OverworldField fieldType)
-        {
-            return OverworldImageOperations.GetValue(Map, new Vector2(OverworldX, OverworldY), fieldType);
         }
 
         public float Height(int x, int y)

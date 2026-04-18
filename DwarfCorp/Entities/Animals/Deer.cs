@@ -27,7 +27,7 @@ namespace DwarfCorp
             base
             (
                 manager,
-                new CreatureStats("Deer", "Deer", 0),
+                new CreatureStats("Deer", "Deer", null),
                 manager.World.Factions.Factions["Herbivore"],
                 name
             )
@@ -70,7 +70,16 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateSprite(ContentPaths.Entities.Animals.Deer.animations, manager, 0.5f);
+            var spriteSheet = new SpriteSheet("Entities\\Animals\\Deer\\deer", 48, 40);
+            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.5f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Animals\\Deer\\deer-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
             Physics.AddChild(Shadow.Create(0.75f, manager));
 
             NoiseMaker = new NoiseMaker();

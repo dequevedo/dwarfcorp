@@ -8,8 +8,16 @@ using Newtonsoft.Json;
 
 namespace DwarfCorp
 {
-    public class MonsterSpawner
+    public class MonsterSpawner : EngineModule
     {
+        [UpdateSystemFactory]
+        private static EngineModule __factory(WorldManager World)
+        {
+            return new MonsterSpawner();
+        }
+
+        public override ModuleManager.UpdateTypes UpdatesWanted => ModuleManager.UpdateTypes.Update | ModuleManager.UpdateTypes.VoxelChange;
+
         public struct SpawnEvent
         {
             public Faction SpawnFaction;
@@ -19,36 +27,29 @@ namespace DwarfCorp
             public bool Attack;
         }
 
-        public List<Faction> SpawnFactions = new List<Faction>();
- 
-        public WorldManager World { get; set; }
         public Timer MigrationTimer = new Timer(120, false);
 
-        public MonsterSpawner(WorldManager world)
+        public MonsterSpawner()
         {
-            World = world;
-            SpawnFactions = new List<Faction>();
         }
 
-        public void Update(DwarfTime t)
+        public override void Update(DwarfTime GameTime, WorldManager World)
         {
-            MigrationTimer.Update(t);
+            MigrationTimer.Update(GameTime);
             if (MigrationTimer.HasTriggered)
-            {
-                CreateMigration();
-            }
+                CreateMigration(World);
         }
 
-        public void CreateMigration()
+        public void CreateMigration(WorldManager World)
         {
-            int tries = 0;
-            float padding = 2.0f;
+            var attempts = 0;
+            var padding = 2.0f;
 
-            while (tries < 10)
+            while (attempts < GameSettings.Current.MigrationAttempts)
             {
-                int side = MathFunctions.Random.Next(4);
-                BoundingBox bounds = World.ChunkManager.Bounds;
-                Vector3 pos = Vector3.Zero;
+                var side = MathFunctions.Random.Next(4);
+                var bounds = World.ChunkManager.Bounds;
+                var pos = Vector3.Zero;
                 switch (side)
                 {
                     case 0:
@@ -67,11 +68,11 @@ namespace DwarfCorp
 
                 pos = MathFunctions.Clamp(pos, World.ChunkManager.Bounds);
 
-                if (World.Overworld.Map.GetBiomeAt(pos, World.Overworld.InstanceSettings.Origin).HasValue(out var biome))
+                if (World.Overworld.Map.GetBiomeAt(pos).HasValue(out var biome))
                 {
                     if (biome.Fauna.Count == 0)
                     {
-                        tries++;
+                        attempts++;
                         continue;
                     }
 
@@ -80,7 +81,7 @@ namespace DwarfCorp
 
                     if (testCreature == null)
                     {
-                        tries++;
+                        attempts++;
                         continue;
                     }
 
@@ -93,7 +94,7 @@ namespace DwarfCorp
                         if (!vox.IsValid)
                         {
                             testCreature.GetRoot().Delete();
-                            tries++;
+                            attempts++;
                             continue;
                         }
 
@@ -103,7 +104,7 @@ namespace DwarfCorp
                     else
                     {
                         testCreature.GetRoot().Delete();
-                        tries++;
+                        attempts++;
                         continue;
                     }
                 }
@@ -136,7 +137,7 @@ namespace DwarfCorp
             return pos;
         }
 
-        public SpawnEvent GenerateSpawnEvent(Faction spawnFaction, Faction targetFaction, int num, bool attack=true)
+        public SpawnEvent GenerateSpawnEvent(WorldManager World, Faction spawnFaction, Faction targetFaction, int num, bool attack=true)
         {
             return new SpawnEvent()
             {
@@ -169,5 +170,67 @@ namespace DwarfCorp
 
             return toReturn;
         }
+
+        public override void VoxelChange(List<VoxelChangeEvent> Events, WorldManager World)
+        {
+            foreach (var Event in Events)
+            {
+                if (Event.Type == VoxelChangeEventType.Explored && Event.Voxel.IsEmpty)
+                {
+                    var below = VoxelHelpers.GetVoxelBelow(Event.Voxel);
+                    if (below.IsValid && !below.IsEmpty && Library.GetBiome("Cave").HasValue(out BiomeData caveBiome) && Library.GetBiome("Hell").HasValue(out BiomeData hellBiome))
+                    {
+                        var biome = (Event.Voxel.Coordinate.Y <= 10) ? hellBiome : caveBiome;
+                        if (Event.Voxel.Coordinate.Y > 5 && MathFunctions.Random.NextDouble() < 0.5f)
+                            GenerateCaveFlora(below, biome);
+                        if (Event.Voxel.Coordinate.Y > 5 && MathFunctions.Random.NextDouble() < 0.5f)
+                            GenerateCaveFauna(World, below, biome);
+                    }
+                }
+            }
+        }
+
+        private void GenerateCaveFlora(VoxelHandle CaveFloor, BiomeData Biome)
+        {
+            foreach (var floraType in Biome.Vegetation)
+            {
+                if (MathFunctions.Random.NextDouble() > floraType.SpawnProbability)
+                    continue;
+
+                //if (Settings.NoiseGenerator.Noise(CaveFloor.Coordinate.X / floraType.ClumpSize, floraType.NoiseOffset, CaveFloor.Coordinate.Z / floraType.ClumpSize) < floraType.ClumpThreshold)
+                //continue;
+
+                var plantSize = MathFunctions.Rand() * floraType.SizeVariance + floraType.MeanSize;
+                var lambdaFloraType = floraType;
+
+                var blackboard = new Blackboard();
+                blackboard.SetData("Scale", plantSize);
+
+                EntityFactory.CreateEntity<GameComponent>(
+                    lambdaFloraType.Name,
+                    CaveFloor.WorldPosition + new Vector3(0.5f, 1.0f, 0.5f),
+                    blackboard);
+
+                break; // Don't risk spawning multiple plants in the same spot.
+            }
+        }
+
+        private void GenerateCaveFauna(WorldManager World, VoxelHandle CaveFloor, BiomeData Biome)
+        {
+            var spawnLikelihood = (World.Overworld.Difficulty.CombatModifier + 0.1f);
+
+            foreach (var animalType in Biome.Fauna)
+            {
+                if (!(MathFunctions.Random.NextDouble() < animalType.SpawnProbability * spawnLikelihood))
+                    continue;
+
+                var lambdaAnimalType = animalType;
+
+                EntityFactory.CreateEntity<GameComponent>(lambdaAnimalType.Name, CaveFloor.WorldPosition + new Vector3(0.5f, 1.5f, 0.5f));
+
+                break; // Prevent spawning multiple animals in same spot.
+            }
+        }
+
     }
 }

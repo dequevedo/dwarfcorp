@@ -74,7 +74,10 @@ namespace DwarfCorp
                 {
                     minion.Blackboard.SetData("MoveTarget", above);
 
-                    var moveTask = new ActWrapperTask(new GoToNamedVoxelAct("MoveTarget", PlanAct.PlanType.Adjacent, minion));
+                    var moveTask = new ActWrapperTask(
+                        new Sequence(
+                            new GoToNamedVoxelAct("MoveTarget", PlanAct.PlanType.Adjacent, minion),
+                            new WanderAct(minion, 5.0f, 5.0f, 1.0f)));
                     moveTask.AutoRetry = false;
                     moveTask.Priority = TaskPriority.Urgent;
                     minion.ChangeTask(moveTask);
@@ -173,7 +176,7 @@ namespace DwarfCorp
 
                 if (bodyList[i].GetComponent<Creature>().HasValue(out var dwarf))
                 {
-                    sb.Append(dwarf.Stats.FullName + " (" + (dwarf.Stats.Title ?? dwarf.Stats.CurrentClass.Name) + ")");
+                    sb.Append(dwarf.Stats.FullName + " (" + (dwarf.Stats.Title ?? (dwarf.Stats.CurrentClass.HasValue(out var c) ? c.Name : "dude")) + ")");
 
                     if (dwarf.Stats.IsAsleep)
                         sb.Append(" UNCONSCIOUS ");

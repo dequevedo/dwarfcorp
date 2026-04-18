@@ -28,7 +28,7 @@ namespace DwarfCorp
             base
             (
                 manager,
-                new CreatureStats("Chimp", "Chimp", 0),
+                new CreatureStats("Chimp", "Chimp", null),
                 manager.World.Factions.Factions["Herbivore"],
                 name
             )
@@ -75,7 +75,16 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateSprite(ContentPaths.Entities.Animals.Chimp.chimp_animations, manager, 0.6f);
+            var spriteSheet = new SpriteSheet("Entities\\Animals\\Chimp\\chimp", 48, 48);
+            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.6f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Animals\\Chimp\\chimp-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+            
             Physics.AddChild(Shadow.Create(0.5f, manager));
 
             NoiseMaker = new NoiseMaker();

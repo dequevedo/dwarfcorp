@@ -20,8 +20,8 @@ namespace DwarfCorp
 #if WINDOWS || XBOX
     internal static class Program
     {
-        public static string Version = "20.06.28_FNA";
-        public static string[] CompatibleVersions = { "20.06.28_XNA", "20.06.28_FNA", "20.06.20_XNA", "20.06.20_FNA", "20.01.05_XNA", "20.01.05_FNA" };
+        public static string Version = "21.04.03_FNA";
+        public static string[] CompatibleVersions = { "21.01.26_XNA", "21.01.26_FNA", "20.12.10_XNA", "20.12.10_FNA", "21.04.03_FNA", "21.04.03_XNA" };
         public static string Commit = "UNKNOWN";
         public static char DirChar = Path.DirectorySeparatorChar;
         
@@ -142,6 +142,9 @@ namespace DwarfCorp
         public static void CaptureException(Exception exception)
         {
             Console.Error.WriteLine(exception.Message);
+#if DEBUG
+            throw exception;
+#endif
         }
 
         public static void CaptureSentryMessage(String Message)
@@ -161,4 +164,4 @@ namespace DwarfCorp
         }
     }
 #endif
-}
+        }

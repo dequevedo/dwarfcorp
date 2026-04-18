@@ -15,7 +15,7 @@ namespace DwarfCorp
         private static GameComponent __factory(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
             return new Moleman(
-                new CreatureStats("Moleman", "Moleman", 0),
+                new CreatureStats("Moleman", "Moleman", null),
                 Manager.World.Factions.Factions["Molemen"],
                 Manager,
                 "Moleman",
@@ -26,7 +26,7 @@ namespace DwarfCorp
         private static GameComponent __factory0(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
             return new Moleman(
-                new CreatureStats("Moleman", "Moleman", 0),
+                new CreatureStats("Moleman", "Moleman", null),
                 Manager.World.PlayerFaction,
                 Manager,
                 "Moleman",
@@ -70,7 +70,17 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateSprite(ContentPaths.Entities.Moleman.moleman_animations, manager, 0.15f);
+            var spriteSheet = new SpriteSheet("Entities\\Moleman\\moleman", 40, 40);
+            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.15f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Moleman\\moleman-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
+
             Physics.AddChild(Shadow.Create(0.75f, manager));
             Physics.AddChild(new MinimapIcon(Manager, new NamedImageFrame(ContentPaths.GUI.map_icons, 16, 0, 1))).SetFlag(Flag.ShouldSerialize, false);
 

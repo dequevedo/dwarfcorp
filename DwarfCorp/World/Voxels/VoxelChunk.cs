@@ -15,6 +15,7 @@ namespace DwarfCorp
 
         private GeometricPrimitive Primitive = null;
         public int RenderCycleWhenLastVisible = 0;
+        public int RenderCycleWhenLastLoaded = 0;
         public bool Visible = false;
         public Mutex PrimitiveMutex { get; set; }
 
@@ -24,8 +25,8 @@ namespace DwarfCorp
                 
         public List<DynamicLight> DynamicLights { get; set; }
 
-        public HashSet<GameComponent> Components = new HashSet<GameComponent>();
         public HashSet<GameComponent> RootEntities = new HashSet<GameComponent>();
+        public HashSet<GameComponent> EntityAnchors = new HashSet<GameComponent>();
 
 
         public void InvalidateSlice(int LocalY)
@@ -35,6 +36,15 @@ namespace DwarfCorp
             lock (Data.SliceCache)
             {
                 Data.SliceCache[LocalY] = null;
+                Manager.InvalidateChunk(this);
+            }
+        }
+
+        public void InvalidateAllSlices()
+        {
+            lock (Data.SliceCache)
+            {
+                Data.SliceCache = new RawPrimitive[VoxelConstants.ChunkSizeY];
                 Manager.InvalidateChunk(this);
             }
         }

@@ -58,7 +58,7 @@ namespace DwarfCorp.GameStates
 
                 // Ensure game is not paused.
                 World.Paused = false;
-                DwarfTime.LastTime.Speed = 1.0f;
+                DwarfTime.LastTimeX.Speed = 1.0f;
 
                 // Setup new gui. Double rendering the mouse?
                 Gui = new Gui.Root(DwarfGame.GuiSkin);
@@ -118,7 +118,7 @@ namespace DwarfCorp.GameStates
             GameStateManager.ClearState();
             Destroy();
 
-            GameStateManager.PushState(new WorldGeneratorState(Game, World.Overworld, WorldGeneratorState.PanelStates.Launch));
+            GameStateManager.PushState(new WorldGeneratorState(Game, World.Overworld, WorldGeneratorState.WorldType.SavedWorld));
         }
 
         public void AutoSave(Action<bool> callback = null)

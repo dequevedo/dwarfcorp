@@ -45,7 +45,7 @@ namespace DwarfCorp
                 new Point(2, 1)
             };
 
-            var lampAnimation = Library.CreateAnimation(spriteSheet, frames, "LampAnimation");
+            var lampAnimation = Library.CreateAnimation(frames, "LampAnimation");
             lampAnimation.Loops = true;
  
             var sprite = AddChild(new AnimatedSprite(Manager, "sprite", Matrix.Identity)
@@ -55,11 +55,12 @@ namespace DwarfCorp
             }) as AnimatedSprite;
 
             sprite.AddAnimation(lampAnimation);
+            sprite.SpriteSheet = spriteSheet;
             sprite.AnimPlayer.Play(lampAnimation);
             sprite.SetFlag(Flag.ShouldSerialize, false);
 
             // This is a hack to make the animation update at least once even when the object is created inactive by the craftbuilder.
-            sprite.AnimPlayer.Update(new DwarfTime(), false);
+            sprite.AnimPlayer.Update(new DwarfTime());
         }
 
         private void CreateSpriteWall(Vector3 diff)

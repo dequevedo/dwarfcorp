@@ -16,7 +16,7 @@ namespace DwarfCorp
         private static GameComponent __factory1(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
             return new SnowGolem(
-                new CreatureStats("SnowGolem", "SnowGolem", 0),
+                new CreatureStats("SnowGolem", "SnowGolem", null),
                 Manager.World.Factions.Factions["Evil"],
                 Manager,
                 "Snow Golem",
@@ -64,7 +64,16 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateSprite(ContentPaths.Entities.Golems.snow_golem, manager, 0.15f);
+            var spriteSheet = new SpriteSheet("Entities\\Golems\\snowgolem", 80, 64);
+            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.15f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Golems\\golem-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
             Physics.AddChild(new MinimapIcon(Manager, new NamedImageFrame(ContentPaths.GUI.map_icons, 16, 3, 3))).SetFlag(Flag.ShouldSerialize, false);
 
             NoiseMaker = new NoiseMaker();

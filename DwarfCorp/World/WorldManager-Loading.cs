@@ -114,7 +114,7 @@ namespace DwarfCorp
             Renderer.Sky.TimeOfDay = gameFile.Metadata.TimeOfDay;
             Renderer.PersistentSettings = gameFile.Metadata.RendererSettings;
             Time = gameFile.Metadata.Time;
-            WorldSizeInChunks = new Point3(Overworld.InstanceSettings.Cell.Bounds.Width, Overworld.zLevels, Overworld.InstanceSettings.Cell.Bounds.Height);
+            WorldSizeInChunks = Overworld.WorldSizeInChunks;
 
             #endregion
 
@@ -125,6 +125,7 @@ namespace DwarfCorp
             Game.DoLazyAction(new Action(() =>
             {
                 Renderer.InstanceRenderer = new InstanceRenderer();
+                Renderer.DwarfInstanceRenderer = new DwarfSprites.DwarfInstanceGroup();
 
                 Renderer.bloom = new BloomComponent(Game)
                 {
@@ -136,7 +137,6 @@ namespace DwarfCorp
                 if (PlanService != null)
                     PlanService.Restart();
 
-                MonsterSpawner = new MonsterSpawner(this);
                 EntityFactory.Initialize(this);
             }), () => { actionComplete = true; return true; });
 
@@ -159,10 +159,7 @@ namespace DwarfCorp
 
             #region Load Components
 
-            // Create updateable systems.
-            foreach (var updateSystemFactory in AssetManager.EnumerateModHooks(typeof(UpdateSystemFactoryAttribute), typeof(EngineModule), new Type[] { typeof(WorldManager) }))
-                UpdateSystems.Add(updateSystemFactory.Invoke(null, new Object[] { this }) as EngineModule);
-
+            ModuleManager = new ModuleManager(this);
             ChunkManager = new ChunkManager(Content, this);
             Splasher = new Splasher(ChunkManager);
 
@@ -261,9 +258,13 @@ namespace DwarfCorp
 
             bool actionComplete = false;
 
+            SetLoadingMessage("Creating render artifacts...");
+
+            // Create rendering related items on main thread.
             Game.DoLazyAction(new Action(() =>
             {
                 Renderer.InstanceRenderer = new InstanceRenderer();
+                Renderer.DwarfInstanceRenderer = new DwarfSprites.DwarfInstanceGroup();
 
                 Renderer.bloom = new BloomComponent(Game)
                 {
@@ -275,7 +276,6 @@ namespace DwarfCorp
                 if (PlanService != null)
                     PlanService.Restart();
 
-                MonsterSpawner = new MonsterSpawner(this);
                 EntityFactory.Initialize(this);
             }), () => { actionComplete = true; return true; });
 
@@ -301,9 +301,9 @@ namespace DwarfCorp
 
             #region Load Components
 
-            // Create updateable systems.
-            foreach (var updateSystemFactory in AssetManager.EnumerateModHooks(typeof(UpdateSystemFactoryAttribute), typeof(EngineModule), new Type[] { typeof(WorldManager) }))
-                UpdateSystems.Add(updateSystemFactory.Invoke(null, new Object[] { this }) as EngineModule);
+            SetLoadingMessage("Initializing engine modules...");
+
+            ModuleManager = new ModuleManager(this);
 
             Time = new WorldTime();
 
@@ -336,8 +336,6 @@ namespace DwarfCorp
             foreach (var faction in Overworld.Natives)
                 Factions.AddFaction(new Faction(this, faction));
 
-            Point playerOrigin = new Point((int)(Overworld.InstanceSettings.Origin.X), (int)(Overworld.InstanceSettings.Origin.Y));
-
             PlayerFaction = Factions.Factions["Player"];
             PlayerFaction.Economy = new Company(PlayerFaction, 300.0m, Overworld.Company);
 
@@ -359,10 +357,10 @@ namespace DwarfCorp
 
             #endregion
 
-            SetLoadingMessage("Creating Particles ...");
+            SetLoadingMessage("Creating Particles...");
             ParticleManager = new ParticleManager(ComponentManager);
 
-            SetLoadingMessage("Creating GameMaster ...");
+            SetLoadingMessage("Initializing Task Manager...");
 
             TaskManager = new TaskManager();
             TaskManager.World = this;
@@ -377,8 +375,16 @@ namespace DwarfCorp
             };
 
             SetLoadingMessage("Generating Chunks...");
-            Generation.Generator.Generate(Overworld.InstanceSettings.Cell.Bounds, ChunkManager, this, generatorSettings, SetLoadingMessage);
-            CreateInitialEmbarkment(generatorSettings);
+            if (Overworld.DebugWorld)
+            {
+                Generation.Generator.GenerateDebug(ChunkManager, this, generatorSettings, SetLoadingMessage);
+                PlayerFaction.Economy.Funds = Overworld.PlayerCorporationFunds;
+            }
+            else
+            {
+                Generation.Generator.Generate(ChunkManager, this, generatorSettings, SetLoadingMessage);
+                CreateInitialEmbarkment(generatorSettings);
+            }
             ChunkManager.NeedsMinimapUpdate = true;
             ChunkManager.RecalculateBounds();
 

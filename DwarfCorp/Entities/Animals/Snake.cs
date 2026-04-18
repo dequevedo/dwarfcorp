@@ -35,7 +35,7 @@ namespace DwarfCorp
             base
             (
                 manager,
-                new CreatureStats("Snake", "Snake", 0)
+                new CreatureStats("Snake", "Snake", null)
                 {
                 },
                 manager.World.Factions.Factions["Evil"],
@@ -70,24 +70,33 @@ namespace DwarfCorp
             AI.Movement.SetCan(MoveType.ClimbWalls, true);
             AI.Movement.SetCan(MoveType.Dig, true);
             AI.Stats.FullName = "Giant Snake";
-            AI.Stats.LevelIndex = 0;
 
             Physics.AddChild(new Flammable(Manager, "Flames"));
         }
 
         public override void CreateCosmeticChildren(ComponentManager Manager)
         {
-            CreateSprite(ContentPaths.Entities.Animals.Snake.snake_animation, Manager, 0.35f);
+            var spriteSheet = new SpriteSheet("Entities\\Animals\\Snake\\snake", 40, 48);
+            var sprite = new CharacterSprite(Manager, "Sprite", Matrix.CreateTranslation(0, 0.35f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Animals\\Snake\\snake-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
 
             #region Create Tail Pieces
 
             Tail = new List<TailSegment>();
-            var tailAnimations = Library.LoadCompositeAnimationSet(ContentPaths.Entities.Animals.Snake.tail_animation, "Snake");
+            var tailAnimations = Library.LoadNewLayeredAnimationFormat("Entities\\Animals\\Snake\\tail-animations.json");
 
             for (int i = 0; i < 10; ++i)
             {
                 var tailPiece = new CharacterSprite(Manager, "Sprite", Matrix.CreateTranslation(0, 0.25f, 0));
                 tailPiece.SetAnimations(tailAnimations);
+                tailPiece.SpriteSheet = spriteSheet;
 
                 tailPiece.SetFlag(Flag.ShouldSerialize, false);
                 tailPiece.Name = "Snake Tail";
@@ -105,8 +114,11 @@ namespace DwarfCorp
                 var inventory = tailPiece.AddChild(new Inventory(Manager, "Inventory", Physics.BoundingBox.Extents(), Physics.LocalBoundingBoxOffset)) as Inventory;
                 inventory.SetFlag(Flag.ShouldSerialize, false);
 
-                inventory.AddResource(new Resource("Meat") { DisplayName = Stats.CurrentClass.Name + " Meat" });
-                inventory.AddResource(new Resource("Bone") { DisplayName = Stats.CurrentClass.Name + " Bone" });
+                if (Stats.CurrentClass.HasValue(out var c))
+                {
+                    inventory.AddResource(new Resource("Meat") { DisplayName = c.Name + " Meat" });
+                    inventory.AddResource(new Resource("Bone") { DisplayName = c.Name + " Bone" });
+                }
             }
 
             #endregion

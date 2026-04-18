@@ -15,7 +15,7 @@ namespace DwarfCorp
         private static GameComponent __factory(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
             return new Goblin(
-                new CreatureStats("Goblin", "Goblin", 0),
+                new CreatureStats("Goblin", "Goblin", null),
                 Manager.World.Factions.Factions["Goblins"],
                 Manager,
                 "Goblin",
@@ -26,7 +26,7 @@ namespace DwarfCorp
         private static GameComponent __factory0(ComponentManager Manager, Vector3 Position, Blackboard Data)
         {
             return new Goblin(
-                new CreatureStats("Goblin", "Goblin", 0),
+                new CreatureStats("Goblin", "Goblin", null),
                 Manager.World.PlayerFaction,
                 Manager,
                 "Goblin",
@@ -70,7 +70,16 @@ namespace DwarfCorp
 
         public override void CreateCosmeticChildren(ComponentManager manager)
         {
-            CreateSprite(ContentPaths.Entities.Goblin.Sprites.goblin_animations, manager, 0.15f);
+            var spriteSheet = new SpriteSheet("Entities\\Goblin\\goblin", 64, 40);
+            var sprite = new CharacterSprite(manager, "Sprite", Matrix.CreateTranslation(0, 0.15f, 0));
+            sprite.SpriteSheet = spriteSheet;
+
+            var anims = Library.LoadNewLayeredAnimationFormat("Entities\\Goblin\\goblin-animations.json");
+            sprite.SetAnimations(anims);
+
+            Physics.AddChild(sprite);
+            sprite.SetFlag(Flag.ShouldSerialize, false);
+
             Physics.AddChild(Shadow.Create(0.75f, manager));
             Physics.AddChild(new MinimapIcon(Manager, new NamedImageFrame(ContentPaths.GUI.map_icons, 16, 3, 0))).SetFlag(Flag.ShouldSerialize, false);
 
