@@ -49,9 +49,11 @@ namespace DwarfCorp
             if (_sharedTextureCache.TryGetValue(key, out var cached) && cached != null && !cached.IsDisposed)
                 return cached;
 
-            // `new Texture2D` and SetData are GPU calls — they must serialize against the
-            // render thread on FNA 26 Vulkan. Called from ResourceEntity.CreateCosmeticChildren
-            // which can run on worker / AI / deserialization threads.
+            // `new Texture2D` + SetData from a background thread. Must serialize against the
+            // render thread. See DwarfGame.GpuLock XML-doc: originally for FNA 26 Vulkan,
+            // still needed post-MonoGame migration because DX11 ID3D11DeviceContext is
+            // not thread-safe. Called from ResourceEntity.CreateCosmeticChildren which can
+            // run on worker / AI / deserialization threads.
             Texture2D freshly;
             lock (DwarfGame.GpuLock)
             {

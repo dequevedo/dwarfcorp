@@ -24,7 +24,7 @@ Mínimo pra o jogo compilar e rodar em MonoGame. **Sem otimização** nesta fase
 - ✅ **M.1** — Swap FNA submodule → `MonoGame.Framework.WindowsDX 3.8.4.1` (commit `8c2d1b939`)
 - ✅ **M.2** — Content pipeline migrado: platform Windows, EffectProcessor default, profiles SM4, specialization removida (commits `35ce163ee`, `57cc80257`)
 - ✅ **M.3** — API compat: SDL2/TextInputEXT/OnExiting/GetVertexBuffers substituídos (commit `7629f3fdd`)
-- ⬜ **M.4** — Revalidar/remover `GpuLock` (provavelmente morto em DX11)
+- ✅ **M.4** — Revalidado: lock **mantido**. Motivação original (FNA/Vulkan VkCommandPool) sumiu, mas DX11 `ID3D11DeviceContext` também não é thread-safe, e `SetData` vai por ele. XML-doc reescrito com a nova razão. Remoção definitiva = quando Fase B.1 canalizar escritas GPU por queue single-thread (TODO item 29).
 - ⬜ **M.5** — Baseline `baseline_v5_monogame.csv`
 - ⚠️ **Follow-up** — main menu visual não aparece (jogo chega no PlayState); debug pós-L.1 com ImGui.
 

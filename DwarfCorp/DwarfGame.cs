@@ -25,14 +25,29 @@ namespace DwarfCorp
         /// <summary>
         /// Global lock serializing any code that touches the GraphicsDevice or allocates/updates
         /// GPU resources (Texture2D, VertexBuffer, IndexBuffer, RenderTarget2D, SetData calls).
-        /// Required on FNA 26 Vulkan backend because VkCommandPool is not thread-safe and FNA 26
-        /// does not auto-marshal calls to the main thread like FNA 19 OpenGL did. Without this,
-        /// RebuildVoxelsThread racing against the main render thread corrupts the Vulkan command
-        /// pool on AMD drivers and crashes with STATUS_HEAP_CORRUPTION.
         ///
-        /// Take-hold pattern: wrap every `new Texture2D/VertexBuffer/IndexBuffer/RenderTarget2D`
-        /// plus any `SetData` coming from a non-render-loop context. Main render frame takes
-        /// the lock once per Draw() and holds it for ~5-15ms.
+        /// ORIGINAL REASON (FNA 26 Vulkan, pre-M.1): VkCommandPool is not thread-safe and FNA 26
+        /// didn't auto-marshal calls to the main thread like FNA 19's OpenGL backend did. Without
+        /// this lock, RebuildVoxelsThread raced vkCmdBindVertexBuffers on the render thread and
+        /// corrupted the heap on AMD drivers (STATUS_HEAP_CORRUPTION).
+        ///
+        /// CURRENT REASON (MonoGame 3.8 DX11, post-M.1): the specific Vulkan failure mode is gone,
+        /// but `ID3D11DeviceContext` (the immediate context MonoGame dispatches through) is still
+        /// not thread-safe per Microsoft's contract. Resource creation (`new Texture2D`, `new
+        /// VertexBuffer`) is thread-safe on `ID3D11Device`, but `SetData` routes through the
+        /// context and racing it with the render thread is undefined behaviour — silent
+        /// corruption in the best case, a hard crash in the worst. Keeping the lock costs ~50 ns
+        /// when uncontended (the common path, since the main thread holds it for the whole
+        /// Draw()) and is cheap insurance against the exact class of bug that bit us on Vulkan.
+        ///
+        /// Take-hold pattern (unchanged): wrap every `new Texture2D/VertexBuffer/IndexBuffer/
+        /// RenderTarget2D` plus any `SetData` coming from a non-render-loop context. The main
+        /// render frame takes the lock once per Draw() and holds it for the frame.
+        ///
+        /// WHEN TO RETIRE: Fase B.1 refactor (split mesh-gen from GPU upload — workers generate
+        /// mesh data on CPU, a single thread consumes a queue and does all GPU writes). After
+        /// that lands, every `new XxxBuffer` and `SetData` sits on the main thread again, and
+        /// this lock becomes dead code. Tracked as TODO_LIST item 29.
         /// </summary>
         public static readonly object GpuLock = new object();
 
