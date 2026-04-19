@@ -30,7 +30,7 @@ Mínimo pra o jogo compilar e rodar em MonoGame. **Sem otimização** nesta fase
 
 ### Fase L — Adoção do stack moderno (bases antes das reimplementações)
 Traz as libs novas antes de reescrever subsistemas. Elas são os blocos de construção das Fases B/C/D.
-- ⬜ **L.5** — Novo projeto `DwarfCorp.Tests/` com xUnit v3 + BenchmarkDotNet (sem testes é impossível reescrever com confiança)
+- 🚧 **L.5** — Projeto `DwarfCorp.Tests/` criado com xUnit v3 (10 testes passando: Perlin/DwarfBux/FileUtils JSON roundtrip). BenchmarkDotNet adicionado quando houver perf work concreto.
 - ⬜ **L.2** — ZLogger + Microsoft.Extensions.DependencyInjection + Hosting
 - ⬜ **L.1** — ImGui.NET (ImGuiRenderer + primeiro debug panel)
 - ⬜ **L.3** — MessagePipe pub/sub
