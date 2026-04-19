@@ -23,7 +23,7 @@ namespace DwarfCorp.GameStates
             Logo = AssetManager.GetContentTexture(ContentPaths.Logos.companylogo);
             IntroTimer.Reset(3);
 
-            LoadThread = new Thread(LibraryLoadThread);
+            LoadThread = new Thread(LibraryLoadThread) { IsBackground = true, Name = "LibraryLoad" };
             LoadThread.Start();
             base.OnEnter();
         }

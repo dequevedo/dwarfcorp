@@ -350,10 +350,21 @@ namespace DwarfCorp
             if (GameStateManager.StateStackIsEmpty)
             {
                 LogSentryBreadcrumb("GameState", "There was nothing in the state stack. Starting over.");
-                //if (GameSettings.Current.DisplayIntro)
+
+                // DWARFCORP_QUICKPLAY=1 bypasses the intro + main menu, drops straight into a
+                // generated world. Used by run-quick.ps1 so I can smoke-test the PlayState
+                // path end-to-end without manual clicks. Skips ChangeLogState by marking the
+                // current version as already-displayed.
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DWARFCORP_QUICKPLAY")))
+                {
+                    CrashBreadcrumbs.Push("DWARFCORP_QUICKPLAY set — bypassing IntroState");
+                    GameSettings.Current.LastVersionChangesDisplayed = Program.Version;
+                    GameStateManager.PushState(new GameStates.QuickPlayLauncherState(this));
+                }
+                else
+                {
                     GameStateManager.PushState(new IntroState(this));
-                //else
-                //    GameStateManager.PushState(new MainMenuState(this));
+                }
             }
 
             ControlSettings.Load();

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace DwarfCorp
 {
@@ -25,14 +26,18 @@ namespace DwarfCorp
     /// </summary>
     public static class CrashBreadcrumbs
     {
-        private const int Capacity = 50;
+        // 500 entries leaves enough room for a FirstChanceException storm without losing the
+        // breadcrumbs that led up to a crash. Linked-list truncation is O(1) so size doesn't cost.
+        private const int Capacity = 500;
         private static readonly LinkedList<string> Entries = new LinkedList<string>();
         private static readonly object Lock = new object();
 
         public static void Push(string message)
         {
             if (string.IsNullOrEmpty(message)) return;
-            var line = string.Format("[{0:HH:mm:ss.fff}] {1}", DateTime.Now, message);
+            var t = Thread.CurrentThread;
+            var tid = string.IsNullOrEmpty(t.Name) ? t.ManagedThreadId.ToString() : t.Name;
+            var line = string.Format("[{0:HH:mm:ss.fff}] [T:{1}] {2}", DateTime.Now, tid, message);
             lock (Lock)
             {
                 Entries.AddLast(line);

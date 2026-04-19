@@ -81,6 +81,7 @@ namespace DwarfCorp.GameStates
         {
             lock (_mutex)
             {
+                DwarfGame.LogSentryBreadcrumb("GameState", "Pushing state " + state.GetType().FullName);
                 NextState = state;
                 NextState.OnEnter();
                 StateStack.Insert(0, NextState);

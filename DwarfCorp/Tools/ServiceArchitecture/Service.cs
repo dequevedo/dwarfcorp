@@ -106,12 +106,33 @@ namespace DwarfCorp
 
             while (!DwarfGame.ExitGame && !ExitThreads)
             {
-                EventWaitHandle wh = Datastructures.WaitFor(waitHandles);
+                EventWaitHandle wh;
+                try
+                {
+                    wh = Datastructures.WaitFor(waitHandles);
+                }
+                catch (Exception e)
+                {
+                    CrashBreadcrumbs.Push("Service[" + ServiceName + "] WaitFor threw: " + e.GetType().Name + " — " + e.Message);
+                    Console.Error.WriteLine("[Service:" + ServiceName + "] " + e);
+                    continue;
+                }
 
                 if (wh == Program.ShutdownEvent)
                     break;
 
-                Update();
+                // Previously Update() had no guard — any request handler exception would crash
+                // the worker thread silently and stall the whole service. Catch + log + continue
+                // so other requests keep flowing.
+                try
+                {
+                    Update();
+                }
+                catch (Exception e)
+                {
+                    CrashBreadcrumbs.Push("Service[" + ServiceName + "] Update threw: " + e.GetType().Name + " — " + e.Message);
+                    Console.Error.WriteLine("[Service:" + ServiceName + "] Update: " + e);
+                }
             }
         }
 

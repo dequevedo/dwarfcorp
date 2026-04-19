@@ -28,12 +28,20 @@ namespace DwarfCorp
 
         private LinkedList<Run> RecentRuns = new LinkedList<Run>();
 
+        public string ThreadName { get; set; } = "AutoScaleWorker";
+
         public AutoScaleThread(ChunkManager Manager, Action<float> Worker)
         {
             this.Manager = Manager;
             this.Worker = Worker;
 
             Thread = new Thread(MainLoop) { IsBackground = true };
+        }
+
+        public AutoScaleThread(ChunkManager Manager, Action<float> Worker, string ThreadName) : this(Manager, Worker)
+        {
+            this.ThreadName = ThreadName;
+            this.Thread.Name = ThreadName;
         }
 
         public void Start()

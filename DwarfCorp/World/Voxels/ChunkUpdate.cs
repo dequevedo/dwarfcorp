@@ -35,7 +35,11 @@ namespace DwarfCorp
             }
             catch (Exception e)
             {
-
+                // Was silently swallowed — caused invisible failures in voxel update path.
+                // Log to breadcrumbs + stderr so the exception shows up during triage.
+                CrashBreadcrumbs.Push("ChunkUpdate.InvokeVoxelUpdateHook('" + Hook + "') threw: "
+                    + e.GetType().Name + " — " + (e.Message ?? "<no msg>"));
+                Console.Error.WriteLine("[ChunkUpdate] " + Hook + " hook threw: " + e);
             }
         }
 

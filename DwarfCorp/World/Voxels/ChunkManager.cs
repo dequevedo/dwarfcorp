@@ -121,7 +121,7 @@ namespace DwarfCorp
             RebuildThread = new Thread(RebuildVoxelsThread) { IsBackground = true };
             RebuildThread.Name = "RebuildVoxels";
 
-            WaterUpdateThread = new AutoScaleThread(this, (f) => Water.UpdateWater());
+            WaterUpdateThread = new AutoScaleThread(this, (f) => Water.UpdateWater(), "WaterUpdate");
             this.ChunkUpdateThread = new Thread(UpdateChunksThread) { IsBackground = true, Name = "Update Chunks" };
 
             GameSettings.Current.VisibilityUpdateTime = 0.05f;

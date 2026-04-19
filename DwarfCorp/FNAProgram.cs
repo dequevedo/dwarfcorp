@@ -76,6 +76,35 @@ namespace DwarfCorp
                 }
                 catch { /* swallow */ }
             };
+
+            // Every single exception throw — even those caught and swallowed — gets a breadcrumb.
+            // Crucial for debugging crashes whose real cause is a silently-handled exception
+            // several stack frames away from the eventual native AV. ThreadAbortException and
+            // OperationCanceledException are intentionally ignored (too noisy, usually benign).
+            AppDomain.CurrentDomain.FirstChanceException += (s, e) =>
+            {
+                if (e.Exception is System.Threading.ThreadAbortException) return;
+                if (e.Exception is System.OperationCanceledException) return;
+                try
+                {
+                    var msg = e.Exception.Message ?? "<no msg>";
+                    var newlineIdx = msg.IndexOf('\n');
+                    if (newlineIdx > 0) msg = msg.Substring(0, newlineIdx);
+                    CrashBreadcrumbs.Push("FirstChance: " + e.Exception.GetType().Name + ": " + msg);
+                }
+                catch { /* never throw from an exception handler */ }
+            };
+
+            // Periodic flush of the breadcrumb ring buffer, so a native-fatal crash that skips
+            // the managed ProcessExit handler still leaves recent history on disk. Writes to a
+            // separate "breadcrumbs_current.txt" so as not to clobber breadcrumbs_last.txt.
+            var breadcrumbFlushPath = DwarfGame.GetGameDirectory() + Path.DirectorySeparatorChar
+                + "Logging" + Path.DirectorySeparatorChar + "breadcrumbs_current.txt";
+            _breadcrumbFlushTimer = new System.Threading.Timer(_ =>
+            {
+                try { CrashBreadcrumbs.Flush(breadcrumbFlushPath); } catch { }
+            }, null, 5000, 5000);
+
             CrashBreadcrumbs.Push("Main start — v" + Version + " commit " + Commit);
 #if CREATE_CRASH_LOGS
             try
@@ -210,6 +239,9 @@ namespace DwarfCorp
         }
 
         public static ManualResetEvent ShutdownEvent = new ManualResetEvent(false);
+
+        // Held here (not locally in Main) so the Timer isn't GC'd while Main is still running.
+        private static System.Threading.Timer _breadcrumbFlushTimer;
 
         public static void SignalShutdown()
         {
