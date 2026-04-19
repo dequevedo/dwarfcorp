@@ -29,8 +29,26 @@ namespace DwarfCorp
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
+        /// <summary>Remembered once at launch, before Main chdirs to the exe directory.
+        /// Used to resolve relative paths passed via env vars (e.g. DWARFCORP_PERF_EXPORT)
+        /// against the directory the user actually ran `dotnet run` / the script from,
+        /// which is almost always what they meant. Assigned as the first line of Main
+        /// to guarantee it runs before SetCurrentDirectory — a static field initializer
+        /// under C#'s beforefieldinit semantics can be deferred until the field is first
+        /// read, which would be too late.</summary>
+        private static string _launchWorkingDirectory;
+
         private static void Main(string[] args)
         {
+            _launchWorkingDirectory = Environment.CurrentDirectory;
+
+            // If we're going to dump a CSV on shutdown, the profiler needs to actually be
+            // capturing during the session. Use the sticky ForceFrameCapture flag —
+            // ProfilerPanel clobbers EnableFrameCapture on every F11 frame tick. Opt-in
+            // via env var so prod runs stay zero-cost.
+            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DWARFCORP_PERF_EXPORT")))
+                PerformanceMonitor.ForceFrameCapture = true;
+
             try
             {
                 var cwd = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
@@ -259,6 +277,32 @@ namespace DwarfCorp
         {
             DwarfGame.ExitGame = true;
             ShutdownEvent.Set();
+
+            // M.5 perf-benchmark hook. When DWARFCORP_PERF_EXPORT=<path> is set in the env,
+            // dump the full profiler history to that path on shutdown. Keeps baseline capture
+            // scriptable: `set DWARFCORP_PERF_EXPORT=docs\baselines\mycapture.csv` before
+            // launching, play a measured session, quit, and the CSV is waiting. Silent no-op
+            // when the var isn't set — production runs pay nothing.
+            TryExportProfilerCsv();
+        }
+
+        private static void TryExportProfilerCsv()
+        {
+            var path = Environment.GetEnvironmentVariable("DWARFCORP_PERF_EXPORT");
+            if (string.IsNullOrWhiteSpace(path)) return;
+            // Resolve relative paths against the ORIGINAL launch cwd, not the bin\FNA\Debug
+            // directory Main chdirs to. This is what `dotnet run` callers expect.
+            if (!Path.IsPathRooted(path))
+                path = Path.Combine(_launchWorkingDirectory, path);
+            try
+            {
+                PerformanceMonitor.ExportCsv(path);
+                Console.Out.WriteLine("[PERF] Exported profiler history -> " + path);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("[PERF] Export to '" + path + "' failed: " + e.Message);
+            }
         }
 
         // This is a very dangerous hack which forces DwarfCorp to accept all SSL certificates. This is to enable crash reporting on mac/linux.

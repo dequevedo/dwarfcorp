@@ -92,9 +92,16 @@ namespace DwarfCorp
         /// </summary>
         public static bool EnableFrameCapture = false;
 
+        /// <summary>Independent sticky flag for batch-mode capture. The ProfilerPanel
+        /// rewrites <see cref="EnableFrameCapture"/> every frame from its own Hidden
+        /// state, which would otherwise clobber a programmatic "keep capturing"
+        /// request. Set this once at launch (e.g. via DWARFCORP_PERF_EXPORT env var)
+        /// and nothing else touches it.</summary>
+        public static bool ForceFrameCapture = false;
+
         private static bool ShouldCaptureFrames()
         {
-            return DwarfGame.IsConsoleVisible || EnableFrameCapture;
+            return DwarfGame.IsConsoleVisible || EnableFrameCapture || ForceFrameCapture;
         }
 
         public static void BeginFrame()
