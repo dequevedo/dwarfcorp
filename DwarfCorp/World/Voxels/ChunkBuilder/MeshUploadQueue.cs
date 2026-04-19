@@ -37,11 +37,10 @@ namespace DwarfCorp.Voxels
         public static long TotalDrained => Interlocked.Read(ref _totalDrained);
 
         /// <summary>
-        /// Called from a background mesh-gen thread. The <paramref name="fresh"/>
-        /// primitive must hold only its CPU-side Vertices/Indexes arrays at this
-        /// point — it will get its GPU buffers allocated lazily on the first
-        /// <see cref="GeometricPrimitive.Render"/> after the main thread swaps
-        /// it in.
+        /// Enqueue a fresh primitive to be swapped in on the render thread.
+        /// <paramref name="fresh"/> must hold only its CPU-side Vertices/Indexes
+        /// arrays — its GPU buffers get allocated lazily on the first
+        /// <see cref="GeometricPrimitive.Render"/> after the swap.
         /// </summary>
         public static void Enqueue(VoxelChunk chunk, GeometricPrimitive fresh)
         {
@@ -51,8 +50,21 @@ namespace DwarfCorp.Voxels
         }
 
         /// <summary>
-        /// Drain up to <paramref name="maxItems"/> pending swaps. Call from the
-        /// render thread at the top of the frame. Returns the number of swaps
+        /// Enqueue a DISCARD for <paramref name="chunk"/>. The render thread will
+        /// call <see cref="VoxelChunk.DiscardPrimitive"/> — disposing the existing
+        /// GPU buffers there, not on the bg thread, stays on the contract
+        /// "only the render thread ever disposes GPU resources".
+        /// </summary>
+        public static void EnqueueDiscard(VoxelChunk chunk)
+        {
+            if (chunk == null) return;
+            _pending.Enqueue((chunk, null));
+            Interlocked.Increment(ref _totalEnqueued);
+        }
+
+        /// <summary>
+        /// Drain up to <paramref name="maxItems"/> pending swaps/discards. Call
+        /// from the render thread at the top of the frame. Returns the count
         /// actually performed so callers can feed a profiler counter.
         /// </summary>
         public static int DrainUpToBudget(int maxItems)
@@ -60,7 +72,10 @@ namespace DwarfCorp.Voxels
             int drained = 0;
             while (drained < maxItems && _pending.TryDequeue(out var item))
             {
-                item.Chunk.ApplyFreshPrimitive(item.Fresh);
+                if (item.Fresh != null)
+                    item.Chunk.ApplyFreshPrimitive(item.Fresh);
+                else
+                    item.Chunk.DiscardPrimitive();
                 drained++;
             }
             if (drained > 0) Interlocked.Add(ref _totalDrained, drained);

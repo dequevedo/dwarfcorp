@@ -168,40 +168,55 @@ namespace DwarfCorp
                         continue;
                     }
 
-                    // Reverted parallel chunk rebuild — was causing heap corruption (STATUS_HEAP_CORRUPTION
-                    // 0xC0000374) when entering PlayState. chunk.Rebuild() allocates native
-                    // vertex/index buffers via FNA3D and disposes the previous Primitive under
-                    // PrimitiveMutex — running N of these in parallel produced native-side races
-                    // under the AMD Vulkan driver. Back to serial; revisit when we have a proper
-                    // CPU-side mesh-gen phase that doesn't touch the GraphicsDevice.
-                    VoxelChunk chunk = null;
-
+                    // Fase B.1 (parallelize): drain all invalidated + visible chunks into a
+                    // batch, then Parallel.ForEach over them. After the B.1 split every
+                    // worker does pure CPU mesh-gen + a lock-free Enqueue — zero GPU writes
+                    // on this thread. The render thread picks up the swaps via
+                    // MeshUploadQueue.DrainUpToBudget at the top of its frame.
+                    //
+                    // Bookkeeping (liveChunks add + MaxLiveChunks eviction) still runs
+                    // serially on this thread after the parallel phase. Evictions also go
+                    // through MeshUploadQueue (EnqueueDiscard) so GPU dispose stays on
+                    // the render thread — same contract as rebuilds.
+                    PerformanceMonitor.PushFrame("ChunkMeshGenBatch");
+                    var batch = new List<VoxelChunk>();
+                    VoxelChunk popped;
                     do
                     {
-                        chunk = PopInvalidChunk();
-                        if (chunk != null)
+                        popped = PopInvalidChunk();
+                        if (popped != null && popped.Visible)
+                            batch.Add(popped);
+                    } while (popped != null);
+
+                    if (batch.Count > 0)
+                    {
+                        int workers = System.Math.Max(1, System.Environment.ProcessorCount - 1);
+                        PerformanceMonitor.SetMetric("ChunkMeshGenBatchSize", batch.Count);
+                        PerformanceMonitor.SetMetric("ChunkMeshGenWorkers", workers);
+
+                        var gd = GameState.Game.GraphicsDevice;
+                        System.Threading.Tasks.Parallel.ForEach(
+                            batch,
+                            new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = workers },
+                            chunk => chunk.Rebuild(gd));
+
+                        foreach (var chunk in batch)
                         {
-                            if (!chunk.Visible) continue;
-                            chunk.Rebuild(GameState.Game.GraphicsDevice);
-
                             liveChunks.Add(chunk);
-
                             if (liveChunks.Count > GameSettings.Current.MaxLiveChunks)
                             {
                                 liveChunks.Sort((a, b) => a.RenderCycleWhenLastVisible - b.RenderCycleWhenLastVisible);
-
                                 while (liveChunks.Count > GameSettings.Current.MaxLiveChunks)
                                 {
                                     if (liveChunks[0].Visible) break;
-                                    liveChunks[0].DiscardPrimitive();
+                                    Voxels.MeshUploadQueue.EnqueueDiscard(liveChunks[0]);
                                     liveChunks.RemoveAt(0);
                                 }
                             }
-
-                            NeedsMinimapUpdate = true;
                         }
+                        NeedsMinimapUpdate = true;
                     }
-                    while (chunk != null);
+                    PerformanceMonitor.PopFrame();
 
                     PerformanceMonitor.SetMetric("VISIBLE CHUNKS", liveChunks.Count);
                 }
