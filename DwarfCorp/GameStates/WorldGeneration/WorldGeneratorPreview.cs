@@ -224,6 +224,10 @@ namespace DwarfCorp.GameStates
                         return;
                     }
 
+                    // Dispose old previews before reassigning — PreviewTextureNeedsRegeneration
+                    // can fire multiple times across a world-gen cycle.
+                    if (PreviewTexture != null && !PreviewTexture.IsDisposed) PreviewTexture.Dispose();
+                    if (TerrainTexture != null && !TerrainTexture.IsDisposed) TerrainTexture.Dispose();
                     PreviewTexture = new Texture2D(graphicsDevice, Overworld.Width * 4, Overworld.Height * 4);
                     TerrainTexture = new Texture2D(graphicsDevice, Overworld.Width * 4, Overworld.Height * 4);
                 }
@@ -236,6 +240,7 @@ namespace DwarfCorp.GameStates
 
                 if (PreviewRenderTarget == null || PreviewRenderTarget.IsDisposed || PreviewRenderTarget.GraphicsDevice.IsDisposed || PreviewRenderTarget.IsContentLost)
                 {
+                    if (PreviewRenderTarget != null && !PreviewRenderTarget.IsDisposed) PreviewRenderTarget.Dispose();
                     PreviewRenderTarget = new RenderTarget2D(Device, PreviewPanel.Rect.Width, PreviewPanel.Rect.Height, false, SurfaceFormat.Color, DepthFormat.Depth16);
                     PreviewRenderTarget.ContentLost += PreviewRenderTarget_ContentLost;
                 }
@@ -309,8 +314,12 @@ namespace DwarfCorp.GameStates
 
         private void PreviewRenderTarget_ContentLost(object sender, EventArgs e)
         {
+            // Dispose the old RT before reassigning — on AMD Vulkan content-lost fires
+            // fairly often and each miss used to leak a full-preview-sized RenderTarget2D.
+            var old = PreviewRenderTarget;
             PreviewRenderTarget = new RenderTarget2D(Device, PreviewPanel.Rect.Width, PreviewPanel.Rect.Height, false, SurfaceFormat.Color, DepthFormat.Depth16);
             PreviewRenderTarget.ContentLost += PreviewRenderTarget_ContentLost;
+            if (old != null && !old.IsDisposed) old.Dispose();
         }
     }
 }

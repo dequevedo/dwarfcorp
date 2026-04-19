@@ -65,7 +65,10 @@ namespace DwarfCorp
 
                 Texture2D fixedTex = null;
                 if (!tiledInstanceGroup.DoesInstanceSheetExist(sheetName))
-                    fixedTex = ResourceGraphicsHelper.GetResourceTexture(manager.World.Renderer.GraphicsDevice, Resource.Gui_Graphic);
+                    // Shared with the GUI's ResourceGraphicsHelper — one Texture2D per
+                    // resource type for the whole process. Previously each ResourceEntity
+                    // allocated its own copy via GetResourceTexture and leaked it on death.
+                    fixedTex = ResourceGraphicsHelper.GetOrCreateSharedTexture(manager.World.Renderer.GraphicsDevice, Resource.Gui_Graphic);
 
                 var sheet = new SpriteSheet(fixedTex) // The tiled instance renderer will automatically grab the texture from this.
                 {

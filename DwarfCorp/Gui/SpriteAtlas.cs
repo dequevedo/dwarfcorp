@@ -91,10 +91,38 @@ namespace DwarfCorp.Gui
             Prerender();
         }
 
+        /// <summary>
+        /// Look up an existing dynamic sheet by name WITHOUT requiring a Texture2D up front.
+        /// Returns the cached entry (with refcount incremented) or null. Use this before
+        /// allocating an expensive Texture2D that would be thrown away on a cache hit.
+        /// </summary>
+        public TextureAtlas.SpriteAtlasEntry TryGetCachedDynamicSheet(String Name)
+        {
+            if (String.IsNullOrEmpty(Name)) return null;
+            if (DynamicAtlasEntries.TryGetValue(Name, out var existing))
+            {
+                existing.ReferenceCount += 1;
+                return existing;
+            }
+            return null;
+        }
+
         public TextureAtlas.SpriteAtlasEntry AddDynamicSheet(String Name, TileSheetDefinition Sheet, Texture2D Texture)
+        {
+            return AddDynamicSheet(Name, Sheet, Texture, ownsTexture: false);
+        }
+
+        public TextureAtlas.SpriteAtlasEntry AddDynamicSheet(String Name, TileSheetDefinition Sheet, Texture2D Texture, bool ownsTexture)
         {
             if (!String.IsNullOrEmpty(Name) && DynamicAtlasEntries.ContainsKey(Name))
             {
+                // Cache hit: entry already exists. If the caller allocated `Texture` just for
+                // this call (ownsTexture=true), dispose it now — otherwise the redundant
+                // allocation leaks. This was the main source of the Texture2D flood during
+                // PlayState when ResourceGraphicsHelper.GetDynamicSheet was called repeatedly
+                // for the same resource types.
+                if (ownsTexture && Texture != null && !ReferenceEquals(Texture, DynamicAtlasEntries[Name].SourceTexture) && !Texture.IsDisposed)
+                    Texture.Dispose();
                 DynamicAtlasEntries[Name].ReferenceCount += 1;
                 return DynamicAtlasEntries[Name];
             }
@@ -107,7 +135,8 @@ namespace DwarfCorp.Gui
                 SourceDefinition = Sheet,
                 SourceTexture = Texture,
                 AtlasBounds = new Rectangle(0, 0, Texture.Width, Texture.Height),
-                ReferenceCount = 1
+                ReferenceCount = 1,
+                OwnsSourceTexture = ownsTexture
             };
 
             newEntry.TileSheet = MakeTileSheet(newEntry, Texture.Bounds);
@@ -121,7 +150,17 @@ namespace DwarfCorp.Gui
         {
             var deadEntries = DynamicAtlasEntries.Where(e => e.Value.ReferenceCount <= 0).Select(e => e.Key).ToList();
             foreach (var entry in deadEntries)
+            {
+                // Dispose the SourceTexture if this entry owns it. Before this was added,
+                // removing the dead entry dropped the only managed reference to the
+                // Texture2D — the finalizer would eventually free the native handle, but in
+                // the meantime the GPU memory accumulated until the driver destabilized and
+                // crashed with heap corruption.
+                var e = DynamicAtlasEntries[entry];
+                if (e.OwnsSourceTexture && e.SourceTexture != null && !e.SourceTexture.IsDisposed)
+                    e.SourceTexture.Dispose();
                 DynamicAtlasEntries.Remove(entry);
+            }
 
             if (AtlasValid)
             {
