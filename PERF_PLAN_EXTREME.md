@@ -7,50 +7,60 @@
 
 ---
 
-## Status das Fases (tracker da migração)
+## Status da Migração (tracker único)
 
-Este é o **único** tracker oficial da grande migração. Features menores/UX/balance ficam em [`TODO_LIST.md`](TODO_LIST.md).
+Este é o **único** tracker oficial. Features menores/UX/balance ficam em [`TODO_LIST.md`](TODO_LIST.md).
+
+**Princípio:** a migração é um projeto só. Código que está saindo não recebe otimização — subsistemas são **reimplementados limpos e performantes** no stack novo (MonoGame + libs modernas), não portados "como estão".
 
 Legenda: ✅ concluída · 🚧 em andamento · ⬜ pendente · ⏸️ deferida (aguarda gatilho) · ❌ revertida
 
-### Decisões / Discovery
+### Decisões já tomadas
 - ✅ **Fase A** — Compute discovery em FNA 26.04 ([docs/perf_compute_discovery.md](docs/perf_compute_discovery.md))
 - ✅ **Engine decision** — MonoGame 3.8 escolhido; 7 engines avaliados ([docs/engine_decision.md](docs/engine_decision.md))
 
-### Migração de plataforma (PRIMEIRO — destrava tudo)
+### Fase M — Port mecânico (MonoGame rodando, 1-2 semanas)
+Mínimo pra o jogo compilar e rodar em MonoGame. **Sem otimização** nesta fase — só o swap de plataforma.
 - ⬜ **M.1** — Swap `FNA.Core.csproj` → `MonoGame.Framework.WindowsDX` PackageReference
 - ⬜ **M.2** — Rebuild `Content/Content.mgcb` via `MonoGame.Content.Builder.Task`
 - ⬜ **M.3** — API compat audit (SpriteBatch, RenderTarget2D, PresentationParameters)
 - ⬜ **M.4** — Revalidar/remover `GpuLock` (provavelmente morto em DX11)
-- ⬜ **M.5** — Baseline `baseline_v5_monogame.csv`
+- ⬜ **M.5** — Baseline `baseline_v5_monogame.csv` — jogo roda, save antigo carrega
 
-### CPU perf (após M, já no MonoGame DX11)
-- ⬜ **C.3** — ArrayPool em `FindRootBodiesInsideScreenRectangle` (inicia adoção de ArrayPool no projeto)
-- ⬜ **B.1** — Split mesh-gen CPU / GPU upload serial (resolve a Fase 1.1 revertida; muito mais seguro em DX11)
-- ⬜ **B.2** — Greedy meshing em `GenerateSliceGeometry`
-- ⬜ **B.3** — SIMD AVX2 no scan de visibilidade
-- ⬜ **B.4** — Instrumentação profiler por seção
-- ⬜ **C.1** — Pathfinding async/TCS
-- ⬜ **C.2** — Spatial heuristic cache A*
-- ⬜ **D.1** — JobScheduler wrapper (`Tools/Threading/`)
-- ⬜ **D.2** — `ComponentManager.Update` paralelo
-- ⬜ **D.3** — Auditoria thread-safety `IUpdateableComponent.Update`
-
-### Stack composável (incremental, PRs independentes — após M)
-- ⬜ **L.5** — Novo projeto `DwarfCorp.Tests/` com xUnit v3 + BenchmarkDotNet
-- ⬜ **L.1** — ImGui.NET integration (debug/dev UI primeiro: profiler + console)
+### Fase L — Adoção do stack moderno (bases antes das reimplementações)
+Traz as libs novas antes de reescrever subsistemas. Elas são os blocos de construção das Fases B/C/D.
+- ⬜ **L.5** — Novo projeto `DwarfCorp.Tests/` com xUnit v3 + BenchmarkDotNet (sem testes é impossível reescrever com confiança)
 - ⬜ **L.2** — ZLogger + Microsoft.Extensions.DependencyInjection + Hosting
-- ⬜ **L.3** — MessagePipe pub/sub (`ChunkInvalidated`, `DwarfSpawned`, `TaskCompleted`)
+- ⬜ **L.1** — ImGui.NET (ImGuiRenderer + primeiro debug panel)
+- ⬜ **L.3** — MessagePipe pub/sub
 - ⬜ **L.4** — Arch ECS + save-migration shim (`SaveFormatVersion` v1→v2)
 - ⬜ **L.6** — Stb* + FontStashSharp (on-demand)
 
-### Deferidas (aguardam gatilho concreto)
-- ⏸️ **Fase E** — GPU avançada (particles, light culling, mega-mesh batching, liquid instancing, Hi-Z occlusion). Gatilho: profile mostrar gargalo GPU.
-- ⏸️ **Fase F** — Estrutural (DynamicBVH, WaterManager tile-partitioned, Body SoA). Gatilho: profile após M+B+C+D+L.
-- ⏸️ **Fase G** — GUI completo pra ImGui.NET (96 arquivos). Gatilho: L.1 provar pipeline + motivo concreto.
+### Fase B — Subsistema de Voxel/Mesh (reimplementação limpa em DX11)
+Escrever do zero com arquitetura paralela correta (mesh-gen CPU / upload serial) + greedy meshing + SIMD. Não é "refactor do GeometryBuilder antigo" — é o módulo novo.
+- ⬜ **B.1** — Mesh-gen em workers + `MeshUploadQueue` serial no `Draw()`
+- ⬜ **B.2** — Greedy meshing (Mikola/Tantan) na geração de sliceGeometry
+- ⬜ **B.3** — SIMD AVX2 (`Vector256<byte>`) no scan de face-visibility
+- ⬜ **B.4** — Instrumentação profiler separada (mesh-gen vs upload)
+
+### Fase C — Subsistema de Pathfinding (reimplementação async-first)
+A* escrito do zero como async/TCS + pools + cache. Não é retrofit do `AStarPlanner` atual.
+- ⬜ **C.1** — API `Task<List<MoveAction>>` via TCS + CancellationToken
+- ⬜ **C.2** — Spatial heuristic cache por thread
+- ⬜ **C.3** — ArrayPool em `FindRootBodiesInside*` + padrão estendido a outros hot paths
+
+### Fase D — Subsistema de Update (Arch systems paralelos)
+Com Arch ECS já adotado em L.4, o update paralelo é natural (archetype-based iter). Não é refactor do `ComponentManager`.
+- ⬜ **D.1** — JobScheduler wrapper pra `Parallel.ForEach` + partitioner por chunk-coord
+- ⬜ **D.2** — Arch systems paralelos substituem `ComponentManager.Update`
+- ⬜ **D.3** — Auditoria thread-safety dos componentes main-thread-only
+
+### Deferidas (aguardam gatilho concreto via profiling)
+- ⏸️ **Fase E** — GPU avançada (compute particles, light culling, mesh batching, liquid instancing, Hi-Z occlusion).
+- ⏸️ **Fase F** — Estrutural (DynamicBVH, WaterManager tile-partitioned, Body SoA).
+- ⏸️ **Fase G** — GUI de jogo (96 arquivos `Gui/*`) migrada pra ImGui. Debug/dev UI já sai em L.1.
 
 ### Histórico
-- ❌ **Fase 1.1 (v2)** — parallel chunk rebuild revertido por HEAP_CORRUPTION AMD Vulkan. Solução correta em B.1.
 - ❌ **Plano v4 (Stride)** — tentado 2026-04-19, revertido no mesmo dia em `fdd522708`.
 
 ---
@@ -158,15 +168,13 @@ Lista completa em `TODO_LIST.md` "Concluído". Destaques:
 - GpuLock (Vulkan thread-safety)
 - Fase A (compute discovery) ✅ em [docs/perf_compute_discovery.md](docs/perf_compute_discovery.md)
 
-**Fase 1.1 revertida** (parallel chunk rebuild) — HEAP_CORRUPTION AMD Vulkan. Corrigida em Fase B.1 abaixo.
-
 ---
 
 ## Fases v5 (ordem de execução)
 
-### Fase M — Migração FNA → MonoGame 3.8.x
+### Fase M — Port mecânico FNA → MonoGame 3.8.x
 
-**Escopo:** 1-2 semanas. Port mecânico. Bloqueante pra compute mas não pra B/C/D.
+**Escopo:** 1-2 semanas. Objetivo único: jogo compilando e rodando em MonoGame. Nenhuma otimização aqui — isso vem nas fases seguintes.
 
 **M.1 — Swap de reference**
 - `DwarfCorpFNA.csproj`: remover `<ProjectReference Include="..\FNA\FNA.Core.csproj" />`, adicionar `<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.*" />`.
@@ -190,14 +198,15 @@ Lista completa em `TODO_LIST.md` "Concluído". Destaques:
 
 ---
 
-### Fase B — Chunk rebuild refactor (após M, já em DX11)
+### Fase B — Subsistema de Voxel/Mesh (reimplementação limpa)
 
-Resolve o revertido Fase 1.1.
+Módulo novo em MonoGame DX11 com arquitetura paralela correta desde o dia 1. Não porta `GeometryBuilder` antigo: constrói em cima dos tipos limpos (`MeshData` POCO, `MeshUploadQueue`, workers dedicados).
 
-**B.1 — Separar mesh-gen de GPU upload**
-- `GeometryBuilder.Rebuild*` retorna `MeshData` POCO (sem `GraphicsDevice`).
-- `MeshUploadQueue` `ConcurrentQueue<(VoxelChunk, MeshData)>` — workers enfileiram, single GPU-upload step em `Draw()` consome.
-- N workers = `Environment.ProcessorCount - 1` em `ChunkManager.RebuildVoxelsThread`.
+**B.1 — Mesh-gen paralelo + GPU upload serial**
+- `MeshData` POCO: `VertexPositionColor[]`, `ushort[]`. Zero dependência de `GraphicsDevice`.
+- `MeshUploadQueue` = `ConcurrentQueue<(VoxelChunk, MeshData)>`.
+- N workers (= `Environment.ProcessorCount - 1`) geram mesh em paralelo e enfileiram.
+- Single upload step no início de `Draw()` drena até K items e aplica `SetData` em `DynamicVertexBuffer`.
 
 **B.2 — Greedy meshing**
 - Algoritmo Mikola/Tantan em `GenerateSliceGeometry` ([GeometryBuilder.cs:85](DwarfCorp/World/Voxels/ChunkBuilder/GeometryBuilder.cs:85)).
@@ -213,39 +222,46 @@ Resolve o revertido Fase 1.1.
 
 ---
 
-### Fase C — Pathfinding async + ArrayPool
+### Fase C — Subsistema de Pathfinding (reimplementação async-first)
+
+Novo `Pathfinder` async/TCS construído sobre `System.Threading.Channels` + pools per-thread. Não é retrofit do `AStarPlanner` atual — é módulo novo, API Task-based desde o início.
 
 **C.1 — API async/TCS**
-- `PlanService.Enqueue` → `Task<List<MoveAction>>` via `TaskCompletionSource`.
-- AI: `await world.Pathfinder.PlanAsync(start, goal, ct)`.
-- CT propaga ao worker.
+- Novo `IPathfinder.PlanAsync(start, goal, ct)` → `Task<List<MoveAction>>` via `TaskCompletionSource`.
+- AI: `var path = await world.Pathfinder.PlanAsync(start, goal, ct);`.
+- CancellationToken propaga ao worker (verificado em cada pop do open set).
+- Worker pool com `System.Threading.Channels` (N workers = `NumPathingThreads` do settings).
 
 **C.2 — Spatial heuristic cache**
 - `Dictionary<VoxelHandle, float>` per-thread via `[ThreadStatic]`.
 - Invalidação em hook de `VoxelChunk.InvalidateMesh`.
 
 **C.3 — ArrayPool em spatial queries**
-- `ComponentManager.FindRootBodiesInsideScreenRectangle`: `HashSet`/`ToList` → `ArrayPool<GameComponent>.Shared`.
-- Inicia adoção de ArrayPool (hoje zero usos).
+- Spatial queries do Arch world (ex: entidades dentro de um screen rectangle pra seleção) implementadas zero-alloc desde o início, usando `ArrayPool<Entity>.Shared` + struct enumerators.
+- Padrão depois estendido a todos os hot paths (AI perception, building placement validation, etc.).
 
 ---
 
-### Fase D — Component update paralelo
+### Fase D — Subsistema de Update (Arch systems paralelos)
+
+Com Arch ECS adotado em L.4, update paralelo é natural: archetype-based iter é trivialmente paralelizável. `ComponentManager` **deixa de existir** — substituído por Arch `World` + systems tipados.
 
 **D.1 — JobScheduler**
-- Novo `DwarfCorp/Tools/Threading/JobScheduler.cs` — `Parallel.ForEach` + partitioner por hash chunk-coord.
+- Novo `DwarfCorp/Tools/Threading/JobScheduler.cs` — wrapper sobre `Parallel.ForEach` + partitioner por hash chunk-coord (entidades no mesmo chunk caem no mesmo worker, zero contenção).
 
-**D.2 — ComponentManager.Update paralelo**
-- [ComponentManager.cs:241](DwarfCorp/Components/Systems/ComponentManager.cs:241): partição em buckets.
-- Commits em `ConcurrentQueue` drenada fim-de-frame.
+**D.2 — Arch systems paralelos**
+- Cada system (movement, health, AI tick, physics tick) roda sobre query archetype-based, paralelizado por default.
+- Commits (spawn/despawn) em `ConcurrentQueue` drenada fim-de-frame.
 
 **D.3 — Auditoria thread-safety**
-- Cada `IUpdateableComponent.Update` marcado "parallel-safe" vs "main-thread-only".
-- Main-thread-only em pass serial no fim.
+- Systems marcados "parallel-safe" vs "main-thread-only" (lights/sound/UI escrevem estado compartilhado).
+- Main-thread-only em pass serial no fim do frame.
 
 ---
 
-### Fase L — Adoção do stack composável (incremental)
+### Fase L — Adoção do stack composável (fundação antes dos subsistemas)
+
+Stack moderno entra **antes** das reimplementações B/C/D porque essas são construídas em cima dele. Ordem dentro de L: testes (L.5) e observabilidade (L.2) primeiro; ImGui e messaging secundários; Arch por último porque tem save migration crítica.
 
 **L.1 — ImGui.NET integration**
 - `PackageReference ImGui.NET` (ou `Hexa.NET.ImGui`).
@@ -269,10 +285,10 @@ Resolve o revertido Fase 1.1.
 - xUnit: save antigo → load via shim → save v2 → reload v2 idempotente.
 - Fase D vira parte deste trabalho (Arch systems já são archetype-parallelizable).
 
-**L.5 — BenchmarkDotNet + xUnit v3**
+**L.5 — BenchmarkDotNet + xUnit v3 (primeira fundação de L, antes de tudo)**
 - Novo projeto `DwarfCorp.Tests/`.
-- Tests: save roundtrip, world gen determinism, A* correctness, ECS migration idempotence.
-- Benchmarks: `GeometryBuilder.Rebuild`, `AStarPlanner.Path`, `ComponentManager.Update`, Voxel face visibility.
+- Tests cobrindo o que **existe hoje** pra garantir que nada quebra na reimplementação: save roundtrip, world gen determinism, A* correctness (contra o planner atual), pathing end-to-end.
+- Benchmarks das reimplementações futuras (mesh-gen, A*, systems Arch) conforme cada subsistema for substituído.
 
 **L.6 — Stb* + FontStashSharp (on-demand)**
 - Quando precisar carregar asset fora de MGCB.
@@ -298,40 +314,43 @@ Rewrite dos 96 arquivos `Gui/*` pra ImGui. 6-10 semanas. Depois de L.1 provar pi
 
 ---
 
-## Rollout (ordem) — **M primeiro, depois tudo no MonoGame**
+## Rollout (ordem)
 
-Racional: B.1 original foi revertida por HEAP_CORRUPTION no driver AMD Vulkan (bug FNA-específico). Fazendo M primeiro, o bug provavelmente some em DX11 e a gente deleta o `GpuLock` junto. Valida perf uma vez só, na stack final.
+Princípio: **M primeiro, depois L (ferramentas), depois B/C/D (subsistemas reimplementados).** Código do FNA atual não recebe otimização — subsistemas novos são escritos limpos em cima do stack novo.
 
 | # | Fase | Risco | ROI | Depende de |
 |---|---|---|---|---|
-| 1 | **M.1** (swap reference) | Baixo | Destrava tudo | — |
-| 2 | **M.2** (rebuild MGCB) | Baixo | M | M.1 |
-| 3 | **M.3** (API compat audit) | Médio | M | M.2 |
-| 4 | **M.4** (`GpuLock` revalidation) | Baixo | Simplifica B.1 | M.3 |
-| 5 | **M.5** (baseline MonoGame) | Baixo | Validação | M.4 |
-| 6 | **L.5** (test infra: xUnit + BenchmarkDotNet) | Baixo | Médio (dev velocity) | M |
-| 7 | **C.3** (ArrayPool FindRootBodies) | Baixo | Médio | M |
-| 8 | **B.1** (mesh-gen/upload split) | Médio | Muito alto | M |
-| 9 | **B.2** (greedy mesh) | Médio | Muito alto | B.1 |
-| 10 | **B.3** (SIMD scan) | Baixo | Alto | B.2 |
-| 11 | **C.1** (pathfinding async) | Médio | Alto | M |
-| 12 | **C.2** (heuristic cache) | Baixo | Médio | C.1 |
-| 13 | **D** (component update paralelo) | Alto | Muito alto | M |
-| 14 | **L.1** (ImGui debug UI) | Baixo | Médio | M |
-| 15 | **L.2** (ZLogger + DI) | Baixo | Médio | M |
-| 16 | **L.3** (MessagePipe) | Baixo | Médio | L.2 |
-| 17 | **L.4** (Arch + save shim) | Alto | Alto (longo prazo) | L.5 |
-| 18 | **L.6** (Stb*/FontStash) | Baixo | On-demand | — |
-| 19 | E/F/G | — | profile-driven | — |
+| # | Fase | Risco | ROI | Depende de |
+|---|---|---|---|---|
+| 1 | **M.1** — swap reference FNA→MonoGame | Baixo | Destrava tudo | — |
+| 2 | **M.2** — rebuild MGCB | Baixo | M | M.1 |
+| 3 | **M.3** — API compat audit | Médio | M | M.2 |
+| 4 | **M.4** — revalidar/remover `GpuLock` | Baixo | Limpa código | M.3 |
+| 5 | **M.5** — baseline MonoGame | Baixo | Validação | M.4 |
+| 6 | **L.5** — test infra (xUnit + BenchmarkDotNet) | Baixo | Base pra tudo que vem | M |
+| 7 | **L.2** — ZLogger + DI + Hosting | Baixo | Base pra tudo | M |
+| 8 | **L.1** — ImGui.NET + debug panel | Baixo | Dev velocity | M |
+| 9 | **L.3** — MessagePipe | Baixo | Desacoplamento | L.2 |
+| 10 | **L.4** — Arch ECS + save-migration shim | Alto | Pré-req D | L.5 |
+| 11 | **B.1** — mesh-gen paralelo + upload serial | Médio | Muito alto | M |
+| 12 | **B.2** — greedy meshing | Médio | Muito alto | B.1 |
+| 13 | **B.3** — SIMD AVX2 scan | Baixo | Alto | B.2 |
+| 14 | **B.4** — profiler separado | Baixo | Instrumentação | B.1 |
+| 15 | **C.1** — pathfinding async/TCS | Médio | Alto | L.5 |
+| 16 | **C.2** — heuristic cache A* | Baixo | Médio | C.1 |
+| 17 | **C.3** — ArrayPool em spatial queries | Baixo | Médio | L.5 |
+| 18 | **D.1-D.3** — Arch systems paralelos | Alto | Muito alto | L.4 |
+| 19 | **L.6** — Stb*/FontStash | Baixo | On-demand | — |
+| 20 | E/F/G | — | profile-driven | — |
 
 **Janela estimada:**
-- Semanas 1-2: **M.1-M.5** — migração mecânica completa, baseline validado.
-- Semanas 3-4: **L.5** + **C.3** — test infra montada, primeira otimização aplicada.
-- Mês 2: **B.1-B.4** — chunk rebuild refactor (agora sem lutar contra Vulkan bugs).
-- Mês 3: **C.1-C.2 + D** — pathfinding async, component update paralelo.
-- Mês 4: **L.1 + L.2 + L.3** — ImGui debug, ZLogger, DI, MessagePipe.
-- Meses 5-6: **L.4** — Arch ECS + save-migration shim.
-- Mês 7+: E/F/G conforme profile exigir.
+- Semanas 1-2: **M** — migração mecânica completa, jogo rodando em MonoGame, baseline validado.
+- Semanas 3-5: **L.5 + L.2 + L.1 + L.3** — ferramentas modernas montadas (testes, logging, DI, ImGui debug, messaging).
+- Meses 2-3: **L.4** — Arch ECS adotado + save-migration shim + testes de idempotência.
+- Mês 4: **B.1-B.4** — subsistema voxel/mesh reescrito limpo com mesh-gen paralelo + greedy + SIMD.
+- Mês 5: **C.1-C.3** — subsistema de pathfinding reescrito async-first.
+- Mês 6: **D.1-D.3** — update paralelo via Arch systems; `ComponentManager` apagado.
+- Mês 7+: E/F/G apenas se profile apontar gargalo real.
 
 ---
 
