@@ -39,6 +39,7 @@ namespace DwarfCorp.Gui.Debug
                 _renderer = new ImGuiRenderer(game);
                 _renderer.RebuildFontAtlas();
                 RegisterPanel(new DebugOverlay());
+                RegisterPanel(new RenderStateInspector());
                 _log.ZLogInformation($"ImGui initialized with {_panels.Count} panel(s)");
             }
             catch (Exception ex)

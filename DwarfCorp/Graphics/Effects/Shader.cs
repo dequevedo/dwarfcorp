@@ -104,40 +104,58 @@ namespace DwarfCorp
             }
         }
 
+        /// <summary>
+        /// DIAGNOSTIC TOGGLE for post-migration 3D rendering issue: when true,
+        /// all matrix parameter setters apply `Matrix.Transpose()` before copying
+        /// to the effect. Hypothesis: FNA/MojoShader used row-major convention
+        /// transparently; MonoGame DX11 expects column-major in HLSL. If this
+        /// toggle flips a black viewport to visible, that's confirmation — and
+        /// the permanent fix is to either add `row_major` to the shader matrix
+        /// declarations or bake the transpose into the setters (removing the
+        /// toggle). Controlled from the Render Inspector ImGui panel (F12).
+        /// </summary>
+        public static bool TransposeMatrices = false;
+
+        private static void SetMatrix(EffectParameter p, Matrix m)
+        {
+            if (TransposeMatrices) m = Matrix.Transpose(m);
+            p.SetValue(m);
+        }
+
         public Matrix View
         {
             get { return Parameters["xView"].GetValueMatrix(); }
-            set { Parameters["xView"].SetValue(value);}
+            set { SetMatrix(Parameters["xView"], value); }
         }
 
         public Matrix Projection
         {
             get { return Parameters["xProjection"].GetValueMatrix(); }
-            set {  Parameters["xProjection"].SetValue(value);}
+            set { SetMatrix(Parameters["xProjection"], value); }
         }
 
         public Matrix World
         {
             get { return Parameters["xWorld"].GetValueMatrix(); }
-            set {  Parameters["xWorld"].SetValue(value);}
+            set { SetMatrix(Parameters["xWorld"], value); }
         }
 
         public Matrix LightView
         {
             get { return Parameters["xLightView"].GetValueMatrix(); }
-            set {  Parameters["xLightView"].SetValue(value);}
+            set { SetMatrix(Parameters["xLightView"], value); }
         }
 
         public Matrix LightProjection
         {
             get { return Parameters["xLightProj"].GetValueMatrix(); }
-            set {  Parameters["xLightProj"].SetValue(value);}
+            set { SetMatrix(Parameters["xLightProj"], value); }
         }
 
-        public Matrix ReflectionView 
+        public Matrix ReflectionView
         {
             get { return Parameters["xReflectionView"].GetValueMatrix(); }
-            set {  Parameters["xReflectionView"].SetValue(value);}
+            set { SetMatrix(Parameters["xReflectionView"], value); }
         }
 
         public float WaterOpacity
