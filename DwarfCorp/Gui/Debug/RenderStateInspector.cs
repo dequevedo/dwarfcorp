@@ -17,8 +17,13 @@ namespace DwarfCorp.Gui.Debug
     {
         public void Draw(GameTime time)
         {
+            // Sample GC state once per frame so the GC section below, the
+            // hitch-correlation glance, and any future profiler metric all
+            // see the same numbers.
+            GcTracker.Sample();
+
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(360, 8), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowSize(new System.Numerics.Vector2(420, 380), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSize(new System.Numerics.Vector2(460, 560), ImGuiCond.FirstUseEver);
 
             if (!ImGui.Begin("Render Inspector"))
             {
@@ -28,6 +33,8 @@ namespace DwarfCorp.Gui.Debug
 
             DrawDiagnosticsToggles();
             ImGui.Separator();
+            DrawGcInfo();
+            ImGui.Separator();
             DrawGraphicsDeviceInfo();
             ImGui.Separator();
             DrawWorldRendererInfo();
@@ -35,6 +42,47 @@ namespace DwarfCorp.Gui.Debug
             DrawDefaultShaderInfo();
 
             ImGui.End();
+        }
+
+        private static void DrawGcInfo()
+        {
+            ImGui.TextColored(new System.Numerics.Vector4(1f, 0.85f, 0.2f, 1f), "GC (Gen 2 hitch correlation)");
+
+            // Colour the Gen-2 line red when a tick was observed this frame,
+            // so a hitch frame is visually matched with a Gen-2 spike.
+            ImGui.Text($"Gen 0: {GcTracker.Gen0Count}  (+{GcTracker.Gen0Delta})");
+            ImGui.Text($"Gen 1: {GcTracker.Gen1Count}  (+{GcTracker.Gen1Delta})");
+            if (GcTracker.Gen2Delta > 0)
+                ImGui.TextColored(new System.Numerics.Vector4(1f, 0.35f, 0.35f, 1f),
+                    $"Gen 2: {GcTracker.Gen2Count}  (+{GcTracker.Gen2Delta})  ← tick this frame");
+            else
+                ImGui.Text($"Gen 2: {GcTracker.Gen2Count}  (+0)");
+
+            double secs = GcTracker.SecondsSinceLastGen2();
+            if (secs < 0)
+                ImGui.Text("Last Gen 2: (none yet this session)");
+            else
+                ImGui.Text($"Last Gen 2: {secs:0.0} s ago");
+
+            // Total heap in MB. Signed "since last frame" — negative right after a collection freed memory.
+            double mb = GcTracker.TotalMemoryBytes / (1024.0 * 1024.0);
+            double deltaKb = GcTracker.AllocBytesSinceLastSample / 1024.0;
+            ImGui.Text($"Total heap: {mb:0.0} MB   (Δ last frame: {deltaKb:+0.0;-0.0;0.0} KB)");
+
+            var events = GcTracker.RecentGen2Events();
+            if (events.Length > 0)
+            {
+                ImGui.Spacing();
+                ImGui.TextWrapped("Recent Gen 2 timestamps (newest first):");
+                ImGui.Indent();
+                var nowUtc = System.DateTime.UtcNow;
+                foreach (var t in events)
+                    ImGui.Text($"-{(nowUtc - t).TotalSeconds:0.0} s");
+                ImGui.Unindent();
+            }
+            ImGui.TextWrapped(
+                "If a visible hitch coincides with a Gen 2 tick, GC pressure is the likely cause. " +
+                "Fase C.3 (ArrayPool in spatial queries) is the next commit to attack that directly.");
         }
 
         private static void DrawDiagnosticsToggles()
