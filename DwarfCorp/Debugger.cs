@@ -34,6 +34,9 @@ namespace DwarfCorp
             public static bool ShowEntityInfo = false;
             public static bool DrawTiledInstanceAtlas = false;
             public static bool UseNewVoxelGeoGen = false;
+            // Fase B.2: opt-in greedy meshing for chunk top faces. Default off until the
+            // rendered output is compared against the per-voxel baseline interactively.
+            public static bool UseGreedyMeshing = false;
         }
 
         public class Switch
