@@ -25,7 +25,7 @@ Mínimo pra o jogo compilar e rodar em MonoGame. **Sem otimização** nesta fase
 - ✅ **M.2** — Content pipeline migrado: platform Windows, EffectProcessor default, profiles SM4, specialization removida (commits `35ce163ee`, `57cc80257`)
 - ✅ **M.3** — API compat: SDL2/TextInputEXT/OnExiting/GetVertexBuffers substituídos (commit `7629f3fdd`)
 - ✅ **M.4** — Revalidado: lock **mantido**. Motivação original (FNA/Vulkan VkCommandPool) sumiu, mas DX11 `ID3D11DeviceContext` também não é thread-safe, e `SetData` vai por ele. XML-doc reescrito com a nova razão. Remoção definitiva = quando Fase B.1 canalizar escritas GPU por queue single-thread (TODO item 29).
-- 🚧 **M.5** — Framework pronto: auto-export de CSV via `DWARFCORP_PERF_EXPORT` env var + `ForceFrameCapture` sticky flag + [`docs/perf_bench.md`](docs/perf_bench.md) com cena stress canônica + [`docs/baselines/`](docs/baselines/) com README. **Falta capturar `baseline_v5_monogame.csv`** numa sessão real de 10 min seguindo o protocolo.
+- ✅ **M.5** — Framework pronto (auto-export CSV via `DWARFCORP_PERF_EXPORT` + `ForceFrameCapture` sticky + [`docs/perf_bench.md`](docs/perf_bench.md)). **Baseline capturado**: [`docs/baselines/baseline_v5_monogame.csv`](docs/baselines/baseline_v5_monogame.csv). Diagnóstico em [`.analysis.md`](docs/baselines/baseline_v5_monogame.analysis.md) — p50=16.85ms (59 fps) saudável, mas p99=559ms e max=1060ms: problema é **hitches de longa cauda**, não CPU bound geral. Valida ordem do rollout B.1 (chunk rebuild hitch), C.3+L.4 (GC), GUI migration (18% do frame).
 - ⚠️ **Follow-up** — main menu visual não aparece (jogo chega no PlayState); debug pós-L.1 com ImGui.
 
 ### Fase L — Adoção do stack moderno (bases antes das reimplementações)
