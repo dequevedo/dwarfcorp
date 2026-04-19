@@ -200,7 +200,11 @@ namespace DwarfCorp
             // Toggles the HUD crosshair overlay while the Walk camera has cursor locked.
             public bool ShowCrosshair = true;
             // Screen-space outline post-effect (depth/normal-style edge darkening).
-            public bool EnableOutline = true;
+            // Defaulted OFF post-MonoGame migration: the effect's shader+SpriteBatch blit
+            // draws a black frame on DX11, hiding the entire 3D viewport. Fix tracked in
+            // TODO_LIST item 28; flip back to true once that's done. In the meantime the
+            // debug panel (F12 → Render Inspector) has a runtime toggle for testing.
+            public bool EnableOutline = false;
             // 0..1 — how much the outline tints the underlying color. 0.8 = strong, 0.4 = subtle.
             public float OutlineStrength = 0.85f;
             // Luminance gradient magnitude above which a pixel counts as an edge (0.05-0.25).
