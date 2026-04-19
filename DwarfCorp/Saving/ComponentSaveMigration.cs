@@ -56,18 +56,17 @@ namespace DwarfCorp.Saving
             int created = 0;
             int skipped = 0;
 
-            // Per-family hooks. Each one is a separate commit's worth of work; listing
-            // them here as TODOs so the shape of the eventual implementation is visible
-            // and so the review of per-family commits can check itself against this list.
+            // Per-family migration hooks. Each one is a separate commit's worth of work;
+            // the full ordered list of 22 families with their dependency DAG lives in
+            // docs/l4_arch_migration_plan.md. Don't duplicate the enumeration here —
+            // one source of truth, kept in the doc so the order can be revised without
+            // touching this file every time.
             //
-            // TODO: MigrateTransforms(legacy, ref created, ref skipped);
-            // TODO: MigratePhysics(legacy, ref created, ref skipped);
-            // TODO: MigrateHealth(legacy, ref created, ref skipped);
-            // TODO: MigrateInventory(legacy, ref created, ref skipped);
-            // TODO: MigrateAI(legacy, ref created, ref skipped);
-            // TODO: MigrateAnimation(legacy, ref created, ref skipped);
-            // TODO: MigrateRendering(legacy, ref created, ref skipped);
-            // TODO: MigrateFire / Sensor / Health / Equipment / Light / Tint … (rest of the 25)
+            // The Migrate() method body grows one call per family as the corresponding
+            // commit lands:
+            //   MigrateTransforms(legacy, ref created, ref skipped);   // commit #1
+            //   MigratePhysics(legacy, ref created, ref skipped);      // commit #2
+            //   …continues through #22.
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped. " +
