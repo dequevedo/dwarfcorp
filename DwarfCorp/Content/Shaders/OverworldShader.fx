@@ -57,7 +57,7 @@ technique DrawTextured
 	pass Pass1
 	{
 		AlphaBlendEnable = false;
-		VertexShader = compile vs_2_0 TexturedVertexShaderFunction();
-		PixelShader = compile ps_2_0 PSTexturedColor();
+		VertexShader = compile vs_4_0_level_9_1 TexturedVertexShaderFunction();
+		PixelShader = compile ps_4_0_level_9_1 PSTexturedColor();
 	}
 }

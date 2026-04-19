@@ -95,8 +95,8 @@ technique Outline
 {
     pass Pass1
     {
-        VertexShader = compile vs_3_0 VertexShaderFunction();
-        PixelShader  = compile ps_3_0 PixelShaderFunction_Outline();
+        VertexShader = compile vs_4_0_level_9_3 VertexShaderFunction();
+        PixelShader  = compile ps_4_0_level_9_3 PixelShaderFunction_Outline();
     }
 }
 
@@ -104,7 +104,7 @@ technique Passthrough
 {
     pass Pass1
     {
-        VertexShader = compile vs_3_0 VertexShaderFunction();
-        PixelShader  = compile ps_3_0 PixelShaderFunction_Passthrough();
+        VertexShader = compile vs_4_0_level_9_3 VertexShaderFunction();
+        PixelShader  = compile ps_4_0_level_9_3 PixelShaderFunction_Passthrough();
     }
 }

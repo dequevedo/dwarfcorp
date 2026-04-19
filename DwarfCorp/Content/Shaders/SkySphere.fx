@@ -59,8 +59,8 @@ technique SkyboxTechnique
 {
     pass P0
     {
-        vertexShader = compile vs_2_0 SkyboxVertexShader();
-        pixelShader = compile ps_2_0 SkyboxPixelShader();
+        vertexShader = compile vs_4_0_level_9_1 SkyboxVertexShader();
+        pixelShader = compile ps_4_0_level_9_1 SkyboxPixelShader();
 
         // We're drawing the inside of a model
         CullMode = None;  
@@ -76,8 +76,8 @@ technique SunMoonTechnique
 {
     pass P0
     {
-        vertexShader = compile vs_2_0 SkyboxVertexShader();
-        pixelShader = compile ps_2_0 SkyboxPixelShader();
+        vertexShader = compile vs_4_0_level_9_1 SkyboxVertexShader();
+        pixelShader = compile ps_4_0_level_9_1 SkyboxPixelShader();
 
         // We're drawing the inside of a model
         CullMode = None;  

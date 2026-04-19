@@ -2,7 +2,7 @@
 
 /outputDir:../../ContentMGCB/bin/Content
 /intermediateDir:../../ContentMGCB/obj/Content
-/platform:DesktopGL
+/platform:Windows
 /config:
 /profile:Reach
 /compress:False
@@ -2592,7 +2592,7 @@
 
 #begin newgui/xna_draw.fx
 /importer:EffectImporter
-/processor:FxcEffectProcessor
+/processor:EffectProcessor
 /build:newgui/xna_draw.fx
 
 #begin newgui/tutorials/attack.png
@@ -2862,47 +2862,47 @@
 
 #begin Shaders/Background.fx
 /importer:EffectImporter
-/processor:FxcEffectProcessor
+/processor:EffectProcessor
 /build:Shaders/Background.fx
 
 #begin Shaders/BloomCombine.fx
 /importer:EffectImporter
-/processor:FxcEffectProcessor
+/processor:EffectProcessor
 /build:Shaders/BloomCombine.fx
 
 #begin Shaders/BloomExtract.fx
 /importer:EffectImporter
-/processor:FxcEffectProcessor
+/processor:EffectProcessor
 /build:Shaders/BloomExtract.fx
 
 #begin Shaders/FXAA.fx
 /importer:EffectImporter
-/processor:FxcEffectProcessor
+/processor:EffectProcessor
 /build:Shaders/FXAA.fx
 
 #begin Shaders/ScreenSpaceOutline.fx
 /importer:EffectImporter
-/processor:FxcEffectProcessor
+/processor:EffectProcessor
 /build:Shaders/ScreenSpaceOutline.fx
 
 #begin Shaders/GaussianBlur.fx
 /importer:EffectImporter
-/processor:FxcEffectProcessor
+/processor:EffectProcessor
 /build:Shaders/GaussianBlur.fx
 
 #begin Shaders/OverworldShader.fx
 /importer:EffectImporter
-/processor:FxcEffectProcessor
+/processor:EffectProcessor
 /build:Shaders/OverworldShader.fx
 
 #begin Shaders/SkySphere.fx
 /importer:EffectImporter
-/processor:FxcEffectProcessor
+/processor:EffectProcessor
 /build:Shaders/SkySphere.fx
 
 #begin Shaders/TexturedShaders.fx
 /importer:EffectImporter
-/processor:FxcEffectProcessor
+/processor:EffectProcessor
 /build:Shaders/TexturedShaders.fx
 
 #begin Sky/cloud1.png
