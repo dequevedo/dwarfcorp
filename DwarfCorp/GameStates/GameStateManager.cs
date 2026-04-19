@@ -102,6 +102,12 @@ namespace DwarfCorp.GameStates
 
                     CurrentState = NextState;
                     NextState = null;
+
+                    // L.3: broadcast state-change event on the MessagePipe bus so
+                    // any decoupled subsystem (telemetry, UI, tests) can react
+                    // without GameStateManager knowing about it.
+                    Infrastructure.EventBus.PublishIfAvailable(
+                        new Infrastructure.Events.GameStateEntered(CurrentState?.GetType().Name ?? "(null)"));
                 }
 
                 if (CurrentState != null && CurrentState.IsInitialized)
