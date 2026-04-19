@@ -33,7 +33,7 @@ Traz as libs novas antes de reescrever subsistemas. Elas são os blocos de const
 - 🚧 **L.5** — Projeto `DwarfCorp.Tests/` criado com xUnit v3 (10 testes passando: Perlin/DwarfBux/FileUtils JSON roundtrip). BenchmarkDotNet adicionado quando houver perf work concreto.
 - 🚧 **L.2** — DI container + ZLogger bootstrap via `DwarfCorp/Infrastructure/Services.cs`. `Services.Initialize()` em Program.Main, log file em `%APPDATA%/DwarfCorp/dwarfcorp.log`. Migração `Console.WriteLine → ILogger` incremental.
 - 🚧 **L.1** — ImGui.NET integrado com renderer custom `DwarfCorp/Gui/Debug/ImGuiRenderer.cs` (~280 LOC). `DebugOverlay` (F12) mostra FPS + backbuffer + GameState ativo. Base pra debugar o main-menu invisível.
-- ⬜ **L.3** — MessagePipe pub/sub
+- 🚧 **L.3** — MessagePipe registrado em DI + `EventBus` static façade pra callsites legados. Dois eventos demo (`AppStarted`, `GameStateEntered`). 4 testes roundtrip passando. Eventos reais (`ChunkInvalidated`, `DwarfSpawned`, `TaskCompleted`) vêm conforme B/C/D.
 - ⬜ **L.4** — Arch ECS + save-migration shim (`SaveFormatVersion` v1→v2)
 - ⬜ **L.6** — Stb* + FontStashSharp (on-demand)
 
