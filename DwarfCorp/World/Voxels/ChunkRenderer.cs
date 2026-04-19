@@ -67,6 +67,19 @@ namespace DwarfCorp
 
         public void Render(Camera renderCamera, DwarfTime gameTime, GraphicsDevice graphicsDevice, Shader effect, Matrix worldMatrix)
         {
+            // Fase B.1: drain any fresh chunk primitives produced by background
+            // mesh-gen workers since the last frame, and swap them onto their chunks
+            // here on the render thread. Budget chosen so a flood of rebuilds can't
+            // itself cause a single-frame hitch — the old-primitive Dispose is
+            // normally cheap but SetData on the first subsequent Render can bite.
+            // Leftover items carry over to next frame; no drops.
+            PerformanceMonitor.PushFrame("ChunkMeshUploadDrain");
+            const int perFrameUploadBudget = 8;
+            int swapped = Voxels.MeshUploadQueue.DrainUpToBudget(perFrameUploadBudget);
+            PerformanceMonitor.SetMetric("ChunkMeshUploadsThisFrame", swapped);
+            PerformanceMonitor.SetMetric("ChunkMeshUploadsPending", Voxels.MeshUploadQueue.PendingCount);
+            PerformanceMonitor.PopFrame();
+
             if (RenderList != null && !Debugger.Switches.HideTerrain)
             {
                 graphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };

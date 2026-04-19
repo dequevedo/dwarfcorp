@@ -111,12 +111,27 @@ namespace DwarfCorp
             LiquidPrimitive.InitializePrimativesFromChunk(this, toInit);
         }
 
+        /// <summary>
+        /// Runs on a background mesh-gen thread. Produces a fresh
+        /// <see cref="GeometricPrimitive"/> from the chunk's voxel data and
+        /// hands it to <see cref="Voxels.MeshUploadQueue"/> for the render
+        /// thread to swap in via <see cref="ApplyFreshPrimitive"/>. The
+        /// old primitive is NOT disposed here — that crosses a thread
+        /// boundary (GPU buffer Dispose), so it moves to the render thread.
+        ///
+        /// Fase B.1 split: before this refactor, Rebuild both produced and
+        /// swapped in one step. Running two of those in parallel races the
+        /// old-primitive Dispose against ChunkRenderer reading the primitive,
+        /// which is the exact bug that got the original Fase 1.1 reverted.
+        /// Now: producers do pure CPU work + Enqueue; consumer (one, on the
+        /// render thread) swaps.
+        /// </summary>
         public void Rebuild(GraphicsDevice g)
         {
             if (g == null || g.IsDisposed)
                 return;
 
-            GeometricPrimitive primitive = null;
+            GeometricPrimitive primitive;
 
             if (Debugger.Switches.UseNewVoxelGeoGen)
             {
@@ -124,15 +139,35 @@ namespace DwarfCorp
             }
             else
             {
-                primitive = new VoxelListPrimitive();
-                (primitive as VoxelListPrimitive).InitializeFromChunk(this, Manager.World);
+                var vlp = new VoxelListPrimitive();
+                vlp.InitializeFromChunk(this, Manager.World);
+                primitive = vlp;
             }
 
+            Voxels.MeshUploadQueue.Enqueue(this, primitive);
+        }
+
+        /// <summary>
+        /// Render-thread swap of the live primitive. Called by
+        /// <see cref="Voxels.MeshUploadQueue.DrainUpToBudget"/> after a
+        /// background worker hands off a freshly-generated primitive.
+        /// Disposing the previous primitive (which releases GPU buffers)
+        /// is safe here because ChunkRenderer — the other reader of
+        /// <see cref="Primitive"/> — also runs on the render thread.
+        /// </summary>
+        public void ApplyFreshPrimitive(GeometricPrimitive fresh)
+        {
             PrimitiveMutex.WaitOne();
-            if (Primitive != null)
-                Primitive.Dispose();
-            Primitive = primitive;
-            PrimitiveMutex.ReleaseMutex();
+            try
+            {
+                if (Primitive != null)
+                    Primitive.Dispose();
+                Primitive = fresh;
+            }
+            finally
+            {
+                PrimitiveMutex.ReleaseMutex();
+            }
         }
 
         public void Destroy()

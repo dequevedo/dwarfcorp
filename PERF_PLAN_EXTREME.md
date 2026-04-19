@@ -39,7 +39,7 @@ Traz as libs novas antes de reescrever subsistemas. Elas são os blocos de const
 
 ### Fase B — Subsistema de Voxel/Mesh (reimplementação limpa em DX11)
 Escrever do zero com arquitetura paralela correta (mesh-gen CPU / upload serial) + greedy meshing + SIMD. Não é "refactor do GeometryBuilder antigo" — é o módulo novo.
-- ⬜ **B.1** — Mesh-gen em workers + `MeshUploadQueue` serial no `Draw()`
+- 🚧 **B.1** — Split commited: `MeshUploadQueue` drena swap serial no `ChunkRenderer.Render`, bg threads só enqueue + `VoxelChunk.ApplyFreshPrimitive` no render thread. **Paralelização dos workers fica como próximo commit** (agora é safe — race-free).
 - ⬜ **B.2** — Greedy meshing (Mikola/Tantan) na geração de sliceGeometry
 - ⬜ **B.3** — SIMD AVX2 (`Vector256<byte>`) no scan de face-visibility
 - ⬜ **B.4** — Instrumentação profiler separada (mesh-gen vs upload)
