@@ -56,6 +56,11 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.*" />
     <!-- L.3 stack: zero-alloc in-process pub/sub. Cysharp, same team as ZLogger. -->
     <PackageReference Include="MessagePipe" Version="1.*" />
+    <!-- L.4 stack: Arch ECS. Archetype-based, zero-alloc iteration, C# pure (no native deps).
+         Foundation only at this commit — subsystem migrations (Transform, Physics, AI…) land
+         in later commits as each GameComponent family ports over. -->
+    <PackageReference Include="Arch" Version="2.*" />
+    <PackageReference Include="Arch.System" Version="1.*" />
     <!-- L.1: ImGui bindings. We write our own MonoGame↔ImGui renderer bridge
          in DwarfCorp/Gui/Debug/ImGuiRenderer.cs — the community NuGet packages
          for MonoGame ImGui are either unmaintained or ship with broken packaging. -->

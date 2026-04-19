@@ -55,6 +55,12 @@ namespace DwarfCorp.Infrastructure
             // in DwarfCorp.Events.
             services.AddMessagePipe();
 
+            // L.4: Arch ECS world as a DI singleton. Legacy ComponentManager
+            // still owns every entity at this point — EcsWorld just stands up
+            // the new home so subsystem migrations (Transform, Physics, AI…)
+            // have a target to land on one at a time.
+            services.AddSingleton<ECS.EcsWorld>();
+
             // Future: world/chunk/pathfinder/etc. singletons register here
             // as their subsystems migrate to the new stack.
 

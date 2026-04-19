@@ -34,7 +34,7 @@ Traz as libs novas antes de reescrever subsistemas. Elas são os blocos de const
 - 🚧 **L.2** — DI container + ZLogger bootstrap via `DwarfCorp/Infrastructure/Services.cs`. `Services.Initialize()` em Program.Main, log file em `%APPDATA%/DwarfCorp/dwarfcorp.log`. Migração `Console.WriteLine → ILogger` incremental.
 - 🚧 **L.1** — ImGui.NET integrado com renderer custom `DwarfCorp/Gui/Debug/ImGuiRenderer.cs` (~280 LOC). `DebugOverlay` (F12) mostra FPS + backbuffer + GameState ativo. Base pra debugar o main-menu invisível.
 - 🚧 **L.3** — MessagePipe registrado em DI + `EventBus` static façade pra callsites legados. Dois eventos demo (`AppStarted`, `GameStateEntered`). 4 testes roundtrip passando. Eventos reais (`ChunkInvalidated`, `DwarfSpawned`, `TaskCompleted`) vêm conforme B/C/D.
-- ⬜ **L.4** — Arch ECS + save-migration shim (`SaveFormatVersion` v1→v2)
+- 🚧 **L.4** — Foundation pronta: `Arch 2.*` + `Arch.System 1.*` em DI, `DwarfCorp/ECS/EcsWorld.cs` wrapper singleton, placeholder `Transform` struct, `MetaData.SaveFormatVersion` field (default v1 pra saves antigos), `DwarfCorp/Saving/ComponentSaveMigration.cs` skeleton com TODO hooks por family. 6 testes novos cobrindo Arch roundtrip + save versioning. **Per-family migrations (Transform→Physics→Health→AI…) são commits separados** — 25+ tipos, meses de trabalho.
 - ⬜ **L.6** — Stb* + FontStashSharp (on-demand)
 
 ### Fase B — Subsistema de Voxel/Mesh (reimplementação limpa em DX11)
