@@ -11,7 +11,35 @@ namespace DwarfCorp
 {
     public class Shader : Effect
     {
-        public const int MaxLights = 64;
+        /// <summary>
+        /// Maximum number of dynamic lights passed per frame to the terrain / entity
+        /// shaders (TexturedShaders.fx). MUST equal the `#define MAX_LIGHTS` in that
+        /// shader source — the shader declares `float3 xLightPositions[MAX_LIGHTS]`
+        /// and this C# array is copied straight into that effect parameter.
+        ///
+        /// History: pre-migration this was 64 on the C# side and 16 in the shader;
+        /// FNA's MojoShader toolchain silently truncated at the shader boundary so
+        /// the mismatch was invisible. MonoGame's DX11 EffectParameter.SetValue
+        /// (EffectParameter.cs ~line 380) loops `for(i=0; i&lt;value.Length; i++)`
+        /// into Elements[i] and throws IndexOutOfRangeException once i exceeds
+        /// the compiled shader's array bounds — which is exactly what crashed
+        /// PlayState right after the M.2 migration.
+        ///
+        /// Current fix: keep both sides at 16. The light-picking loop in
+        /// WorldRenderer.FillClosestLights already sorted by distance and only the
+        /// closest 16 visibly contributed under FNA, so lowering from 64 is not
+        /// a gameplay regression — it just matches what actually rendered.
+        ///
+        /// Proper long-term redesign (see PERF_PLAN_EXTREME.md Fase E.2′ and
+        /// TODO item 27): switch to a clustered / tiled forward lighting pass.
+        /// CPU builds a per-screen-tile list of active lights; the shader only
+        /// evaluates O(k) lights per pixel where k ≤ tile depth. That removes the
+        /// fixed-size array and the need for these two constants to stay in sync.
+        /// Until that ships, any change to this value MUST be mirrored in
+        /// Content/Shaders/TexturedShaders.fx `#define MAX_LIGHTS` and the
+        /// content has to be rebuilt via `dotnet mgcb`.
+        /// </summary>
+        public const int MaxLights = 16;
 
         // Cached clone of TexturedShaders reused across GUI icon generators. Cloning the
         // effect repeatedly triggers an AccessViolationException inside MOJOSHADER_cloneEffect
@@ -49,7 +77,31 @@ namespace DwarfCorp
 
         public Vector3[] LightPositions
         {
-            set { Parameters["xLightPositions"].SetValue(value);}
+            set
+            {
+                // Defensive clamp: if the C# array is ever larger than the shader's
+                // compiled xLightPositions array capacity, MonoGame's DX11 backend
+                // throws IndexOutOfRangeException inside EffectParameter.SetValue
+                // (it iterates Elements[i] up to value.Length). With MaxLights held
+                // in lockstep with the shader's #define MAX_LIGHTS (both = 16), the
+                // `else` branch below should never execute in steady state —
+                // but keeping the guard is cheap and stops a future drift between
+                // C# and the .fx file from crashing the render thread. The proper
+                // structural fix (clustered forward lighting) is tracked in
+                // PERF_PLAN_EXTREME.md Fase E.2′ and TODO_LIST item 27.
+                var p = Parameters["xLightPositions"];
+                int shaderCapacity = p.Elements.Count;
+                if (shaderCapacity == 0 || value.Length <= shaderCapacity)
+                {
+                    p.SetValue(value);
+                }
+                else
+                {
+                    var clamped = new Vector3[shaderCapacity];
+                    Array.Copy(value, clamped, shaderCapacity);
+                    p.SetValue(clamped);
+                }
+            }
         }
 
         public Matrix View
