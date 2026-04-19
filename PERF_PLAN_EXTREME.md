@@ -5,6 +5,56 @@
 > **v3:** MonoGame com PBR/shadows custom, absorvido no v5 sem a ambição gráfica.
 > **v2:** reorientação pós-migração .NET 10 + FNA 26.04.
 
+---
+
+## Status das Fases (tracker da migração)
+
+Este é o **único** tracker oficial da grande migração. Features menores/UX/balance ficam em [`TODO_LIST.md`](TODO_LIST.md).
+
+Legenda: ✅ concluída · 🚧 em andamento · ⬜ pendente · ⏸️ deferida (aguarda gatilho) · ❌ revertida
+
+### Decisões / Discovery
+- ✅ **Fase A** — Compute discovery em FNA 26.04 ([docs/perf_compute_discovery.md](docs/perf_compute_discovery.md))
+- ✅ **Engine decision** — MonoGame 3.8 escolhido; 7 engines avaliados ([docs/engine_decision.md](docs/engine_decision.md))
+
+### CPU perf (platform-agnostic, roda no FNA atual)
+- ⬜ **C.3** — ArrayPool em `FindRootBodiesInsideScreenRectangle` (inicia adoção de ArrayPool no projeto)
+- ⬜ **B.1** — Split mesh-gen CPU / GPU upload serial (resolve a Fase 1.1 revertida)
+- ⬜ **B.2** — Greedy meshing em `GenerateSliceGeometry`
+- ⬜ **B.3** — SIMD AVX2 no scan de visibilidade
+- ⬜ **B.4** — Instrumentação profiler por seção
+- ⬜ **C.1** — Pathfinding async/TCS
+- ⬜ **C.2** — Spatial heuristic cache A*
+- ⬜ **D.1** — JobScheduler wrapper (`Tools/Threading/`)
+- ⬜ **D.2** — `ComponentManager.Update` paralelo
+- ⬜ **D.3** — Auditoria thread-safety `IUpdateableComponent.Update`
+
+### Migração de plataforma
+- ⬜ **M.1** — Swap `FNA.Core.csproj` → `MonoGame.Framework.WindowsDX` PackageReference
+- ⬜ **M.2** — Rebuild `Content/Content.mgcb` via `MonoGame.Content.Builder.Task`
+- ⬜ **M.3** — API compat audit (SpriteBatch, RenderTarget2D, PresentationParameters)
+- ⬜ **M.4** — Revalidar/remover `GpuLock`
+- ⬜ **M.5** — Baseline `baseline_v5_monogame.csv`
+
+### Stack composável (incremental, PRs independentes)
+- ⬜ **L.5** — Novo projeto `DwarfCorp.Tests/` com xUnit v3 + BenchmarkDotNet
+- ⬜ **L.1** — ImGui.NET integration (debug/dev UI primeiro: profiler + console)
+- ⬜ **L.2** — ZLogger + Microsoft.Extensions.DependencyInjection + Hosting
+- ⬜ **L.3** — MessagePipe pub/sub (`ChunkInvalidated`, `DwarfSpawned`, `TaskCompleted`)
+- ⬜ **L.4** — Arch ECS + save-migration shim (`SaveFormatVersion` v1→v2)
+- ⬜ **L.6** — Stb* + FontStashSharp (on-demand)
+
+### Deferidas (aguardam gatilho concreto)
+- ⏸️ **Fase E** — GPU avançada (particles, light culling, mega-mesh batching, liquid instancing, Hi-Z occlusion). Gatilho: profile mostrar gargalo GPU.
+- ⏸️ **Fase F** — Estrutural (DynamicBVH, WaterManager tile-partitioned, Body SoA). Gatilho: profile após M+B+C+D+L.
+- ⏸️ **Fase G** — GUI completo pra ImGui.NET (96 arquivos). Gatilho: L.1 provar pipeline + motivo concreto.
+
+### Histórico
+- ❌ **Fase 1.1 (v2)** — parallel chunk rebuild revertido por HEAP_CORRUPTION AMD Vulkan. Solução correta em B.1.
+- ❌ **Plano v4 (Stride)** — tentado 2026-04-19, revertido no mesmo dia em `fdd522708`.
+
+---
+
 ## Context
 
 Estado atual: DwarfCorp roda em FNA 26.04 + Vulkan + .NET 10 + Server GC após migração massiva (v2). A Fase A de discovery ([docs/perf_compute_discovery.md](docs/perf_compute_discovery.md)) fechou que FNA **não expõe compute shaders**.
