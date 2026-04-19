@@ -111,4 +111,8 @@
 
 - [ ] 25. Gostaria de uma feature pra mostrar FPS na UI do game. Isso deve ser uma opcao disponivel pra ligar/desligar nos settings do game
 
-> Itens 26-35 (migração FNA→MonoGame e Fases B/C/D/M/L/E/F/G de performance) **movidos pra [`PERF_PLAN_EXTREME.md`](PERF_PLAN_EXTREME.md)** — veja a seção "Status das Fases" lá pro tracker oficial.
+- [ ] 26. Revisitar o renderer custom ImGui↔MonoGame (`DwarfCorp/Gui/Debug/ImGuiRenderer.cs`).
+  Durante L.1 (commit `1914b7e04`) tentei 3 pacotes NuGet (`MonoGame.ImGuiNet`, `Monogame.ImGui.Standard`, `Monogame.Imgui.Renderer`) e todos tinham problema: empacotamento quebrado (DLL fora de `lib/`), pinagem velha de ImGui.NET (1.89.x), ou sem sinal de manutenção. Acabei escrevendo o renderer do zero (~280 LOC) seguindo o pattern da amostra oficial do ImGui.NET. Funciona bem, mas é código de infra que passa a ser nosso pra manter.
+  **Rever quando:** (a) surgir um package mantido de verdade; (b) atualizar pra ImGui.NET 2.x (se/quando ImGui upstream quebrar o formato de ImDrawVert); (c) tocar em MonoGame DX→Vulkan; (d) precisar docking/multi-viewport (nosso renderer é single-viewport por simplicidade).
+
+> Itens 27-35 (migração FNA→MonoGame e Fases B/C/D/M/L/E/F/G de performance) **movidos pra [`PERF_PLAN_EXTREME.md`](PERF_PLAN_EXTREME.md)** — veja a seção "Status da Migração" lá pro tracker oficial.
