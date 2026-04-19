@@ -21,11 +21,12 @@ Legenda: ✅ concluída · 🚧 em andamento · ⬜ pendente · ⏸️ deferida 
 
 ### Fase M — Port mecânico (MonoGame rodando, 1-2 semanas)
 Mínimo pra o jogo compilar e rodar em MonoGame. **Sem otimização** nesta fase — só o swap de plataforma.
-- ⬜ **M.1** — Swap `FNA.Core.csproj` → `MonoGame.Framework.WindowsDX` PackageReference
-- ⬜ **M.2** — Rebuild `Content/Content.mgcb` via `MonoGame.Content.Builder.Task`
-- ⬜ **M.3** — API compat audit (SpriteBatch, RenderTarget2D, PresentationParameters)
+- ✅ **M.1** — Swap FNA submodule → `MonoGame.Framework.WindowsDX 3.8.4.1` (commit `8c2d1b939`)
+- ✅ **M.2** — Content pipeline migrado: platform Windows, EffectProcessor default, profiles SM4, specialization removida (commits `35ce163ee`, `57cc80257`)
+- ✅ **M.3** — API compat: SDL2/TextInputEXT/OnExiting/GetVertexBuffers substituídos (commit `7629f3fdd`)
 - ⬜ **M.4** — Revalidar/remover `GpuLock` (provavelmente morto em DX11)
-- ⬜ **M.5** — Baseline `baseline_v5_monogame.csv` — jogo roda, save antigo carrega
+- ⬜ **M.5** — Baseline `baseline_v5_monogame.csv`
+- ⚠️ **Follow-up** — main menu visual não aparece (jogo chega no PlayState); debug pós-L.1 com ImGui.
 
 ### Fase L — Adoção do stack moderno (bases antes das reimplementações)
 Traz as libs novas antes de reescrever subsistemas. Elas são os blocos de construção das Fases B/C/D.
