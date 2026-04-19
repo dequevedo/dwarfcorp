@@ -44,12 +44,25 @@ namespace DwarfCorp.Gui.Debug
             bool transpose = Shader.TransposeMatrices;
             if (ImGui.Checkbox("Transpose shader matrices (row-major → column-major)", ref transpose))
                 Shader.TransposeMatrices = transpose;
-
             ImGui.TextWrapped(
-                "If the 3D viewport is black and this checkbox flips it to visible, " +
-                "FNA was passing row-major matrices and MonoGame DX11 is reading column-major. " +
-                "That means the migration needs a permanent fix (either `row_major` annotations " +
-                "in the .fx declarations or baking Transpose into the setters — then retire the toggle).");
+                "Tests the matrix-convention hypothesis. If flipping this brings the viewport back, " +
+                "FNA was row-major and MonoGame DX11 is column-major — then bake Transpose in and retire the toggle.");
+
+            ImGui.Spacing();
+
+            bool outline = GameSettings.Current.EnableOutline;
+            if (ImGui.Checkbox("Enable screen-space outline post-effect", ref outline))
+                GameSettings.Current.EnableOutline = outline;
+            ImGui.TextWrapped(
+                "The outline effect redirects the main scene to an offscreen render target and blits it back " +
+                "with ScreenSpaceOutline.fx. That shader was bumped to SM 4.0 profiles during M.2 — if the blit " +
+                "is broken the whole 3D viewport stays black. Uncheck to bypass the effect entirely and see if " +
+                "the world renders without it.");
+
+            bool glow = GameSettings.Current.EnableGlow;
+            if (ImGui.Checkbox("Enable bloom/glow post-effect", ref glow))
+                GameSettings.Current.EnableGlow = glow;
+            ImGui.TextWrapped("Same kind of hypothesis, but for the bloom pass. Untick to rule bloom out as the culprit.");
         }
 
         private static void DrawGraphicsDeviceInfo()
