@@ -16,7 +16,7 @@
     <ApplicationIcon>favicon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <DefineConstants>$(DefineConstants);WINDOWS;GEMFNA</DefineConstants>
+    <DefineConstants>$(DefineConstants);WINDOWS;MONOGAME</DefineConstants>
     <OutputPath>bin\FNA\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <UseWindowsForms>false</UseWindowsForms>
@@ -47,12 +47,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.*" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Steamworks.NET" Version="20.2.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FNA\FNA.Core.csproj" />
     <ProjectReference Include="..\LibNoise\LibNoise.csproj" />
     <ProjectReference Include="..\YarnSpinner\YarnSpinner.csproj" />
     <ProjectReference Include="..\PSD\PhotoShop.csproj" />
@@ -62,17 +62,17 @@
     <Exec Command="git rev-parse --short HEAD &gt; &quot;$(ProjectDir)version.txt&quot;" ContinueOnError="true" IgnoreExitCode="true" />
   </Target>
 
-  <Target Name="CopyNativesAndContent" AfterTargets="Build">
+  <!-- MonoGame ships native binaries (SDL2.dll, etc) via NuGet package contentFiles automatically.
+       This target only handles content copy (MGCB-compiled XNBs + raw assets). -->
+  <Target Name="CopyContent" AfterTargets="Build">
     <PropertyGroup>
       <RepoRoot>$(MSBuildProjectDirectory)\..</RepoRoot>
       <OutDirAbs>$(ProjectDir)$(OutDir)</OutDirAbs>
     </PropertyGroup>
     <ItemGroup>
-      <FnaNatives Include="$(RepoRoot)\FNA_libs\win64\**\*" />
       <MgcbContent Include="$(RepoRoot)\ContentMGCB\bin\Content\**\*" />
       <RawContent Include="$(RepoRoot)\DwarfCorp\Content\**\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(FnaNatives)" DestinationFolder="$(OutDirAbs)%(RecursiveDir)" SkipUnchangedFiles="true" ContinueOnError="true" />
     <MakeDir Directories="$(OutDirAbs)Content" />
     <Copy SourceFiles="@(MgcbContent)" DestinationFolder="$(OutDirAbs)Content\%(RecursiveDir)" SkipUnchangedFiles="true" ContinueOnError="true" />
     <Copy SourceFiles="@(RawContent)" DestinationFolder="$(OutDirAbs)Content\%(RecursiveDir)" SkipUnchangedFiles="true" ContinueOnError="true" />

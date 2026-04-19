@@ -1,7 +1,3 @@
-[submodule "FNA"]
-	path = FNA
-	url = https://github.com/FNA-XNA/FNA.git
-	branch = master
 [submodule "DwarfCorp/DwarfCorpXNA/Facepunch.Steamworks"]
 	path = DwarfCorp/DwarfCorpXNA/Facepunch.Steamworks
 	url = https://github.com/Facepunch/Facepunch.Steamworks.git
