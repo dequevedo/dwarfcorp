@@ -140,28 +140,30 @@ namespace DwarfCorp
                 if (AtlasEntries == null)
                     RebuildAtlas();
 
-                // Dispose the previous atlas texture before reassigning — otherwise every
-                // NeedsRendered flip leaks a full-atlas-sized Texture2D to the finalizer,
-                // and the finalizer running on a GC thread can free a GL handle the render
-                // thread is still referencing → native AccessViolation during DrawInstancedPrimitives.
-                if (AtlasTexture != null && !AtlasTexture.IsDisposed)
-                    AtlasTexture.Dispose();
-                AtlasTexture = new Texture2D(Device, AtlasBounds.Width, AtlasBounds.Height);
-
-                foreach (var texture in AtlasEntries)
+                // Serialize GPU calls against background threads. Flush is usually only called
+                // from the render thread, but NeedsRendered / atlas-disposed checks can race
+                // with atlas rebuild paths — cheaper to hold the lock than to chase bugs.
+                lock (DwarfGame.GpuLock)
                 {
-                    var realTexture = texture.SourceTexture;
-                    if (realTexture == null || realTexture.IsDisposed || realTexture.GraphicsDevice.IsDisposed)
+                    if (AtlasTexture != null && !AtlasTexture.IsDisposed)
+                        AtlasTexture.Dispose();
+                    AtlasTexture = new Texture2D(Device, AtlasBounds.Width, AtlasBounds.Height);
+
+                    foreach (var texture in AtlasEntries)
                     {
-                        texture.SourceTexture = AssetManager.GetContentTexture(texture.SourceDefinition.Texture);
-                        realTexture = texture.SourceTexture;
+                        var realTexture = texture.SourceTexture;
+                        if (realTexture == null || realTexture.IsDisposed || realTexture.GraphicsDevice.IsDisposed)
+                        {
+                            texture.SourceTexture = AssetManager.GetContentTexture(texture.SourceDefinition.Texture);
+                            realTexture = texture.SourceTexture;
+                        }
+
+                        var textureData = new Color[realTexture.Width * realTexture.Height];
+                        realTexture.GetData(textureData);
+
+                        // Paste texture data into atlas.
+                        AtlasTexture.SetData(0, texture.AtlasBounds, textureData, 0, realTexture.Width * realTexture.Height);
                     }
-
-                    var textureData = new Color[realTexture.Width * realTexture.Height];
-                    realTexture.GetData(textureData);
-
-                    // Paste texture data into atlas.
-                    AtlasTexture.SetData(0, texture.AtlasBounds, textureData, 0, realTexture.Width * realTexture.Height);
                 }
 
                 NeedsRendered = false;
@@ -169,9 +171,12 @@ namespace DwarfCorp
 
             if (InstanceBuffer == null || InstanceBuffer.IsDisposed || InstanceBuffer.IsContentLost)
             {
-                if (InstanceBuffer != null && !InstanceBuffer.IsDisposed)
-                    InstanceBuffer.Dispose();
-                InstanceBuffer = new DynamicVertexBuffer(Device, TiledInstancedVertex.VertexDeclaration, InstanceQueueSize, BufferUsage.None);
+                lock (DwarfGame.GpuLock)
+                {
+                    if (InstanceBuffer != null && !InstanceBuffer.IsDisposed)
+                        InstanceBuffer.Dispose();
+                    InstanceBuffer = new DynamicVertexBuffer(Device, TiledInstancedVertex.VertexDeclaration, InstanceQueueSize, BufferUsage.None);
+                }
             }
             
             Device.RasterizerState = new RasterizerState { CullMode = CullMode.None };

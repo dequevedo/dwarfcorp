@@ -22,6 +22,20 @@ namespace DwarfCorp
 
     public class DwarfGame : Game
     {
+        /// <summary>
+        /// Global lock serializing any code that touches the GraphicsDevice or allocates/updates
+        /// GPU resources (Texture2D, VertexBuffer, IndexBuffer, RenderTarget2D, SetData calls).
+        /// Required on FNA 26 Vulkan backend because VkCommandPool is not thread-safe and FNA 26
+        /// does not auto-marshal calls to the main thread like FNA 19 OpenGL did. Without this,
+        /// RebuildVoxelsThread racing against the main render thread corrupts the Vulkan command
+        /// pool on AMD drivers and crashes with STATUS_HEAP_CORRUPTION.
+        ///
+        /// Take-hold pattern: wrap every `new Texture2D/VertexBuffer/IndexBuffer/RenderTarget2D`
+        /// plus any `SetData` coming from a non-render-loop context. Main render frame takes
+        /// the lock once per Draw() and holds it for ~5-15ms.
+        /// </summary>
+        public static readonly object GpuLock = new object();
+
         public GraphicsDeviceManager Graphics;
         public static SpriteBatch SpriteBatch { get; set; }
         public Terrain2D ScreenSaver { get; set; }
@@ -51,6 +65,7 @@ namespace DwarfCorp
 
         private List<LazyAction> _lazyActions = new List<LazyAction>();
         private object _actionMutex = new object();
+        private System.Threading.Timer _autoExitTimer;
 
         public DwarfGame()
         {
@@ -74,6 +89,21 @@ namespace DwarfCorp
             MathFunctions.Random = new ThreadSafeRandom(new Random().Next());
             Graphics.PreparingDeviceSettings += WorldRenderer.GraphicsPreparingDeviceSettings;
             Graphics.PreferMultiSampling = false;
+
+            // Optional batch-mode auto-exit. Set DWARFCORP_AUTOEXIT_SECONDS=N in the environment
+            // to force the process to quit N seconds after launch — used by run-quick.ps1 so I
+            // can smoke-test the build end-to-end and read logs without having to close the
+            // window manually. Only activates when the env var is set and parses to > 0.
+            var autoExit = Environment.GetEnvironmentVariable("DWARFCORP_AUTOEXIT_SECONDS");
+            if (!string.IsNullOrEmpty(autoExit) && int.TryParse(autoExit, out var seconds) && seconds > 0)
+            {
+                _autoExitTimer = new System.Threading.Timer(_ =>
+                {
+                    Console.Out.WriteLine("[DWARFCORP_AUTOEXIT_SECONDS] " + seconds + "s elapsed — calling Exit()");
+                    try { this.Exit(); }
+                    catch (Exception e) { Console.Error.WriteLine("AutoExit Exit() threw: " + e); }
+                }, null, seconds * 1000, System.Threading.Timeout.Infinite);
+            }
             // Don't call ApplyChanges() here — FNA 26 emits "Forcing CreateDevice! Avoid
             // calling ApplyChanges before Game.Run!" and creates the GraphicsDevice twice
             // (once here, once during FNA's Run()), which orphans every texture/buffer
@@ -418,36 +448,43 @@ namespace DwarfCorp
 
             HasRendered = true;
 
-#if !DEBUG
-            try
+            // Hold the global GPU lock for the entire frame render. Any background thread that
+            // needs to touch the GraphicsDevice (chunk rebuild, resource texture create, water
+            // geometry upload) blocks here until the frame finishes. Without this, FNA 26 with
+            // the AMD Vulkan backend races on the VkCommandPool and corrupts the heap.
+            lock (GpuLock)
             {
+#if !DEBUG
+                try
+                {
 #endif
-                PerformanceMonitor.PushFrame("Render");
+                    PerformanceMonitor.PushFrame("Render");
 
-                GraphicsDevice.Clear(Color.Black);
+                    GraphicsDevice.Clear(Color.Black);
 
-                if (GameStateManager.DrawScreensaver)
-                    ScreenSaver.Render(GraphicsDevice, DwarfTime.LastTimeX);
+                    if (GameStateManager.DrawScreensaver)
+                        ScreenSaver.Render(GraphicsDevice, DwarfTime.LastTimeX);
 
-                GameStateManager.Render(DwarfTime.LastTimeX);
+                    GameStateManager.Render(DwarfTime.LastTimeX);
 
-                GraphicsDevice.SetRenderTarget(null);
-                base.Draw(time);
-                PerformanceMonitor.PopFrame();
-                PerformanceMonitor.Render();
+                    GraphicsDevice.SetRenderTarget(null);
+                    base.Draw(time);
+                    PerformanceMonitor.PopFrame();
+                    PerformanceMonitor.Render();
 
-                if (ConsoleVisible)
-                    ConsoleGui.Draw();
+                    if (ConsoleVisible)
+                        ConsoleGui.Draw();
 
 #if !DEBUG
-            }
-            catch (Exception exception)
-            {
-                Program.CaptureException(exception);
-                if (Program.ShowErrorDialog(exception.Message))
-                    throw new HandledException(exception);
-            }
+                }
+                catch (Exception exception)
+                {
+                    Program.CaptureException(exception);
+                    if (Program.ShowErrorDialog(exception.Message))
+                        throw new HandledException(exception);
+                }
 #endif
+            }
         }
 
         public static void SafeSpriteBatchBegin(SpriteSortMode sortMode, BlendState blendState, SamplerState samplerstate, 

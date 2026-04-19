@@ -528,3 +528,5 @@ $RECYCLE.BIN/
 .claude/
 .vs/
 .triage_tmp/
+run-quick.log
+run-quick.err.log

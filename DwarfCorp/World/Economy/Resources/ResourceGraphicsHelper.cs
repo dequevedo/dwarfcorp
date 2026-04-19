@@ -49,13 +49,22 @@ namespace DwarfCorp
             if (_sharedTextureCache.TryGetValue(key, out var cached) && cached != null && !cached.IsDisposed)
                 return cached;
 
-            var freshly = TextureTool.Texture2DFromMemoryTexture(Device, _GetResourceTexture(Device, Graphic));
-            // Last-writer wins on concurrent create — the loser's texture is disposed to
-            // avoid a leak. Unlikely in practice since load paths are sequential, but cheap
-            // to handle correctly.
+            // `new Texture2D` and SetData are GPU calls — they must serialize against the
+            // render thread on FNA 26 Vulkan. Called from ResourceEntity.CreateCosmeticChildren
+            // which can run on worker / AI / deserialization threads.
+            Texture2D freshly;
+            lock (DwarfGame.GpuLock)
+            {
+                freshly = TextureTool.Texture2DFromMemoryTexture(Device, _GetResourceTexture(Device, Graphic));
+            }
+            // Last-writer wins on concurrent create — the loser's texture is disposed to avoid
+            // a leak. Unlikely in practice since we're already serialized by GpuLock, but cheap.
             var stored = _sharedTextureCache.GetOrAdd(key, freshly);
             if (!ReferenceEquals(stored, freshly) && !freshly.IsDisposed)
-                freshly.Dispose();
+            {
+                lock (DwarfGame.GpuLock)
+                    freshly.Dispose();
+            }
             return stored;
         }
 

@@ -102,12 +102,11 @@ namespace DwarfCorp
         /// <param Name="device">GPU to draw with.</param></summary>
         public virtual void ResetBuffer(GraphicsDevice device)
         {
-            //if(DwarfGame.ExitGame)
-            //{
-            //    return;
-            //}
-
-            //lock (VertexLock)
+            // GPU resource allocation + SetData. MUST serialize against the render thread on
+            // FNA 26 Vulkan — without this the VkCommandPool races with vkCmdBindVertexBuffers
+            // from the render thread and corrupts the heap. Called from RebuildVoxelsThread
+            // (chunk rebuild) and various other background paths.
+            lock (DwarfGame.GpuLock)
             {
                 if (VertexBuffer != null && !VertexBuffer.IsDisposed)
                     VertexBuffer.Dispose();
