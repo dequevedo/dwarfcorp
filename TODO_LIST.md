@@ -107,12 +107,31 @@
 
 - [ ] 25. Gostaria de uma feature pra mostrar FPS na UI do game. Isso deve ser uma opcao disponivel pra ligar/desligar nos settings do game
 
-- [ ] 26.
+- [x] 26. PERF_PLAN v5 — Fase A: Discovery de compute shaders em FNA 26.04 / Vulkan.
+  **Verdict: NÃO disponível.** FNA mantém paridade XNA4 estrita — `FNA3D.cs` sem entry points de compute, Effect system só VERTEX/PIXEL via MojoShader. Ativa Fase M (migração pra MonoGame 3.8.x DX11). Detalhes em `docs/perf_compute_discovery.md`.
 
-- [ ] 27.
+- [x] 27. PERF_PLAN v5 — Decisão de engine.
+  Avaliadas: FNA (stay), MonoGame 3.8, Stride 4.2, Godot 4 + C#, Unity 6, Flax, Veldrid + libs. Escolhida **MonoGame 3.8.x (DX11)** + stack composável (Arch ECS, ImGui.NET, ZLogger, MessagePipe, FontStashSharp, BenchmarkDotNet, xUnit v3). Justificativa completa em `docs/engine_decision.md`. Stride tentado em v4 e revertido em `fdd522708`.
 
-- [ ] 28.
+- [ ] 28. PERF_PLAN v5 — Fase B: Chunk rebuild refactor (mesh-gen paralelo + GPU upload serial + greedy mesh + SIMD).
+  B.1 separa `GeometryBuilder` de `GraphicsDevice` (retorna `MeshData` POCO); workers enfileiram em `MeshUploadQueue`; upload single-thread no `Draw()` sob `GpuLock`. B.2 greedy meshing (Mikola/Tantan). B.3 scan AVX2 `Vector256<byte>`. B.4 profiler por seção. Resolve o revert da Fase 1.1. Platform-agnostic: roda no FNA atual, migra pro MonoGame junto.
 
-- [ ] 29.
+- [ ] 29. PERF_PLAN v5 — Fase C: Pathfinding async/TCS + heuristic cache + ArrayPool.
+  C.1 `PlanService.Enqueue` → `Task<List<MoveAction>>`, AI usa `await`. C.2 cache h-values per-thread invalidado por chunk rebuild. C.3 `FindRootBodiesInsideScreenRectangle` via `ArrayPool<GameComponent>.Shared` (inicia adoção de ArrayPool — hoje zero usos).
 
-- [ ] 30.
+- [ ] 30. PERF_PLAN v5 — Fase D: Component Update paralelo com JobScheduler.
+  Novo `Tools/Threading/JobScheduler.cs` — `Parallel.ForEach` + partitioner por hash chunk-coord. Commits em `ConcurrentQueue` drenada fim-de-frame. Auditoria prévia de `IUpdateableComponent.Update` marcando "parallel-safe" vs "main-thread-only".
+
+- [ ] 31. PERF_PLAN v5 — Fase M: Migração FNA → MonoGame 3.8.x (DX11). Bloqueante pra compute shaders.
+  M.1 swap `FNA.Core.csproj` ProjectReference por `MonoGame.Framework.WindowsDX` PackageReference. Remove submódulo FNA (tag `legacy-fna-final` antes). M.2 rebuild `Content/Content.mgcb` via `MonoGame.Content.Builder.Task`. M.3 API compat audit. M.4 revalidar/remover `GpuLock` (MonoGame DX11 tem locking próprio). M.5 baseline `baseline_v5_monogame.csv`. Escopo: 1-2 semanas port mecânico.
+
+- [ ] 32. PERF_PLAN v5 — Fase L: Adoção do stack composável (incremental, PRs independentes).
+  L.1 ImGui.NET pra debug UI (profiler, console). L.2 ZLogger + Microsoft.Extensions.DependencyInjection + Hosting. L.3 MessagePipe pra pub/sub (`ChunkInvalidated`, `DwarfSpawned`, etc). L.4 Arch ECS + shim de migração de save (SaveFormatVersion v1→v2, xUnit idempotência). L.5 BenchmarkDotNet + xUnit v3 em novo projeto `DwarfCorp.Tests/`. L.6 Stb* + FontStashSharp sob demanda.
+
+- [ ] 33. PERF_PLAN v5 — Fase E: GPU avançada (DEFERIDA).
+  Visual basic low-poly pixelated → PBR/shadows/SSAO não entram. Se profile mostrar gargalo GPU: E.1 particles VS/compute, E.2 light culling CPU-side, E.3 mega-mesh batching, E.4 liquid instancing, E.5 Hi-Z occlusion MSOC port. Decidir caso-a-caso.
+
+- [ ] 34. PERF_PLAN v5 — Fase F (opcional): DynamicBVH, WaterManager tile-partitioned, Body SoA. Profile-driven.
+
+- [ ] 35. PERF_PLAN v5 — Fase G: GUI migração completa pra ImGui.NET (DEFERIDA).
+  Rewrite dos 96 arquivos `Gui/*`. 6-10 semanas. Entra depois de L.1 provar pipeline e quando surgir motivo concreto.
