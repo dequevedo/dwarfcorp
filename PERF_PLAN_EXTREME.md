@@ -17,9 +17,16 @@ Legenda: ✅ concluída · 🚧 em andamento · ⬜ pendente · ⏸️ deferida 
 - ✅ **Fase A** — Compute discovery em FNA 26.04 ([docs/perf_compute_discovery.md](docs/perf_compute_discovery.md))
 - ✅ **Engine decision** — MonoGame 3.8 escolhido; 7 engines avaliados ([docs/engine_decision.md](docs/engine_decision.md))
 
-### CPU perf (platform-agnostic, roda no FNA atual)
+### Migração de plataforma (PRIMEIRO — destrava tudo)
+- ⬜ **M.1** — Swap `FNA.Core.csproj` → `MonoGame.Framework.WindowsDX` PackageReference
+- ⬜ **M.2** — Rebuild `Content/Content.mgcb` via `MonoGame.Content.Builder.Task`
+- ⬜ **M.3** — API compat audit (SpriteBatch, RenderTarget2D, PresentationParameters)
+- ⬜ **M.4** — Revalidar/remover `GpuLock` (provavelmente morto em DX11)
+- ⬜ **M.5** — Baseline `baseline_v5_monogame.csv`
+
+### CPU perf (após M, já no MonoGame DX11)
 - ⬜ **C.3** — ArrayPool em `FindRootBodiesInsideScreenRectangle` (inicia adoção de ArrayPool no projeto)
-- ⬜ **B.1** — Split mesh-gen CPU / GPU upload serial (resolve a Fase 1.1 revertida)
+- ⬜ **B.1** — Split mesh-gen CPU / GPU upload serial (resolve a Fase 1.1 revertida; muito mais seguro em DX11)
 - ⬜ **B.2** — Greedy meshing em `GenerateSliceGeometry`
 - ⬜ **B.3** — SIMD AVX2 no scan de visibilidade
 - ⬜ **B.4** — Instrumentação profiler por seção
@@ -29,14 +36,7 @@ Legenda: ✅ concluída · 🚧 em andamento · ⬜ pendente · ⏸️ deferida 
 - ⬜ **D.2** — `ComponentManager.Update` paralelo
 - ⬜ **D.3** — Auditoria thread-safety `IUpdateableComponent.Update`
 
-### Migração de plataforma
-- ⬜ **M.1** — Swap `FNA.Core.csproj` → `MonoGame.Framework.WindowsDX` PackageReference
-- ⬜ **M.2** — Rebuild `Content/Content.mgcb` via `MonoGame.Content.Builder.Task`
-- ⬜ **M.3** — API compat audit (SpriteBatch, RenderTarget2D, PresentationParameters)
-- ⬜ **M.4** — Revalidar/remover `GpuLock`
-- ⬜ **M.5** — Baseline `baseline_v5_monogame.csv`
-
-### Stack composável (incremental, PRs independentes)
+### Stack composável (incremental, PRs independentes — após M)
 - ⬜ **L.5** — Novo projeto `DwarfCorp.Tests/` com xUnit v3 + BenchmarkDotNet
 - ⬜ **L.1** — ImGui.NET integration (debug/dev UI primeiro: profiler + console)
 - ⬜ **L.2** — ZLogger + Microsoft.Extensions.DependencyInjection + Hosting
@@ -190,7 +190,7 @@ Lista completa em `TODO_LIST.md` "Concluído". Destaques:
 
 ---
 
-### Fase B — Chunk rebuild refactor (carry de v2)
+### Fase B — Chunk rebuild refactor (após M, já em DX11)
 
 Resolve o revertido Fase 1.1.
 
@@ -298,38 +298,46 @@ Rewrite dos 96 arquivos `Gui/*` pra ImGui. 6-10 semanas. Depois de L.1 provar pi
 
 ---
 
-## Rollout (ordem)
+## Rollout (ordem) — **M primeiro, depois tudo no MonoGame**
+
+Racional: B.1 original foi revertida por HEAP_CORRUPTION no driver AMD Vulkan (bug FNA-específico). Fazendo M primeiro, o bug provavelmente some em DX11 e a gente deleta o `GpuLock` junto. Valida perf uma vez só, na stack final.
 
 | # | Fase | Risco | ROI | Depende de |
 |---|---|---|---|---|
-| 1 | C.3 (ArrayPool FindRootBodies) | Baixo | Médio | — |
-| 2 | B.1 (mesh-gen/upload split) | Médio | Muito alto | — |
-| 3 | B.2 (greedy mesh) | Médio | Muito alto | B.1 |
-| 4 | B.3 (SIMD scan) | Baixo | Alto | B.2 |
-| 5 | C.1 (pathfinding async) | Médio | Alto | — |
-| 6 | C.2 (heuristic cache) | Baixo | Médio | C.1 |
-| 7 | D (component update paralelo) | Alto | Muito alto | — |
-| 8 | M (FNA → MonoGame) | Médio | Destrava compute | pref. após B/C/D |
-| 9 | L.5 (test infra) | Baixo | Médio (dev vel.) | — |
-| 10 | L.1 (ImGui debug) | Baixo | Médio | M |
-| 11 | L.2 (ZLogger + DI) | Baixo | Médio | — |
-| 12 | L.3 (MessagePipe) | Baixo | Médio | L.2 |
-| 13 | L.4 (Arch + save shim) | Alto | Alto (longo prazo) | M, L.5 |
-| 14 | L.6 (Stb*/FontStash) | Baixo | On-demand | — |
-| 15 | E/F/G | — | profile-driven | — |
+| 1 | **M.1** (swap reference) | Baixo | Destrava tudo | — |
+| 2 | **M.2** (rebuild MGCB) | Baixo | M | M.1 |
+| 3 | **M.3** (API compat audit) | Médio | M | M.2 |
+| 4 | **M.4** (`GpuLock` revalidation) | Baixo | Simplifica B.1 | M.3 |
+| 5 | **M.5** (baseline MonoGame) | Baixo | Validação | M.4 |
+| 6 | **L.5** (test infra: xUnit + BenchmarkDotNet) | Baixo | Médio (dev velocity) | M |
+| 7 | **C.3** (ArrayPool FindRootBodies) | Baixo | Médio | M |
+| 8 | **B.1** (mesh-gen/upload split) | Médio | Muito alto | M |
+| 9 | **B.2** (greedy mesh) | Médio | Muito alto | B.1 |
+| 10 | **B.3** (SIMD scan) | Baixo | Alto | B.2 |
+| 11 | **C.1** (pathfinding async) | Médio | Alto | M |
+| 12 | **C.2** (heuristic cache) | Baixo | Médio | C.1 |
+| 13 | **D** (component update paralelo) | Alto | Muito alto | M |
+| 14 | **L.1** (ImGui debug UI) | Baixo | Médio | M |
+| 15 | **L.2** (ZLogger + DI) | Baixo | Médio | M |
+| 16 | **L.3** (MessagePipe) | Baixo | Médio | L.2 |
+| 17 | **L.4** (Arch + save shim) | Alto | Alto (longo prazo) | L.5 |
+| 18 | **L.6** (Stb*/FontStash) | Baixo | On-demand | — |
+| 19 | E/F/G | — | profile-driven | — |
 
 **Janela estimada:**
-- Mês 1: B/C/D no FNA (platform-agnostic).
-- Mês 2: M + L.5 + L.1.
-- Mês 3: L.2/L.3 + L.4.A.
-- Meses 4-5: L.4.B (cutover Arch + save shim).
-- Mês 6+: E/F/G conforme profile.
+- Semanas 1-2: **M.1-M.5** — migração mecânica completa, baseline validado.
+- Semanas 3-4: **L.5** + **C.3** — test infra montada, primeira otimização aplicada.
+- Mês 2: **B.1-B.4** — chunk rebuild refactor (agora sem lutar contra Vulkan bugs).
+- Mês 3: **C.1-C.2 + D** — pathfinding async, component update paralelo.
+- Mês 4: **L.1 + L.2 + L.3** — ImGui debug, ZLogger, DI, MessagePipe.
+- Meses 5-6: **L.4** — Arch ECS + save-migration shim.
+- Mês 7+: E/F/G conforme profile exigir.
 
 ---
 
 ## Verificação
 
-1. **Baselines:** `baseline_v5_pre.csv` (antes), `baseline_v5_cpu.csv` (após B+C+D), `baseline_v5_monogame.csv` (após M), `baseline_v5_arch.csv` (após L.4).
+1. **Baselines:** `baseline_v5_fna.csv` (estado atual, antes de M), `baseline_v5_monogame.csv` (após M), `baseline_v5_cpu.csv` (após B+C+D), `baseline_v5_arch.csv` (após L.4).
 2. **Cena stress canônica:** seed fixo + WorldSize=Large + 30 dwarfs + combat trigger. Documentar em `docs/perf_bench.md`.
 3. Após cada PR: diff CSV em `ComponentManager.Update`, `ChunkMeshGen`, `ChunkGpuUpload`, `ChunkRenderer.Render`, `WaterManager.UpdateWater`, frame p50/p95, `GC.CollectionCount(2)`.
 4. 30 min sem crash + Gen2 estável = aceite.
