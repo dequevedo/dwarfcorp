@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using DwarfCorp.GameStates;
 using Microsoft.Xna.Framework;
@@ -133,7 +134,8 @@ namespace DwarfCorp
 #if !DEBUG
             catch (Exception exception)
             {
-                SDL2.SDL.SDL_ShowSimpleMessageBox(SDL2.SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Unhandled Exception!", String.Format("An unhandled exception occurred in DwarfCorp. This has been reported to Completely Fair Games LLC.\n {0}", exception.ToString()), IntPtr.Zero);
+                ShowErrorMessageBox("Unhandled Exception!",
+                    String.Format("An unhandled exception occurred in DwarfCorp. This has been reported to Completely Fair Games LLC.\n {0}", exception.ToString()));
                 WriteExceptionLog(exception);
             }
 #endif
@@ -279,6 +281,28 @@ namespace DwarfCorp
         public static bool ShowErrorDialog(String Message)
         {
             return true;
+        }
+
+        // Minimal native message box for Windows. Replaces the FNA-era
+        // SDL2.SDL_ShowSimpleMessageBox call used on unhandled crashes in
+        // release builds. Silently no-ops if the native call fails.
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = false)]
+        private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
+
+        private const uint MB_OK = 0x0;
+        private const uint MB_ICONERROR = 0x10;
+
+        public static void ShowErrorMessageBox(string title, string body)
+        {
+            try
+            {
+                MessageBoxW(IntPtr.Zero, body, title, MB_OK | MB_ICONERROR);
+            }
+            catch
+            {
+                // Best effort. If user32 isn't reachable (non-Windows runtime with this
+                // WindowsDX build shouldn't happen, but defend anyway), just fall through.
+            }
         }
     }
 #endif

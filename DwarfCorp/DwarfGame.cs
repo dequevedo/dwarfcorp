@@ -8,8 +8,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Linq;
 using Newtonsoft.Json;
-using SDL2;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using DwarfCorp.Gui.Widgets;
 
 namespace DwarfCorp
@@ -118,12 +118,11 @@ namespace DwarfCorp
 
         public static string GetGameDirectory()
         {
-            string platform = SDL.SDL_GetPlatform();
-            if (platform.Equals("Windows"))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), GameName);
             }
-            else if (platform.Equals("Mac OS X"))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 string osConfigDir = Environment.GetEnvironmentVariable("HOME");
                 if (String.IsNullOrEmpty(osConfigDir))
@@ -133,7 +132,7 @@ namespace DwarfCorp
                 osConfigDir += "/Library/Application Support";
                 return Path.Combine(osConfigDir, GameName);
             }
-            else if (platform.Equals("Linux"))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 string osConfigDir = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
                 if (String.IsNullOrEmpty(osConfigDir))
@@ -147,7 +146,7 @@ namespace DwarfCorp
                 }
                 return Path.Combine(osConfigDir, GameName);
             }
-            throw new Exception("SDL platform unhandled: " + platform);
+            throw new Exception("Unhandled platform: " + RuntimeInformation.OSDescription);
         }
 
 
@@ -243,7 +242,7 @@ namespace DwarfCorp
             // Prepare GemGui
             if (GumInputMapper == null)
             {
-                GumInputMapper = new Gui.Input.GumInputMapper(Window.Handle);
+                GumInputMapper = new Gui.Input.GumInputMapper(Window);
                 GumInput = new Gui.Input.Input(GumInputMapper);
             }
 
@@ -532,7 +531,7 @@ namespace DwarfCorp
             }
         }
 
-        protected override void OnExiting(object sender, EventArgs args)
+        protected override void OnExiting(object sender, ExitingEventArgs args)
         {
             if (_initialOut != null)
                 Console.SetOut(_initialOut);

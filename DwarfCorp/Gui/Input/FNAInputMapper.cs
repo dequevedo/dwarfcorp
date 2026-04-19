@@ -238,9 +238,12 @@ namespace DwarfCorp.Gui.Input
             return r;
         }
         
-        public GumInputMapper(IntPtr WindowHandle)
+        public GumInputMapper(GameWindow Window)
         {
-            Microsoft.Xna.Framework.Input.TextInputEXT.TextInput += c =>
+            // MonoGame exposes text input via GameWindow.TextInput. (FNA had a separate
+            // static TextInputEXT class; MonoGame ties the event to the window instance.)
+            // StartTextInput is implicit on the WindowsDX backend — no explicit call needed.
+            Window.TextInput += (sender, args) =>
                 {
                     QueueLock.WaitOne();
                     Queued.Add(new QueuedInput
@@ -248,7 +251,7 @@ namespace DwarfCorp.Gui.Input
                             Message = InputEvents.KeyPress,
                             Args = new InputEventArgs
                             {
-                                KeyValue = c,
+                                KeyValue = args.Character,
                                 Alt = false,
                                 Control = false,
                                 Shift = false
@@ -256,8 +259,6 @@ namespace DwarfCorp.Gui.Input
                         });
                     QueueLock.ReleaseMutex();
                 };
-
-            Microsoft.Xna.Framework.Input.TextInputEXT.StartTextInput();
         }
     }
 }

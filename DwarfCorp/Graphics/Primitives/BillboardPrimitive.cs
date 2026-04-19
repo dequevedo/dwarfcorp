@@ -174,16 +174,14 @@ namespace DwarfCorp
                 new Vector2((float)Rect.X / texture.Width, (float)Rect.Bottom / texture.Height),
                 tileBounds);
 
-            //GameState.Game.GraphicsDevice.SetVertexBuffer(null);
             if (VertexBuffer == null || VertexBuffer.IsDisposed || VertexBuffer.IsContentLost || VertexBuffer.GraphicsDevice == null || VertexBuffer.GraphicsDevice.IsDisposed)
                 ResetBuffer(GameState.Game.GraphicsDevice);
             else
             {
-                var buffers = GameState.Game.GraphicsDevice.GetVertexBuffers();
-                if (buffers.Any(buffer => buffer.VertexBuffer == VertexBuffer))
-                {
-                    GameState.Game.GraphicsDevice.SetVertexBuffer(null);
-                }
+                // MonoGame doesn't expose GraphicsDevice.GetVertexBuffers (that was a FNA
+                // extension). Unconditionally unbind before SetData — the cost is a single
+                // API call and it guarantees SetData can't race with the current render state.
+                GameState.Game.GraphicsDevice.SetVertexBuffer(null);
                 VertexBuffer.SetData(Vertices);
             }
 

@@ -8,7 +8,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Linq;
 using Newtonsoft.Json;
-using SDL2;
 using System.Collections.Generic;
 
 namespace DwarfCorp
