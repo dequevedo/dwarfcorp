@@ -3,10 +3,13 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using DwarfCorp.GameStates;
+using DwarfCorp.Infrastructure;
+using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
+using ZLogger;
 
 namespace DwarfCorpCore
 {
@@ -107,6 +110,13 @@ namespace DwarfCorp
             }, null, 5000, 5000);
 
             CrashBreadcrumbs.Push("Main start — v" + Version + " commit " + Commit);
+
+            // L.2: bring up DI + structured logging before any game code runs. After
+            // this point every subsystem can resolve ILogger<T> via Services.GetLogger<T>()
+            // — raw Console.WriteLine / LogWriter stays around for now but is deprecated.
+            Services.Initialize();
+            var _startupLog = Services.GetLogger("DwarfCorp.Startup");
+            _startupLog.ZLogInformation($"DwarfCorp starting — v{Version} commit {Commit}");
 #if CREATE_CRASH_LOGS
             try
 #endif

@@ -50,6 +50,10 @@
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.*" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Steamworks.NET" Version="20.2.0" />
+    <!-- L.2 stack: modern logging + DI container. ZLogger is zero-alloc. -->
+    <PackageReference Include="ZLogger" Version="2.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.*" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.*" />
   </ItemGroup>
 
   <ItemGroup>
