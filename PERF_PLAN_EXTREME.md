@@ -48,7 +48,7 @@ Escrever do zero com arquitetura paralela correta (mesh-gen CPU / upload serial)
 A* escrito do zero como async/TCS + pools + cache. Não é retrofit do `AStarPlanner` atual.
 - ⬜ **C.1** — API `Task<List<MoveAction>>` via TCS + CancellationToken
 - ⬜ **C.2** — Spatial heuristic cache por thread
-- ⬜ **C.3** — ArrayPool em `FindRootBodiesInside*` + padrão estendido a outros hot paths
+- 🚧 **C.3** — Escopo expandido por evidência (heap 1.5GB em idle, Gen 2 a cada 2s). Três fixes per-frame commitados: `FillClosestLights` (scratch list + instance comparer), Root.cs update tick (scratch list), `FindRootBodies` (scratch HashSet). `GcTracker.Gen0PerSecond()` + widget colorido no Render Inspector (verde ≤5/s, amarelo ≤15/s, vermelho >15/s) pra validar drop.
 
 ### Fase D — Subsistema de Update (Arch systems paralelos)
 Com Arch ECS já adotado em L.4, o update paralelo é natural (archetype-based iter). Não é refactor do `ComponentManager`.

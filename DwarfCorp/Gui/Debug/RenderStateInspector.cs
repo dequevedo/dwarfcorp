@@ -50,6 +50,15 @@ namespace DwarfCorp.Gui.Debug
 
             // Colour the Gen-2 line red when a tick was observed this frame,
             // so a hitch frame is visually matched with a Gen-2 spike.
+            // Allocation-pressure meter. Colour bands: calm ≤ 5/s, busy ≤ 15/s, hot > 15/s.
+            // Drops meaningfully after C.3 allocation fixes → confirms those fixes worked.
+            double g0rate = GcTracker.Gen0PerSecond();
+            System.Numerics.Vector4 rateColour =
+                g0rate <= 5 ? new System.Numerics.Vector4(0.5f, 0.9f, 0.5f, 1f)
+                : g0rate <= 15 ? new System.Numerics.Vector4(0.95f, 0.85f, 0.3f, 1f)
+                : new System.Numerics.Vector4(1f, 0.35f, 0.35f, 1f);
+            ImGui.TextColored(rateColour, $"Gen 0 rate: {g0rate:0.0} /s (last 2 s window)");
+
             ImGui.Text($"Gen 0: {GcTracker.Gen0Count}  (+{GcTracker.Gen0Delta})");
             ImGui.Text($"Gen 1: {GcTracker.Gen1Count}  (+{GcTracker.Gen1Delta})");
             if (GcTracker.Gen2Delta > 0)

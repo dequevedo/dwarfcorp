@@ -33,6 +33,21 @@ namespace DwarfCorp
         public Vector3[] LightPositions = new Vector3[Shader.MaxLights];
         public Shader DefaultShader;
         public OrbitCamera Camera;
+
+        // Fase C.3: scratch buffer reused across FillClosestLights frames. Previously
+        // that method did `DynamicLight.Lights.Select(l => l.Position).ToList()` every
+        // call — one List allocation per frame, PLUS the Select enumerator, PLUS a new
+        // sort comparer closure. Baseline showed Gen 0 firing every 1-3 frames; the
+        // render-thread lighting pass was one of the biggest allocators per frame.
+        // Reused scratch + instance comparer method keeps the hot path zero-alloc.
+        private readonly List<Vector3> _lightPositionScratch = new List<Vector3>();
+        private Vector3 _lightSortOrigin;
+        private int CompareLightDistanceFromSortOrigin(Vector3 a, Vector3 b)
+        {
+            float da = (a - _lightSortOrigin).LengthSquared();
+            float db = (b - _lightSortOrigin).LengthSquared();
+            return da.CompareTo(db);
+        }
         public static int MultiSamples
         {
             get { return GameSettings.Current.AntiAliasing; }
@@ -242,22 +257,27 @@ namespace DwarfCorp
 
         public void FillClosestLights(DwarfTime time)
         {
-            var allLightPositions = DynamicLight.Lights.Select(l => l.Position).ToList();
-            allLightPositions.AddRange(DynamicLight.TempLights.Select(l => l.Position));
-            allLightPositions.Sort((a, b) =>
-            {
-                var dA = (a - Camera.Position).LengthSquared();
-                var dB = (b - Camera.Position).LengthSquared();
-                return dA.CompareTo(dB);
-            });
+            // Fase C.3: zero-alloc light gather + sort. Reuses `_lightPositionScratch`
+            // (instance field) and a pre-allocated Comparison<Vector3> instance method
+            // reference (no closure alloc because `_lightSortOrigin` is an instance
+            // field, not a captured local). Previous version allocated a fresh List,
+            // two Select enumerators and a sort closure every render frame.
+            _lightPositionScratch.Clear();
+            foreach (var l in DynamicLight.Lights)
+                _lightPositionScratch.Add(l.Position);
+            foreach (var l in DynamicLight.TempLights)
+                _lightPositionScratch.Add(l.Position);
+
+            _lightSortOrigin = Camera.Position;
+            _lightPositionScratch.Sort(CompareLightDistanceFromSortOrigin);
 
             var lightCount = 0;
             if (GameSettings.Current.CursorLightEnabled)
                 LightPositions[lightCount++] = CursorLightPos;
 
             var lightsAdded = 0;
-            while (lightCount < Shader.MaxLights && lightsAdded < allLightPositions.Count)
-                LightPositions[lightCount++] = allLightPositions[lightsAdded++];
+            while (lightCount < Shader.MaxLights && lightsAdded < _lightPositionScratch.Count)
+                LightPositions[lightCount++] = _lightPositionScratch[lightsAdded++];
 
             DefaultShader.CurrentNumLights = lightCount;
 

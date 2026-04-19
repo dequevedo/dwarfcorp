@@ -135,12 +135,19 @@ namespace DwarfCorp
             StartThreads();
         }
 
+        // Fase C.3: reusable scratch HashSet for FindRootBodiesInsideScreenRectangle.
+        // Previously allocated a fresh HashSet every call (plus `ToList` at the end
+        // allocating a List). Called on every drag-select and hover-tooltip, so this
+        // was a meaningful source of Gen 0 pressure in interactive sessions.
+        // Clearing a HashSet is O(n) but keeps the backing buckets — no allocation.
+        private readonly HashSet<GameComponent> _findRootBodiesScratch = new HashSet<GameComponent>();
+
         public List<GameComponent> FindRootBodiesInsideScreenRectangle(Rectangle selectionRectangle, Camera camera)
         {
             if (World.Renderer.SelectionBuffer == null)
                 return new List<GameComponent>();
 
-            HashSet<GameComponent> toReturn = new HashSet<GameComponent>(); // Hashset ensures all bodies are unique.
+            _findRootBodiesScratch.Clear();
             foreach (uint id in World.Renderer.SelectionBuffer.GetIDsSelected(selectionRectangle))
             {
                 GameComponent component;
@@ -150,10 +157,16 @@ namespace DwarfCorp
                 if (!component.IsVisible) continue; // Then why was it drawn in the selection buffer??
 
                 if (component.GetRoot().GetComponent<GameComponent>().HasValue(out var toAdd))
-                    if (!toReturn.Contains(toAdd))
-                        toReturn.Add(toAdd);
+                    _findRootBodiesScratch.Add(toAdd); // HashSet.Add is idempotent — no need for a Contains() check first.
             }
-            return toReturn.ToList();
+
+            // The caller receives ownership of the returned List, so this allocation
+            // can't be avoided without changing the API signature. But we allocate it
+            // at final size (no doubling) and the interim HashSet is no longer
+            // per-call.
+            var result = new List<GameComponent>(_findRootBodiesScratch.Count);
+            foreach (var gc in _findRootBodiesScratch) result.Add(gc);
+            return result;
         }
 
         private object _msgLock = new object();

@@ -27,6 +27,13 @@ namespace DwarfCorp.Gui
         public Widget TooltipItem { get; set; }
         private List<Widget> UpdateItems = new List<Widget>();
         private List<Widget> PostdrawItems = new List<Widget>();
+        // Fase C.3: scratch list reused across Update ticks. The old code did
+        // `var localCopy = new List<Widget>(UpdateItems)` every frame to snapshot
+        // UpdateItems before iterating (so iteration is safe if an OnUpdate handler
+        // mutates UpdateItems). That allocated a fresh List + its backing array
+        // every frame. Scratch field gets Clear()/AddRange() instead; same
+        // snapshot semantics, no allocation in steady state.
+        private readonly List<Widget> _updateTickScratch = new List<Widget>();
         public Widget MouseDownItem { get; private set; }
 
         public bool MouseVisible = true;
@@ -586,8 +593,11 @@ namespace DwarfCorp.Gui
 
             if (FocusItem != null) SafeCall(FocusItem.OnUpdateWhileFocus, FocusItem);
 
-            var localCopy = new List<Widget>(UpdateItems);
-            foreach (var item in localCopy)
+            // Snapshot UpdateItems into the reused scratch list so OnUpdate handlers
+            // that mutate UpdateItems don't invalidate the iteration.
+            _updateTickScratch.Clear();
+            _updateTickScratch.AddRange(UpdateItems);
+            foreach (var item in _updateTickScratch)
                 SafeCall(item.OnUpdate, item, Time);
 
             if (HoverItem != null) SafeCall(HoverItem.OnHover, HoverItem);
