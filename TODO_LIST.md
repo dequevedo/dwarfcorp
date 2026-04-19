@@ -107,29 +107,12 @@
 
 - [ ] 25. Gostaria de uma feature pra mostrar FPS na UI do game. Isso deve ser uma opcao disponivel pra ligar/desligar nos settings do game
 
-- [x] 26. PERF_PLAN v2 — Fase A: Discovery de compute shaders em FNA 26.04 / Vulkan.
-  **Verdict: NÃO disponível.** FNA 26.04 mantém paridade XNA4 estrita — `FNA3D.cs` sem entry points de compute/dispatch, Effect system só VERTEX/PIXEL via MojoShader. Backend Vulkan é interno, não expande API C#. Fase E vai 100% pelo caminho E.x′ (VS analítico + instancing + CPU side). Detalhes em `docs/perf_compute_discovery.md`.
+- [ ] 26.
 
-- [ ] 27. PERF_PLAN v2 — Fase B: Chunk rebuild refactor (mesh-gen paralelo + GPU upload serial + greedy mesh + SIMD).
-  B.1 separa `GeometryBuilder` de `GraphicsDevice` (retorna `MeshData` POCO); workers enfileiram em `MeshUploadQueue`; upload single-thread no `Draw()` sob `GpuLock`. B.2 greedy meshing (Mikola/Tantan) em `GenerateSliceGeometry`. B.3 scan AVX2 `Vector256<byte>` em `VoxelData.Types`. B.4 profiler por seção. Resolve o revert do item 1.1 com arquitetura correta.
+- [ ] 27.
 
-- [ ] 28. PERF_PLAN v2 — Fase C: Pathfinding async/TCS + heuristic cache + ArrayPool em spatial queries.
-  C.1 `PlanService.Enqueue` devolve `Task<List<MoveAction>>`, AI usa `await` + CT. C.2 cache de h-values per-thread invalidado por chunk rebuild, landmarks ALT. C.3 `FindRootBodiesInsideScreenRectangle` via `ArrayPool<GameComponent>` (adoção inicial de ArrayPool no projeto).
+- [ ] 28.
 
-- [ ] 29. PERF_PLAN v2 — Fase D: Component Update paralelo com JobScheduler.
-  Novo `Tools/Threading/JobScheduler.cs` particionando `ComponentsToUpdate` por hash de chunk-coord. Commits em `ConcurrentQueue` drenadas fim-de-frame. Auditoria prévia de `IUpdateableComponent.Update` marcando "parallel-safe" vs "main-thread-only".
+- [ ] 29.
 
-- [ ] 30. PERF_PLAN v3 — Fase E: GPU pesada (particles compute, light culling compute, mega-mesh batching, liquid instancing, Hi-Z compute).
-  Bloqueado pela Fase G (MonoGame). Compute shaders destravam particles 10-100× mais densos, light clustering escalável pra 256+ luzes, occlusion GPU-side com depth pyramid. Greedy mesh continua CPU+SIMD (Fase B.2).
-
-- [ ] 31. PERF_PLAN v3 — Fase F (opcional/longo prazo): BVH espacial, WaterManager particionado, Body SoA.
-  Só entra se profile após B/C/D/E/H ainda mostrar gargalos. F.3 quebra API pública de `Body` — escopo grande.
-
-- [ ] 32. PERF_PLAN v4 — Fase G: Rewrite para Stride Engine 4.2+. **BLOQUEANTE pra E+H.**
-  G.0 POC voxel chunk rendering + workflow LLM-only (gate). G.1 setup projeto Stride + libs modernas (ZLogger, MemoryPack, MessagePipe, DI). G.2 port core logic (IA, colony, world gen, saves via MemoryPack — break compat). G.3 voxel+meshing em Stride. G.4 camera+input+HUD. G.5 entities+componentes. G.6 audio+particles+UI. G.7 baseline_v4.csv. Branch `legacy-fna` congelado como fallback. Escopo: 6-9 meses.
-
-- [ ] 33. PERF_PLAN v4 — Fase H: Shading moderno (PBR + CSM + SSAO + Post-FX) via Stride built-ins. Bloqueado pela Fase G.
-  Todos via sistemas nativos do Stride: MaterialAsset com PBR+IBL (H.1), LightShadowMapDirectional com CSM+PCF (H.2), PostProcessingEffects.AmbientOcclusion (H.3), forward+ clustered nativo (H.4 zero trabalho), PostProcessing tonemap/bloom/grading (H.5), bonus volumetrics/TAA/SSR (H.6). Escopo colapsa de 2-3 meses (v3) pra ~3-4 semanas de integração.
-
-- [ ] 34. PERF_PLAN v4 — Stack moderno adotado no rewrite (parte de G.1).
-  ZLogger (logging zero-alloc), MemoryPack (serialization 2-4× MessagePack), MessagePipe (pub/sub), Microsoft.Extensions.DependencyInjection, possivelmente Arch ECS (se Stride ECS não servir), xUnit v3 + BenchmarkDotNet, OpenTelemetry. Objetivo: tecnologias de ponta, zero legado.
+- [ ] 30.
