@@ -227,6 +227,10 @@ namespace DwarfCorp
             Thread.CurrentThread.Name = "Main";
             SpriteBatch = new SpriteBatch(GraphicsDevice);
 
+            // L.1: ImGui debug overlay. Needs a live GraphicsDevice, so it goes
+            // here rather than in the constructor. Toggled with F12 at runtime.
+            Gui.Debug.ImGuiService.Initialize(this);
+
             base.Initialize();
         }
 
@@ -484,6 +488,10 @@ namespace DwarfCorp
 
                     if (ConsoleVisible)
                         ConsoleGui.Draw();
+
+                    // L.1: ImGui overlay always last so it sits on top of everything else.
+                    // Hidden by default; F12 toggles visibility at runtime.
+                    Gui.Debug.ImGuiService.Render(time);
 
 #if !DEBUG
                 }

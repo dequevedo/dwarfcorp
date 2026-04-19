@@ -54,6 +54,10 @@
     <PackageReference Include="ZLogger" Version="2.*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.*" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.*" />
+    <!-- L.1: ImGui bindings. We write our own MonoGame↔ImGui renderer bridge
+         in DwarfCorp/Gui/Debug/ImGuiRenderer.cs — the community NuGet packages
+         for MonoGame ImGui are either unmaintained or ship with broken packaging. -->
+    <PackageReference Include="ImGui.NET" Version="1.91.*" />
   </ItemGroup>
 
   <ItemGroup>

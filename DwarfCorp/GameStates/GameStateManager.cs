@@ -46,6 +46,9 @@ namespace DwarfCorp.GameStates
         private static GameState NextState;
         public static bool DrawScreensaver => CurrentState != null && CurrentState.EnableScreensaver;
 
+        /// <summary>Read-only view of the active state, for diagnostics (ImGui overlay, crash logs, telemetry).</summary>
+        public static GameState ActiveState => CurrentState;
+
         private static object _mutex = new object();
 
         public static void PopState(bool enterNext = true)

@@ -14,6 +14,8 @@ c7zip.dll
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
+# L.1: ImGui debug overlay source dir — not a build output despite the name.
+!DwarfCorp/Gui/Debug/
 [Rr]elease/
 [Rr]eleases/
 x64/
@@ -274,6 +276,8 @@ $RECYCLE.BIN/
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
+# L.1: ImGui debug overlay source dir — not a build output despite the name.
+!DwarfCorp/Gui/Debug/
 [Rr]elease/
 [Rr]eleases/
 x64/
