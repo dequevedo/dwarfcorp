@@ -122,12 +122,21 @@ namespace DwarfCorp.Gui
 
         public float GlyphAdvance(int Index)
         {
-            return Glyphs[(char)(Index + ' ')].AdvanceWidth;
+            // Graceful fallback for missing glyphs (e.g. µ / Unicode outside the font's
+            // authored range). Previously threw KeyNotFoundException, which crashed the
+            // whole render thread when the ProfilerPanel tried to draw "µs". Callers
+            // like Mesh.StringPart didn't guard with HasGlyph, and they shouldn't have
+            // to — a font lookup for an unknown char should degrade, not crash.
+            if (Glyphs.TryGetValue((char)(Index + ' '), out var g))
+                return g.AdvanceWidth;
+            return 0f;
         }
 
         public float GlyphLeftBearing(int Index)
         {
-            return Glyphs[(char)(Index + ' ')].LeftBearing;
+            if (Glyphs.TryGetValue((char)(Index + ' '), out var g))
+                return g.LeftBearing;
+            return 0f;
         }
 
         public int GlyphKerning(int First, int Second)
