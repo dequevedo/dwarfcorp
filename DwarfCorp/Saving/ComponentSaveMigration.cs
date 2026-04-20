@@ -24,6 +24,8 @@ using EcsRadiusSensor = DwarfCorp.ECS.Components.RadiusSensor;
 using EcsEnemySensor = DwarfCorp.ECS.Components.EnemySensor;
 using EcsSpawnOnExplored = DwarfCorp.ECS.Components.SpawnOnExplored;
 using EcsVoxelListenerTag = DwarfCorp.ECS.Components.VoxelListenerTag;
+using EcsFlammable = DwarfCorp.ECS.Components.Flammable;
+using EcsFire = DwarfCorp.ECS.Components.Fire;
 
 namespace DwarfCorp.Saving
 {
@@ -117,6 +119,7 @@ namespace DwarfCorp.Saving
             MigrateLightEmission(legacy, ref created, ref skipped);           // #9
             MigrateSensors(legacy, ref created, ref skipped);                 // #10
             MigrateVoxelListeners(legacy, ref created, ref skipped);          // #11
+            MigrateFire(legacy, ref created, ref skipped);                    // #12
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped");
@@ -370,6 +373,31 @@ namespace DwarfCorp.Saving
             {
                 if (!_target.World.Has<EcsVoxelListenerTag>(entity))
                     _target.World.Add(entity, new EcsVoxelListenerTag());
+            }, ref created, ref skipped);
+        }
+
+        private void MigrateFire(ComponentManager.ComponentSaveData legacy, ref int created, ref int skipped)
+        {
+            ForEachMatching<DwarfCorp.Flammable>(legacy, (f, entity) =>
+            {
+                _target.World.Add(entity, new EcsFlammable
+                {
+                    Heat = f.Heat,
+                    Flashpoint = f.Flashpoint,
+                    Damage = f.Damage,
+                });
+            }, ref created, ref skipped);
+
+            ForEachMatching<DwarfCorp.Fire>(legacy, (f, entity) =>
+            {
+                // Timer carries (ElapsedTime, Duration) but only the remaining amount
+                // is semantically useful after a save/load — we store it flat. If the
+                // Fire system eventually needs full Timer state, migrate it at that point.
+                _target.World.Add(entity, new EcsFire
+                {
+                    LifeTimerRemaining = f.LifeTimer == null ? 0f
+                        : System.MathF.Max(0f, f.LifeTimer.TargetTimeSeconds - f.LifeTimer.CurrentTimeSeconds),
+                });
             }, ref created, ref skipped);
         }
 

@@ -24,6 +24,8 @@ using EcsLightEmission = DwarfCorp.ECS.Components.LightEmission;
 using EcsRadiusSensor = DwarfCorp.ECS.Components.RadiusSensor;
 using EcsEnemySensor = DwarfCorp.ECS.Components.EnemySensor;
 using EcsSpawnOnExplored = DwarfCorp.ECS.Components.SpawnOnExplored;
+using EcsFlammable = DwarfCorp.ECS.Components.Flammable;
+using EcsFire = DwarfCorp.ECS.Components.Fire;
 
 namespace DwarfCorp.Tests;
 
@@ -294,6 +296,22 @@ public class MigrateFamiliesTests
         ref var s = ref ecs.World.Get<EcsSpawnOnExplored>(entity);
         Assert.Equal("Goblin", s.EntityToSpawn);
         Assert.Equal(new Vector3(10, 20, 30), s.SpawnLocation);
+    }
+
+    [Fact]
+    public void Flammable_Migrates_HeatFlashpointDamage()
+    {
+        var (ecs, shim) = FreshShim();
+        var root = SynthRoot(1);
+        var host = SynthHost(2, parent: 1);
+        var f = Synth<DwarfCorp.Flammable>(3, parent: 2);
+        f.Heat = 12.5f; f.Flashpoint = 50f; f.Damage = 2.5f;
+
+        shim.Migrate(Save(rootId: 1, root, host, f));
+
+        var entity = shim.LegacyIdToEntity[2];
+        Assert.True(ecs.World.Has<EcsFlammable>(entity));
+        Assert.Equal(12.5f, ecs.World.Get<EcsFlammable>(entity).Heat);
     }
 
     [Fact]

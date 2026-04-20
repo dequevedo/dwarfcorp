@@ -121,7 +121,7 @@ worth of scope:
 | 9 | **LightEmission** | Light component + LightCollectionSystem | Transform | ✅ Range + Intensity. Position from Transform. |
 | 10 | **Sensor family** (Radius, Enemy, SpawnOnExplored) | Sensor component + SensorSystem | Transform | ✅ 3 struct variants. Runtime-only fields deferred. |
 | 11 | **VoxelListener family** | VoxelListener component + VoxelEventSystem | Transform | ✅ marker tag (legacy handlers are runtime-only, explicitly unserializable). |
-| 12 | **Fire / Flammable** | Fire + Flammable components + FireSystem | Physics |
+| 12 | **Fire / Flammable** | Fire + Flammable components + FireSystem | Physics | ✅ Flammable (Heat/Flashpoint/Damage) + Fire (LifeTimer remaining). |
 | 13 | **Follower / Bobber** | Follow + Bob components + animation systems | Transform |
 | 14 | **MinimapIcon** | MinimapIcon component + MinimapRenderSystem | Transform |
 | 15 | **DwarfThoughts / Egg** | Memory / lifetime components | — |
