@@ -49,6 +49,7 @@ using EcsMagicalObject = DwarfCorp.ECS.Components.MagicalObject;
 using EcsElevatorShaft = DwarfCorp.ECS.Components.ElevatorShaft;
 using EcsPipeNetworkObject = DwarfCorp.ECS.Components.PipeNetworkObject;
 using EcsBuildBuff = DwarfCorp.ECS.Components.BuildBuff;
+using EcsBalloonAI = DwarfCorp.ECS.Components.BalloonAI;
 
 namespace DwarfCorp.Saving
 {
@@ -151,6 +152,7 @@ namespace DwarfCorp.Saving
             MigrateResourceEntities(legacy, ref created, ref skipped);        // #19
             MigrateFixtures(legacy, ref created, ref skipped);                // #20
             MigratePipeNetwork(legacy, ref created, ref skipped);             // #21
+            MigrateBalloonAI(legacy, ref created, ref skipped);               // #22
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped");
@@ -661,6 +663,23 @@ namespace DwarfCorp.Saving
             ForEachMatching<DwarfCorp.SteamPipes.BuildBuff>(legacy, (b, entity) =>
             {
                 _target.World.Add(entity, new EcsBuildBuff { BuffMultiplier = b.BuffMultiplier });
+            }, ref created, ref skipped);
+        }
+
+        private void MigrateBalloonAI(ComponentManager.ComponentSaveData legacy, ref int created, ref int skipped)
+        {
+            ForEachMatching<DwarfCorp.BalloonAI>(legacy, (b, entity) =>
+            {
+                _target.World.Add(entity, new EcsBalloonAI
+                {
+                    VelocityController = b.VelocityController,
+                    TargetPosition = b.TargetPosition,
+                    MaxVelocity = b.MaxVelocity,
+                    MaxForce = b.MaxForce,
+                    State = (byte)b.State,
+                    Faction = b.Faction,
+                    WaitTimerRemaining = TimerRemaining(b.WaitTimer),
+                });
             }, ref created, ref skipped);
         }
 

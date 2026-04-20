@@ -131,7 +131,7 @@ worth of scope:
 | 19 | **Projectile / ResourceEntity** | Physics-derived archetypes | Physics | ✅ ResourceEntity (Resource ref + LifeTimerRemaining). Projectile removido do codebase. |
 | 20 | **Fixture family** (Crate, Banner, MagicalObject, Plant, ElevatorShaft, …) | Archetypes | Transform + Inventory + Sprite | ✅ Fixture (Asset+Frame+OrientMode), Banner (Logo — Flag folded), MagicalObject (charges), ElevatorShaft (TrackAbove/Below). Crate/Plant/ElevatorPlatform são archetype-only. |
 | 21 | **PipeNetworkObject / BuildBuff** | Hydraulic subsystem | Transform | ✅ PipeNetworkObject (LiquidType + DrawPipes + Orientation byte) + BuildBuff (multiplier). |
-| 22 | **Balloon / BalloonAI** | — | Transform + Physics + AI |
+| 22 | **Balloon / BalloonAI** | — | Transform + Physics + AI | ✅ BalloonAI (PIDController ref + TargetPosition + Max/Velocity/Force + State byte + Faction ref + WaitTimerRemaining). Balloon entity é archetype-only. |
 
 ## After the last family
 
