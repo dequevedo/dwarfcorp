@@ -5,6 +5,32 @@
 > **v3:** MonoGame com PBR/shadows custom, absorvido no v5 sem a ambição gráfica.
 > **v2:** reorientação pós-migração .NET 10 + FNA 26.04.
 
+## Resumo executivo — o que está pronto, o que falta
+
+**Pronto (fechado ou scaffold completo):**
+- Fase M (MonoGame port) — jogo roda em MonoGame 3.8 DX11, baseline captured.
+- Fase B.1 (chunk mesh-gen paralelo + GPU upload serial).
+- Fase B.2 (greedy meshing live: Top+Bottom 2D, Sides N/S/E/W 1D).
+- Fase B.3 (SIMD AVX2 solidity bitmap).
+- Fase C.3 (3 ondas de GC allocator fixes + full profiler instrumentation).
+- Fase L.1 (ImGui.NET + renderer custom + F12 panels).
+- Fase L.2 (DI container + ZLogger).
+- Fase L.3 (MessagePipe + EventBus).
+- Fase L.4 scaffold — **22/22 famílias** migradas (structs Arch + migration shim). Cutover ainda pendente.
+- Fase L.5 (xUnit v3 test project, 65 tests passando).
+- Various bugfixes: race conditions, cubos vazios na câmera, vertex-order gaps.
+
+**Pendente (ordenado por ROI):**
+- L.4 cutover: SaveFormatVersion v2, wire `ComponentSaveMigration.Migrate` na load path, round-trip tests, deletar `ComponentManager` + `GameComponent` tree. Destrava Fase D.
+- B.4 — profiler split (mesh-gen vs GPU upload).
+- Fase D — Arch systems paralelos (depende de L.4 cutover completo).
+- Fase C.1 — pathfinding async/TCS rewrite.
+- Fase C.2 — A* heuristic cache.
+- TODO 33 — shader tile-wrap (`fmod` em ClampTexture pra merged quads tilarem em vez de esticarem).
+- TODO 28 — outline post-FX fix (atualmente desligado por default).
+- TODO 30 — (agora redundante, L.4 scaffold cobriu).
+- Deferidas: Fase E (GPU avançada), F (DynamicBVH, Water tile partition), G (GUI migration ImGui).
+
 ---
 
 ## Status da Migração (tracker único)
@@ -34,7 +60,7 @@ Traz as libs novas antes de reescrever subsistemas. Elas são os blocos de const
 - 🚧 **L.2** — DI container + ZLogger bootstrap via `DwarfCorp/Infrastructure/Services.cs`. `Services.Initialize()` em Program.Main, log file em `%APPDATA%/DwarfCorp/dwarfcorp.log`. Migração `Console.WriteLine → ILogger` incremental.
 - 🚧 **L.1** — ImGui.NET integrado com renderer custom `DwarfCorp/Gui/Debug/ImGuiRenderer.cs` (~280 LOC). `DebugOverlay` (F12) mostra FPS + backbuffer + GameState ativo. Base pra debugar o main-menu invisível.
 - 🚧 **L.3** — MessagePipe registrado em DI + `EventBus` static façade pra callsites legados. Dois eventos demo (`AppStarted`, `GameStateEntered`). 4 testes roundtrip passando. Eventos reais (`ChunkInvalidated`, `DwarfSpawned`, `TaskCompleted`) vêm conforme B/C/D.
-- 🚧 **L.4** — Foundation (`16b6832b6`) + TODAS as 22 famílias migradas (commits `eff2bedd4`, `12b4c8850`, `4da2d6e32`, `599a3b201`, `1a034e72f`, `482373e74`, `c3d806aa9`, `5702f8e76`, `38f881d50`, `24bd3eabe`, `0cc47ace1`, `<this>`). Todos GameComponent-derived types têm struct equivalente em `DwarfCorp.ECS.Components.*` e método `Migrate*` em `ComponentSaveMigration`. 65 tests passam. **Faltam cutover tasks**: bump `MetaData.CurrentSaveFormatVersion` pra 2 (escrevendo saves v2), wire `ComponentSaveMigration.Migrate` na load path do v1, escrever round-trip tests save→Arch→save, e finalmente **deletar `ComponentManager` + `GameComponent` tree + `Body`** (desbloqueia Fase D parallel update).
+- 🚧 **L.4** — Foundation (`16b6832b6`) + **TODAS as 22 famílias migradas** (commits `eff2bedd4`, `12b4c8850`, `4da2d6e32`, `599a3b201`, `1a034e72f`, `482373e74`, `c3d806aa9`, `5702f8e76`, `38f881d50`, `24bd3eabe`, `0cc47ace1`, `03f7c4b77`). Todos GameComponent-derived types têm struct equivalente em `DwarfCorp.ECS.Components.*` e método `Migrate*` em `ComponentSaveMigration`. 65 tests passam. Checklist completo por família em [`docs/l4_arch_migration_plan.md`](docs/l4_arch_migration_plan.md). **Faltam cutover tasks**: bump `MetaData.CurrentSaveFormatVersion` pra 2 (escrevendo saves v2), wire `ComponentSaveMigration.Migrate` na load path do v1, escrever round-trip tests save→Arch→save, e finalmente **deletar `ComponentManager` + `GameComponent` tree + `Body`** (desbloqueia Fase D parallel update).
 - ⬜ **L.6** — Stb* + FontStashSharp (on-demand)
 
 ### Fase B — Subsistema de Voxel/Mesh (reimplementação limpa em DX11)
@@ -65,6 +91,82 @@ Com Arch ECS já adotado em L.4, o update paralelo é natural (archetype-based i
 - ❌ **Plano v4 (Stride)** — tentado 2026-04-19, revertido no mesmo dia em `fdd522708`.
 
 ---
+
+## Próximos passos acionáveis (handoff overnight)
+
+Os itens abaixo são ordenados por ROI e independência — cada um é commitável
+isoladamente e o próximo não precisa esperar o anterior. **Cada commit deve
+ser seguido de `git push`** pra que o trabalho não se perca se a sessão cair.
+
+### 1. L.4 cutover parcial (round-trip test)
+**Escopo:** único commit. **Risco:** baixo. **ROI:** médio (pin contrato antes de ativar).
+- Criar teste `Saving/ComponentSaveRoundtripTest.cs`: cria um `ComponentManager.ComponentSaveData` com ~3 entidades (Dwarf archetype, crate, lamp), serializa pra JSON com Newtonsoft, deserializa, roda `ComponentSaveMigration.Migrate`, verifica que as Arch entities resultantes têm as componentes esperadas.
+- **Não** toca em live code nem em `MetaData.SaveFormatVersion`.
+- Fixtures como em `MigrateFamiliesTests.cs` — `FormatterServices.GetUninitializedObject` + reflection pra ParentID.
+
+### 2. B.4 — profiler split (mesh-gen CPU vs GPU upload)
+**Escopo:** único commit. **Risco:** baixo. **ROI:** médio (dá dados pra decidir próximas otimizações).
+- Em [`ChunkRenderer.cs`](DwarfCorp/World/Voxels/ChunkRenderer.cs), o `ChunkMeshUploadDrain` já é instrumentado. Faltam:
+  - `PerformanceMonitor.PushFrame("ChunkMeshGen.CpuBuild")` envolvendo `GeometryBuilder.CreateFromChunk` em [VoxelChunk.cs:160](DwarfCorp/World/Voxels/VoxelChunk.cs:160).
+  - `PerformanceMonitor.PushFrame("ChunkMeshUpload.Apply")` envolvendo a chamada a `SetData` dentro de `ApplyFreshPrimitive`.
+  - Métrica `ChunkMeshGen.BytesThisFrame` no CSV (soma de `primitive.VertexCount * sizeof(ExtendedVertex)` no upload).
+
+### 3. TODO 33 — shader tile-wrap
+**Escopo:** único commit. **Risco:** médio (mexe em shader .fx). **ROI:** visual (tira o look esticado das merged quads).
+- Em [`TexturedShaders.fx`](DwarfCorp/Content/Shaders/TexturedShaders.fx), função `ClampTexture` (line ~211):
+  ```hlsl
+  float2 ClampTexture(float2 uv, float4 bounds) {
+      float w = bounds.z - bounds.x;
+      float h = bounds.w - bounds.y;
+      return float2(
+          bounds.x + fmod(uv.x - bounds.x, w),
+          bounds.y + fmod(uv.y - bounds.y, h)
+      );
+  }
+  ```
+- Em [`GeometryBuilder-Greedy.cs`](DwarfCorp/World/Voxels/ChunkBuilder/GeometryBuilder-Greedy.cs), `EmitMergedQuad`: emitir UVs escalonados por (W, H) em vez de (1, 1). Pra Top: `MapTileUVs(new Vector2(W, H), tile)` etc.
+- Validar: pro non-greedy path (UVs inside [0..1] within bounds), `fmod` com valor < w é no-op. Testar visualmente.
+- Recompilar XNBs: `dotnet build` já faz via MGCB.
+
+### 4. TODO 28 — outline post-effect
+**Escopo:** único commit. **Risco:** médio (MonoGame DX11 renderstates). **ROI:** visual (reabilita outline shader).
+- Atualmente `GameSettings.Current.EnableOutline = false` por default. O OutlineEffect Begin/End ainda roda se setting=true, mas SpriteBatch blit quebra em DX11.
+- Investigar em [`OutlineEffect.cs`](DwarfCorp/Graphics/Effects/OutlineEffect.cs) e o pass de End() que faz SpriteBatch.Draw do render target offscreen.
+- Provável causa: renderstates não propagam entre SpriteBatch.Begin/End e DX11 device state. Fix: usar `DrawUserIndexedPrimitives` direto em vez de SpriteBatch pro blit.
+
+### 5. Fase C.1 — Pathfinding async/TCS
+**Escopo:** 2-3 commits. **Risco:** médio. **ROI:** alto se IA faz planos longos.
+- Novo `IPathfinder` interface em `DwarfCorp/Tools/Planning/`.
+- `PlanAsync(start, goal, ct) → Task<List<MoveAction>>` via `TaskCompletionSource`.
+- Workers rodam sobre `System.Threading.Channels<PlanRequest>`.
+- Caller usa `await` — AI state machine fica mais clean que o subscriber/queue atual.
+- Manter `PlanService` legacy em paralelo atrás de switch, até validar.
+
+### 6. L.4 cutover final (ativação)
+**Escopo:** 3-4 commits incrementais. **Risco:** ALTO (quebra saves antigos se algum bug). **ROI:** destrava Fase D completa.
+- Commit A: `ComponentSaveMigration` wire no load path, preservando legacy como fallback.
+- Commit B: Bump `MetaData.CurrentSaveFormatVersion` pra 2; SaveGame emite v2 também.
+- Commit C: Save+load real do jogo (manual test), iterar bugs.
+- Commit D: deletar `ComponentManager`, `GameComponent`, `Body`. Isto é IRREVERSÍVEL — só depois de confirmar que o load v1→v2 está sólido em múltiplos saves reais.
+
+### 7. Fase D — Arch systems paralelos
+**Depende de:** L.4 cutover final.
+- `DwarfCorp/Tools/Threading/JobScheduler.cs` — thin wrapper sobre `Parallel.ForEach` com partitioner por chunk-coord.
+- Arch systems: `PhysicsSystem`, `HealthSystem`, etc., cada um query uma archetype e roda paralelo.
+- Main-thread-only systems (lights, sound, UI events) ficam num pass serial no fim do frame.
+
+---
+
+## Regras operacionais pra handoff overnight
+
+1. **Build clean é mandatório antes de commit.** Rodar `dotnet build DwarfCorp/DwarfCorpFNA.csproj -c Debug --nologo` e confirmar `0 Error(s)`.
+2. **Tests passam antes de commit.** `dotnet test DwarfCorp.Tests/DwarfCorp.Tests.csproj --nologo`.
+3. **Commit message estilo:** primeira linha descritiva (fase + nome curto); body explica o PORQUÊ, lista arquivos-chave, menciona edge cases.
+4. **Um item = um commit.** Não empacotar múltiplas mudanças lógicas juntas.
+5. **Push a cada commit** pra branch atual: `git push origin <branch>`.
+6. **Atualizar o tracker:** este arquivo (`PERF_PLAN_EXTREME.md`), `TODO_LIST.md` e quando relevante `docs/l4_arch_migration_plan.md`. Cada commit mexe no doc relevante no mesmo commit.
+7. **Se travar:** documentar o blocker em comentário no arquivo afetado + no tracker. Não rebaixar o scopo silenciosamente.
+8. **Se descobrir algo novo:** adicionar row correspondente em TODO_LIST ou aqui, não deixar implícito.
 
 ## Context
 
