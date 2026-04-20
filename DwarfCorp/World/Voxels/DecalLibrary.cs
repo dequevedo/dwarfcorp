@@ -12,7 +12,8 @@ namespace DwarfCorp
     {
         private static Dictionary<string, DecalType> DecalTypes = new Dictionary<string, DecalType>();
         private static List<DecalType> DecalTypeList;
-        private static bool DecalLibraryInitialized = false;
+        private static volatile bool DecalLibraryInitialized = false;
+        private static readonly object _decalInitLock = new object();
 
         public static IEnumerable<DecalType> EnumerateDecalTypes()
         {
@@ -22,34 +23,39 @@ namespace DwarfCorp
 
         private static void InitializeDecalLibrary()
         {
+            // Double-checked lock. Same race pattern as TemplateSolidLibrary.
             if (DecalLibraryInitialized) return;
-            DecalLibraryInitialized = true;
-
-            var decals = FileUtils.LoadJsonListFromDirectory<DecalType>("World/DecalTypes", null, g => g.Name);
-
-            byte ID = 1;
-            foreach (var type in decals)
+            lock (_decalInitLock)
             {
-                if (type.Name == "_empty")
+                if (DecalLibraryInitialized) return;
+
+                var decals = FileUtils.LoadJsonListFromDirectory<DecalType>("World/DecalTypes", null, g => g.Name);
+
+                byte ID = 1;
+                foreach (var type in decals)
                 {
-                    type.ID = 0;
-                    continue;
-                }
-                else
-                {
-                    type.ID = ID;
-                    ++ID;
+                    if (type.Name == "_empty")
+                    {
+                        type.ID = 0;
+                        continue;
+                    }
+                    else
+                    {
+                        type.ID = ID;
+                        ++ID;
+                    }
+
+                    DecalTypes[type.Name] = type;
                 }
 
-                DecalTypes[type.Name] = type;
+                if (ID > VoxelConstants.MaximumDecalTypes)
+                    Console.WriteLine("Allowed number of decal types exceeded. Limit is " + VoxelConstants.MaximumDecalTypes);
+
+                DecalTypeList = decals.OrderBy(v => v.ID).ToList();
+
+                Console.WriteLine("Loaded Decal Library.");
+                DecalLibraryInitialized = true;
             }
-
-            if (ID > VoxelConstants.MaximumDecalTypes)
-                Console.WriteLine("Allowed number of decal types exceeded. Limit is " + VoxelConstants.MaximumDecalTypes);
-
-            DecalTypeList = decals.OrderBy(v => v.ID).ToList();
-
-            Console.WriteLine("Loaded Decal Library.");
         }
 
         public static DecalType GetDecalType(byte id)

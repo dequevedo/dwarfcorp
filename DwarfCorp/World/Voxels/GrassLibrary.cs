@@ -12,7 +12,8 @@ namespace DwarfCorp
     {
         private static Dictionary<string, GrassType> GrassTypes = new Dictionary<string, GrassType>();
         private static List<GrassType> GrassTypeList;
-        private static bool GrassLibraryInitialized = false;
+        private static volatile bool GrassLibraryInitialized = false;
+        private static readonly object _grassInitLock = new object();
 
         public static IEnumerable<GrassType> EnumerateGrassTypes()
         {
@@ -49,8 +50,14 @@ namespace DwarfCorp
 
         private static void InitializeGrassLibrary()
         {
+            // Double-checked lock. Same race pattern as TemplateSolidLibrary: B.1
+            // parallel chunk-rebuild threads called this concurrently, one set the
+            // flag before the populate finished and the others returned to an
+            // empty dict.
             if (GrassLibraryInitialized) return;
-            GrassLibraryInitialized = true;
+            lock (_grassInitLock)
+            {
+                if (GrassLibraryInitialized) return;
 
             GrassTypeList = FileUtils.LoadJsonListFromDirectory<GrassType>(ContentPaths.grass_types, null, g => g.Name);
 
@@ -86,6 +93,8 @@ namespace DwarfCorp
             GrassTypeList = GrassTypeList.OrderBy(v => v.ID).ToList();
 
             Console.WriteLine("Loaded Grass Library.");
+                GrassLibraryInitialized = true;
+            }
         }
 
         public static GrassType GetGrassType(byte id)
