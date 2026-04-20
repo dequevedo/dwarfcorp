@@ -152,9 +152,10 @@ namespace DwarfCorp.Voxels
         /// <summary>
         /// Emit one merged quad covering the (w × h) rectangle of voxels starting at
         /// (<paramref name="I"/>, LocalY, <paramref name="J"/>). Four vertices at the
-        /// rectangle corners, UVs 0..1 stretched across the tile, uniform lighting
-        /// sampled from the anchor voxel. No per-vertex noise (a merged flat region
-        /// wants to stay flat).
+        /// rectangle corners, UVs 0..1 stretched across the tile, lighting sampled
+        /// from the anchor voxel, per-vertex <see cref="VertexNoise"/> applied so the
+        /// merged corners land on the same world positions as the neighboring
+        /// non-merged voxels' corners (noise is pure-function of position).
         /// </summary>
         private static void EmitMergedTopQuad(
             RawPrimitive Into,
@@ -198,6 +199,18 @@ namespace DwarfCorp.Voxels
             var p1 = new Vector3(basePos.X + W, y, basePos.Z + 0); // BackTopRight
             var p2 = new Vector3(basePos.X + W, y, basePos.Z + H); // FrontTopRight
             var p3 = new Vector3(basePos.X + 0, y, basePos.Z + H); // FrontTopLeft
+
+            // Apply the same VertexNoise jitter that the per-voxel path applies. Omitting
+            // it leaves merged corners un-displaced while the neighboring non-merged
+            // voxel (grass, decal, slope) keeps its per-vertex noise — they disagree on
+            // the shared edge's Y and produce little seams/gaps exactly where the user
+            // noticed them. VertexNoise is a pure function of world position, so the
+            // corner at a merge boundary lands on the same point as the neighboring
+            // voxel's matching corner.
+            p0 += VertexNoise.GetNoiseVectorFromRepeatingTexture(p0);
+            p1 += VertexNoise.GetNoiseVectorFromRepeatingTexture(p1);
+            p2 += VertexNoise.GetNoiseVectorFromRepeatingTexture(p2);
+            p3 += VertexNoise.GetNoiseVectorFromRepeatingTexture(p3);
 
             // Lighting: sample from the 4 corners of the anchor voxel. Same FaceKey
             // guarantees the merge predicate held; using the anchor's lighting for
