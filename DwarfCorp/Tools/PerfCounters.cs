@@ -24,6 +24,12 @@ namespace DwarfCorp
         public static long WaterDirtyChunksRebuilt;    // accumulator, reset per frame
         public static long LiquidGeomRebuilds;         // accumulator, reset per frame
 
+        // Fase B.2 live — updated by geometry builder workers during chunk rebuild.
+        // Lets the CSV show how effective greedy meshing is in practice (cells that
+        // went through the mask vs. how many merged rectangles were emitted).
+        public static long GreedyCellsMaskedThisFrame;       // accumulator, reset per frame
+        public static long GreedyRectanglesEmittedThisFrame; // accumulator, reset per frame
+
         // Pathfinding — updated by PlanService worker threads.
         public static long PlansQueued;                // bumped by Service.AddRequest, accumulator
         public static long PlansStarted;               // bumped at HandleRequest entry, accumulator
@@ -61,6 +67,9 @@ namespace DwarfCorp
             long chunks = Interlocked.Exchange(ref WaterDirtyChunksRebuilt, 0);
             long liqRebuilds = Interlocked.Exchange(ref LiquidGeomRebuilds, 0);
 
+            long greedyCells = Interlocked.Exchange(ref GreedyCellsMaskedThisFrame, 0);
+            long greedyRects = Interlocked.Exchange(ref GreedyRectanglesEmittedThisFrame, 0);
+
             long planQueuedDelta = Interlocked.Exchange(ref PlansQueued, 0);
             long planStarted = Interlocked.Exchange(ref PlansStarted, 0);
             long planSucc = Interlocked.Exchange(ref PlansSucceeded, 0);
@@ -75,6 +84,10 @@ namespace DwarfCorp
             PerformanceMonitor.SetMetric("Water.DirtyCellsProcessed", cells);
             PerformanceMonitor.SetMetric("Water.DirtyChunksRebuilt", chunks);
             PerformanceMonitor.SetMetric("Water.LiquidGeomRebuildsThisFrame", liqRebuilds);
+
+            PerformanceMonitor.SetMetric("Greedy.CellsMaskedThisFrame", greedyCells);
+            PerformanceMonitor.SetMetric("Greedy.RectanglesEmittedThisFrame", greedyRects);
+            PerformanceMonitor.SetMetric("Greedy.MergeRatio", greedyRects > 0 ? ((double)greedyCells / greedyRects).ToString("F2") : "0");
 
             PerformanceMonitor.SetMetric("Pathfinding.PlansQueuedThisFrame", planQueuedDelta);
             PerformanceMonitor.SetMetric("Pathfinding.PlansStartedThisFrame", planStarted);

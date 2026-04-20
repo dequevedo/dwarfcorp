@@ -82,17 +82,42 @@ namespace DwarfCorp.Voxels
             WorldManager World,
             SliceCache Cache)
         {
+            // Fase B.2 live: opt-in greedy pass for top faces. When the switch is off,
+            // behavior is bit-for-bit the original per-voxel emit. When on, eligible
+            // top faces merge into rectangles via the mask pass, and the per-voxel
+            // loop below skips the top face for cells the mask already consumed.
+            bool[,] consumedTopFace = null;
+            if (Debugger.Switches.UseGreedyMeshing)
+            {
+                consumedTopFace = GetConsumedTopScratch();
+                GenerateSliceGeometryGreedy(Into, Chunk, LocalY, TileSheet, World, Cache, consumedTopFace);
+            }
+
             for (var x = 0; x < VoxelConstants.ChunkSizeX; ++x)
                 for (var z = 0; z < VoxelConstants.ChunkSizeZ; ++z)
-                    GenerateVoxelGeometry(Into, VoxelHandle.UnsafeCreateLocalHandle(Chunk, new LocalVoxelCoordinate(x, LocalY, z)), TileSheet, World, Cache);
+                {
+                    bool skipTop = consumedTopFace != null && consumedTopFace[x, z];
+                    GenerateVoxelGeometry(Into, VoxelHandle.UnsafeCreateLocalHandle(Chunk, new LocalVoxelCoordinate(x, LocalY, z)), TileSheet, World, Cache, skipTop);
+                }
         }
 
         public static void GenerateVoxelGeometry(
-            RawPrimitive Into, 
-            VoxelHandle Voxel, 
+            RawPrimitive Into,
+            VoxelHandle Voxel,
             TerrainTileSheet TileSheet,
             WorldManager World,
             SliceCache Cache)
+        {
+            GenerateVoxelGeometry(Into, Voxel, TileSheet, World, Cache, skipTopFace: false);
+        }
+
+        public static void GenerateVoxelGeometry(
+            RawPrimitive Into,
+            VoxelHandle Voxel,
+            TerrainTileSheet TileSheet,
+            WorldManager World,
+            SliceCache Cache,
+            bool skipTopFace)
         {
             BuildDesignationGeometry(Into, Voxel, Cache, TileSheet, World);
             if (Voxel.IsEmpty && Voxel.IsExplored) return;
@@ -100,7 +125,11 @@ namespace DwarfCorp.Voxels
             var templateSolid = TemplateSolidLibrary.GetTemplateSolid(Voxel.Type.TemplateSolid);
 
             foreach (var face in templateSolid.Faces)
+            {
+                if (skipTopFace && face.Orientation == FaceOrientation.Top)
+                    continue;
                 GenerateFaceGeometry(Into, Voxel, face, TileSheet, World, Cache);
+            }
         }
 
         public static void GenerateFaceGeometry(

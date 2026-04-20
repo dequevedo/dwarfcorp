@@ -134,7 +134,10 @@ namespace DwarfCorp
 
             GeometricPrimitive primitive;
 
-            if (Debugger.Switches.UseNewVoxelGeoGen)
+            // Fase B.2 live: greedy meshing only exists on the new geometry builder
+            // path. Flip UseNewVoxelGeoGen implicitly when greedy is requested so the
+            // user has a single switch to toggle in the F12 Debugger panel.
+            if (Debugger.Switches.UseNewVoxelGeoGen || Debugger.Switches.UseGreedyMeshing)
             {
                 primitive = Voxels.GeometryBuilder.CreateFromChunk(this, Manager.World);
             }
