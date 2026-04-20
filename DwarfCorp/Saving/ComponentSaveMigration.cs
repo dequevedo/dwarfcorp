@@ -29,6 +29,8 @@ using EcsFire = DwarfCorp.ECS.Components.Fire;
 using EcsFollower = DwarfCorp.ECS.Components.Follower;
 using EcsBobber = DwarfCorp.ECS.Components.Bobber;
 using EcsMinimapIcon = DwarfCorp.ECS.Components.MinimapIcon;
+using EcsDwarfThoughts = DwarfCorp.ECS.Components.DwarfThoughts;
+using EcsEgg = DwarfCorp.ECS.Components.Egg;
 
 namespace DwarfCorp.Saving
 {
@@ -125,6 +127,7 @@ namespace DwarfCorp.Saving
             MigrateFire(legacy, ref created, ref skipped);                    // #12
             MigrateMotion(legacy, ref created, ref skipped);                  // #13
             MigrateMinimapIcons(legacy, ref created, ref skipped);            // #14
+            MigrateThoughtsAndEggs(legacy, ref created, ref skipped);         // #15
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped");
@@ -438,6 +441,30 @@ namespace DwarfCorp.Saving
                 {
                     Icon = m.Icon,
                     IconScale = m.IconScale,
+                });
+            }, ref created, ref skipped);
+        }
+
+        private void MigrateThoughtsAndEggs(ComponentManager.ComponentSaveData legacy, ref int created, ref int skipped)
+        {
+            ForEachMatching<DwarfCorp.DwarfThoughts>(legacy, (t, entity) =>
+            {
+                _target.World.Add(entity, new EcsDwarfThoughts
+                {
+                    Thoughts = t.Thoughts != null
+                        ? new System.Collections.Generic.List<Thought>(t.Thoughts)
+                        : new System.Collections.Generic.List<Thought>(),
+                });
+            }, ref created, ref skipped);
+
+            ForEachMatching<DwarfCorp.Egg>(legacy, (e, entity) =>
+            {
+                _target.World.Add(entity, new EcsEgg
+                {
+                    Adult = e.Adult,
+                    Birthday = e.Birthday,
+                    ParentBody = e.ParentBody,
+                    Hatched = e.Hatched,
                 });
             }, ref created, ref skipped);
         }

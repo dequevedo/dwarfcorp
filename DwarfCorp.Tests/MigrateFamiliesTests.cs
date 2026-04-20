@@ -29,6 +29,8 @@ using EcsFire = DwarfCorp.ECS.Components.Fire;
 using EcsFollower = DwarfCorp.ECS.Components.Follower;
 using EcsBobber = DwarfCorp.ECS.Components.Bobber;
 using EcsMinimapIcon = DwarfCorp.ECS.Components.MinimapIcon;
+using EcsDwarfThoughts = DwarfCorp.ECS.Components.DwarfThoughts;
+using EcsEgg = DwarfCorp.ECS.Components.Egg;
 
 namespace DwarfCorp.Tests;
 
@@ -351,6 +353,19 @@ public class MigrateFamiliesTests
         m.IconScale = 1.5f;
         shim.Migrate(Save(1, root, host, m));
         Assert.Equal(1.5f, ecs.World.Get<EcsMinimapIcon>(shim.LegacyIdToEntity[2]).IconScale);
+    }
+
+    [Fact]
+    public void Egg_Migrates_AdultKey()
+    {
+        var (ecs, shim) = FreshShim();
+        var root = SynthRoot(1); var host = SynthHost(2, 1);
+        var e = Synth<DwarfCorp.Egg>(3, parent: 2);
+        e.Adult = "Chicken"; e.Hatched = false;
+        shim.Migrate(Save(1, root, host, e));
+        var egg = ecs.World.Get<EcsEgg>(shim.LegacyIdToEntity[2]);
+        Assert.Equal("Chicken", egg.Adult);
+        Assert.False(egg.Hatched);
     }
 
     [Fact]
