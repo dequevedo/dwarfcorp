@@ -110,17 +110,17 @@ worth of scope:
 
 | # | Family | Owns | Depends on | Status |
 |---|---|---|---|---|
-| 1 | **Transform** | Transform component | — | ✅ `MigrateTransforms` + `LegacyIdToEntity` mapping + 4 tests |
-| 2 | **Physics** | Physics component + PhysicsSystem | Transform | ⬜ |
-| 3 | **Health** | Health component + DamageSystem | — (tested solo) |
-| 4 | **Tintable + SimpleSprite** | Tintable component + SpriteRenderSystem | Transform |
-| 5 | **AnimatedSprite / LayeredSprites** | Animation components | Tintable |
-| 6 | **MeshComponent / PrimitiveComponent / InstanceMesh** | Mesh rendering | Tintable |
-| 7 | **Inventory** | Inventory component | — |
-| 8 | **Equipment** | Equipment component | Inventory |
-| 9 | **LightEmission** | Light component + LightCollectionSystem | Transform |
-| 10 | **Sensor family** (Radius, Enemy, SpawnOnExplored) | Sensor component + SensorSystem | Transform |
-| 11 | **VoxelListener family** | VoxelListener component + VoxelEventSystem | Transform |
+| 1 | **Transform** | Transform component | — | ✅ `MigrateTransforms` + 4 tests |
+| 2 | **Physics** | Physics component + PhysicsSystem | Transform | ✅ snapshot (struct). Systems deferred. |
+| 3 | **Health** | Health component + DamageSystem | — | ✅ snapshot. DamageType dict deferred. |
+| 4 | **Tintable + SimpleSprite** | Tintable component + SpriteRenderSystem | Transform | ✅ snapshot. |
+| 5 | **AnimatedSprite / LayeredSprites** | Animation components | Tintable | ✅ orientation/silhouette only (Animations dict throws on serialize legacy-side, nothing to migrate). |
+| 6 | **MeshComponent / PrimitiveComponent / InstanceMesh** | Mesh rendering | Tintable | ✅ InstanceMeshRef (ModelType). Others are Tinter-only. |
+| 7 | **Inventory** | Inventory component | — | ✅ item list migrated as snapshot. |
+| 8 | **Equipment** | Equipment component | Inventory | ✅ slot dict migrated. |
+| 9 | **LightEmission** | Light component + LightCollectionSystem | Transform | ✅ Range + Intensity. Position from Transform. |
+| 10 | **Sensor family** (Radius, Enemy, SpawnOnExplored) | Sensor component + SensorSystem | Transform | ✅ 3 struct variants. Runtime-only fields deferred. |
+| 11 | **VoxelListener family** | VoxelListener component + VoxelEventSystem | Transform | ✅ marker tag (legacy handlers are runtime-only, explicitly unserializable). |
 | 12 | **Fire / Flammable** | Fire + Flammable components + FireSystem | Physics |
 | 13 | **Follower / Bobber** | Follow + Bob components + animation systems | Transform |
 | 14 | **MinimapIcon** | MinimapIcon component + MinimapRenderSystem | Transform |
