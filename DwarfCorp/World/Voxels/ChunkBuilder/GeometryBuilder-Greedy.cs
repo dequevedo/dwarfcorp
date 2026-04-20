@@ -7,22 +7,24 @@ namespace DwarfCorp.Voxels
     /// <summary>
     /// Fase B.2 live integration. Gated by <c>Debugger.Switches.UseGreedyMeshing</c>.
     ///
-    /// For each horizontal plane that a chunk slice exposes (the TOP face of every voxel
-    /// at Y, and the BOTTOM face of every voxel at Y) we scan the slice, build a 2D
-    /// <see cref="GreedyMeshSlice.FaceKey"/> mask over (X, Z), and run
-    /// <see cref="GreedyMeshSlice.GreedyMergeMask"/> to collapse contiguous matching
-    /// cells into a single merged quad. The per-voxel pass that follows skips the
-    /// faces already consumed by the greedy pass — tracked via a per-slice byte-mask
-    /// with one bit per <see cref="FaceOrientation"/>.
+    /// Two kinds of greedy passes run per slice:
+    /// - **Horizontal faces (Top, Bottom)**: full 2D merge on the (X, Z) plane.
+    ///   Huge ROI on floors, ceilings, pillar undersides.
+    /// - **Side faces (North, South, East, West)**: 1D merge along the face's
+    ///   horizontal axis only (X for N/S, Z for E/W). Because a single slice sees
+    ///   only 1 voxel of vertical height, cross-slice merging would need a
+    ///   rearchitected build pipeline — that's TODO land. Within one slice we still
+    ///   collapse long wall runs (a 16-wide stone wall becomes 1 N quad instead of 16).
     ///
-    /// ### Scope limitation (side faces deferred)
-    /// Top and Bottom live cleanly inside the per-slice architecture: both lie on the
-    /// XZ plane at a fixed Y and a slice sees every cell of the plane. Side faces
-    /// (North/South on Z, East/West on X) sit on planes that extend across multiple
-    /// Y slices — to greedy-merge them in 2D we'd need a cross-slice pass, which is a
-    /// bigger architectural move. The 1D-per-slice variant (horizontal runs only) is
-    /// possible here but the ROI is much smaller than Top/Bottom 2D, so it's parked
-    /// until the payoff of Top+Bottom is measured.
+    /// Both use the same <see cref="GreedyMeshSlice.GreedyMergeMask"/> kernel. To
+    /// restrict side merging to a single axis we inject the orthogonal-axis
+    /// coordinate into <see cref="GreedyMeshSlice.FaceKey.LightHash"/> so cells on
+    /// different rows/columns never compare equal, and the kernel's 2D extension
+    /// naturally degenerates to 1D along the intended axis.
+    ///
+    /// Consumed faces are tracked via a per-slice <c>byte[,] consumedFaces</c> mask —
+    /// one bit per <see cref="FaceOrientation"/>. The per-voxel fallback pass skips
+    /// any face whose bit is set for its (x, z) cell.
     ///
     /// ### Eligibility (any cell rejected falls back to per-voxel emit)
     /// - Empty or not fully explored (fog-of-war per-vertex tint varies).
@@ -48,6 +50,10 @@ namespace DwarfCorp.Voxels
         // needing a separate bool[,] per face.
         private const byte FaceBit_Top    = 1 << (int)FaceOrientation.Top;
         private const byte FaceBit_Bottom = 1 << (int)FaceOrientation.Bottom;
+        private const byte FaceBit_North  = 1 << (int)FaceOrientation.North;
+        private const byte FaceBit_East   = 1 << (int)FaceOrientation.East;
+        private const byte FaceBit_South  = 1 << (int)FaceOrientation.South;
+        private const byte FaceBit_West   = 1 << (int)FaceOrientation.West;
 
         // Per-thread scratch. `CreateFromChunk` runs on the parallel chunk-rebuild
         // workers, so these are ThreadStatic. Reused across slices of the same chunk
@@ -84,8 +90,18 @@ namespace DwarfCorp.Voxels
             SliceCache Cache,
             byte[,] ConsumedFaces)
         {
+            // Horizontal faces: full 2D merge across (X, Z).
             RunGreedyPass(FaceOrientation.Top, FaceBit_Top, Into, Chunk, LocalY, TileSheet, World, Cache, ConsumedFaces);
             RunGreedyPass(FaceOrientation.Bottom, FaceBit_Bottom, Into, Chunk, LocalY, TileSheet, World, Cache, ConsumedFaces);
+
+            // Side faces: the kernel still runs a 2D extension, but TryMakeGreedyFaceKey
+            // folds the orthogonal axis into LightHash so different rows/columns never
+            // match — the kernel's h-extension (for N/S) or w-extension (for E/W)
+            // stops immediately, yielding 1D runs along the face's horizontal axis.
+            RunGreedyPass(FaceOrientation.North, FaceBit_North, Into, Chunk, LocalY, TileSheet, World, Cache, ConsumedFaces);
+            RunGreedyPass(FaceOrientation.South, FaceBit_South, Into, Chunk, LocalY, TileSheet, World, Cache, ConsumedFaces);
+            RunGreedyPass(FaceOrientation.East, FaceBit_East, Into, Chunk, LocalY, TileSheet, World, Cache, ConsumedFaces);
+            RunGreedyPass(FaceOrientation.West, FaceBit_West, Into, Chunk, LocalY, TileSheet, World, Cache, ConsumedFaces);
         }
 
         /// <summary>
@@ -114,7 +130,7 @@ namespace DwarfCorp.Voxels
                 for (int z = 0; z < VoxelConstants.ChunkSizeZ; z++)
                 {
                     var v = VoxelHandle.UnsafeCreateLocalHandle(Chunk, new LocalVoxelCoordinate(x, LocalY, z));
-                    if (TryMakeGreedyFaceKey(v, Orientation, World, out var key))
+                    if (TryMakeGreedyFaceKey(v, Orientation, x, z, World, out var key))
                         mask[x, z] = key;
                 }
 
@@ -125,7 +141,7 @@ namespace DwarfCorp.Voxels
 
             int rectangles = GreedyMeshSlice.GreedyMergeMask(mask, (i, j, w, h, key) =>
             {
-                EmitMergedHorizontalQuad(Orientation, Into, Chunk, LocalY, i, j, w, h, key, TileSheet, World, Cache);
+                EmitMergedQuad(Orientation, Into, Chunk, LocalY, i, j, w, h, key, TileSheet, World, Cache);
                 for (int dx = 0; dx < w; dx++)
                     for (int dz = 0; dz < h; dz++)
                         ConsumedFaces[i + dx, j + dz] |= FaceBit;
@@ -140,7 +156,7 @@ namespace DwarfCorp.Voxels
         /// false and the caller falls back to the per-voxel emit path. See the class
         /// doc-comment for the exclusion list.
         /// </summary>
-        private static bool TryMakeGreedyFaceKey(VoxelHandle V, FaceOrientation Orientation, WorldManager World, out GreedyMeshSlice.FaceKey Key)
+        private static bool TryMakeGreedyFaceKey(VoxelHandle V, FaceOrientation Orientation, int LocalX, int LocalZ, WorldManager World, out GreedyMeshSlice.FaceKey Key)
         {
             Key = default;
             if (V.IsEmpty) return false;
@@ -170,7 +186,28 @@ namespace DwarfCorp.Voxels
             // here, which doubles the cost and erases half the greedy win. The
             // under-merge on lighting seams is worth the savings; shadows are gentle
             // in this style.
+            //
+            // For side faces we ALSO fold the orthogonal axis coordinate into
+            // lightHash so adjacent rows/columns never compare equal. Effect: the
+            // 2D kernel's extension along that axis stops immediately, degrading to
+            // a clean 1D run along the face's actual horizontal axis. This is the
+            // trick that lets us reuse GreedyMergeMask verbatim for side faces
+            // without a cross-slice rearchitecture.
+            //
+            //  - N/S faces lie in the XY plane at fixed Z → merge along X → fold Z.
+            //  - E/W faces lie in the YZ plane at fixed X → merge along Z → fold X.
             int lightHash = V.Sunlight ? 1 : 0;
+            switch (Orientation)
+            {
+                case FaceOrientation.North:
+                case FaceOrientation.South:
+                    lightHash |= (LocalZ + 1) << 8;
+                    break;
+                case FaceOrientation.East:
+                case FaceOrientation.West:
+                    lightHash |= (LocalX + 1) << 8;
+                    break;
+            }
 
             Key = new GreedyMeshSlice.FaceKey(
                 voxelType: V.Type.ID,
@@ -182,11 +219,13 @@ namespace DwarfCorp.Voxels
         }
 
         /// <summary>
-        /// Emit one merged quad covering the (w × h) rectangle of voxels starting at
-        /// (<paramref name="I"/>, LocalY, <paramref name="J"/>). Dispatches to the
-        /// correct vertex layout based on orientation (Top or Bottom).
+        /// Emit one merged quad for the given face orientation. Covers a (W × H)
+        /// rectangle of voxels on the relevant plane — for Top/Bottom this is the
+        /// XZ plane (both dimensions merged), for N/S/E/W this degenerates to a 1D
+        /// run along the face's horizontal axis (W along X for N/S, H along Z for
+        /// E/W; the other dimension is always 1 by construction).
         /// </summary>
-        private static void EmitMergedHorizontalQuad(
+        private static void EmitMergedQuad(
             FaceOrientation Orientation,
             RawPrimitive Into,
             VoxelChunk Chunk,
@@ -213,38 +252,88 @@ namespace DwarfCorp.Voxels
 
             // Vertex slots must match the ordering that TemplateMesh.QuadPart writes
             // into Verticies[0..3]: slot 0 = "topLeft" param, slot 1 = "topRight",
-            // slot 2 = "bottomRight", slot 3 = "bottomLeft".
+            // slot 2 = "bottomRight", slot 3 = "bottomLeft". QuadIndicies =
+            // {0,1,2, 3,0,2} then forms two triangles sharing the [0]-[2] diagonal
+            // that cover the entire quad. Terrain renders with CullMode.None, so
+            // winding doesn't matter for visibility, but slot-to-position mapping
+            // DOES matter — mismatching layouts produce triangular holes.
             //
-            // For the TOP face the template passes (FrontTopLeft, BackTopLeft,
-            // FrontTopRight, BackTopRight) as (bottomLeft, topLeft, bottomRight,
-            // topRight), so the stored slots are BackTopLeft, BackTopRight,
-            // FrontTopRight, FrontTopLeft — that's the layout we reproduce for the
-            // merged quad.
-            //
-            // For the BOTTOM face the template passes (BackBottomRight,
-            // FrontBottomRight, BackBottomLeft, FrontBottomLeft), so the stored
-            // slots are FrontBottomRight, FrontBottomLeft, BackBottomLeft,
-            // BackBottomRight.
-            //
-            // QuadIndicies = {0,1,2, 3,0,2} then forms two triangles sharing the
-            // [0]-[2] diagonal that cover the entire quad — works for either
-            // winding since terrain renders with CullMode.None.
+            // Each branch below reads its slot layout from the corresponding
+            // TemplateFace.Mesh definition in TemplateSolid.MakeCube.
             Vector3 p0, p1, p2, p3;
-            if (Orientation == FaceOrientation.Top)
+            switch (Orientation)
             {
-                float y = basePos.Y + 1.0f;
-                p0 = new Vector3(basePos.X + 0, y, basePos.Z + 0); // BackTopLeft
-                p1 = new Vector3(basePos.X + W, y, basePos.Z + 0); // BackTopRight
-                p2 = new Vector3(basePos.X + W, y, basePos.Z + H); // FrontTopRight
-                p3 = new Vector3(basePos.X + 0, y, basePos.Z + H); // FrontTopLeft
-            }
-            else // Bottom
-            {
-                float y = basePos.Y;
-                p0 = new Vector3(basePos.X + W, y, basePos.Z + H); // FrontBottomRight
-                p1 = new Vector3(basePos.X + 0, y, basePos.Z + H); // FrontBottomLeft
-                p2 = new Vector3(basePos.X + 0, y, basePos.Z + 0); // BackBottomLeft
-                p3 = new Vector3(basePos.X + W, y, basePos.Z + 0); // BackBottomRight
+                case FaceOrientation.Top:
+                {
+                    // Quad(FrontTopLeft, BackTopLeft, FrontTopRight, BackTopRight) →
+                    // slots [BackTopLeft, BackTopRight, FrontTopRight, FrontTopLeft].
+                    float y = basePos.Y + 1.0f;
+                    p0 = new Vector3(basePos.X + 0, y, basePos.Z + 0);
+                    p1 = new Vector3(basePos.X + W, y, basePos.Z + 0);
+                    p2 = new Vector3(basePos.X + W, y, basePos.Z + H);
+                    p3 = new Vector3(basePos.X + 0, y, basePos.Z + H);
+                    break;
+                }
+                case FaceOrientation.Bottom:
+                {
+                    // Quad(BackBottomRight, FrontBottomRight, BackBottomLeft, FrontBottomLeft) →
+                    // slots [FrontBottomRight, FrontBottomLeft, BackBottomLeft, BackBottomRight].
+                    float y = basePos.Y;
+                    p0 = new Vector3(basePos.X + W, y, basePos.Z + H);
+                    p1 = new Vector3(basePos.X + 0, y, basePos.Z + H);
+                    p2 = new Vector3(basePos.X + 0, y, basePos.Z + 0);
+                    p3 = new Vector3(basePos.X + W, y, basePos.Z + 0);
+                    break;
+                }
+                case FaceOrientation.North:
+                {
+                    // Face plane at Z = basePos.Z + 1. Merges 1D along X (W).
+                    // Quad(FrontBottomLeft, FrontTopLeft, FrontBottomRight, FrontTopRight) →
+                    // slots [FrontTopLeft, FrontTopRight, FrontBottomRight, FrontBottomLeft].
+                    float z = basePos.Z + 1.0f;
+                    p0 = new Vector3(basePos.X + 0, basePos.Y + 1, z);
+                    p1 = new Vector3(basePos.X + W, basePos.Y + 1, z);
+                    p2 = new Vector3(basePos.X + W, basePos.Y + 0, z);
+                    p3 = new Vector3(basePos.X + 0, basePos.Y + 0, z);
+                    break;
+                }
+                case FaceOrientation.South:
+                {
+                    // Face plane at Z = basePos.Z. Merges 1D along X (W).
+                    // Quad(BackBottomRight, BackTopRight, BackBottomLeft, BackTopLeft) →
+                    // slots [BackTopRight, BackTopLeft, BackBottomLeft, BackBottomRight].
+                    float z = basePos.Z;
+                    p0 = new Vector3(basePos.X + W, basePos.Y + 1, z);
+                    p1 = new Vector3(basePos.X + 0, basePos.Y + 1, z);
+                    p2 = new Vector3(basePos.X + 0, basePos.Y + 0, z);
+                    p3 = new Vector3(basePos.X + W, basePos.Y + 0, z);
+                    break;
+                }
+                case FaceOrientation.East:
+                {
+                    // Face plane at X = basePos.X + 1. Merges 1D along Z (H).
+                    // Quad(FrontBottomRight, FrontTopRight, BackBottomRight, BackTopRight) →
+                    // slots [FrontTopRight, BackTopRight, BackBottomRight, FrontBottomRight].
+                    float x = basePos.X + 1.0f;
+                    p0 = new Vector3(x, basePos.Y + 1, basePos.Z + H);
+                    p1 = new Vector3(x, basePos.Y + 1, basePos.Z + 0);
+                    p2 = new Vector3(x, basePos.Y + 0, basePos.Z + 0);
+                    p3 = new Vector3(x, basePos.Y + 0, basePos.Z + H);
+                    break;
+                }
+                case FaceOrientation.West:
+                default:
+                {
+                    // Face plane at X = basePos.X. Merges 1D along Z (H).
+                    // Quad(BackBottomLeft, BackTopLeft, FrontBottomLeft, FrontTopLeft) →
+                    // slots [BackTopLeft, FrontTopLeft, FrontBottomLeft, BackBottomLeft].
+                    float x = basePos.X;
+                    p0 = new Vector3(x, basePos.Y + 1, basePos.Z + 0);
+                    p1 = new Vector3(x, basePos.Y + 1, basePos.Z + H);
+                    p2 = new Vector3(x, basePos.Y + 0, basePos.Z + H);
+                    p3 = new Vector3(x, basePos.Y + 0, basePos.Z + 0);
+                    break;
+                }
             }
 
             // Lighting: sample anchor's 4 face corners. Same FaceKey across the
