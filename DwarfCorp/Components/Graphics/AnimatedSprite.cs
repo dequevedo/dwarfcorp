@@ -26,7 +26,6 @@ namespace DwarfCorp
 
         public OrientMode OrientationType { get; set; }
         public Color SilhouetteColor { get; set; }
-        private Vector3 prevDistortion = Vector3.Zero;
 
         private NewInstanceData InstanceData;
         [JsonIgnore] public SpriteSheet SpriteSheet = null;
@@ -123,35 +122,20 @@ namespace DwarfCorp
 
         private Matrix GetWorldMatrix(Camera camera)
         {
-            var currDistortion = VertexNoise.GetNoiseVectorFromRepeatingTexture(GlobalTransform.Translation);
-            var distortion = currDistortion * 0.1f + prevDistortion * 0.9f;
-            prevDistortion = distortion;
             var frameSize = new Vector2(SpriteSheet.FrameWidth / 32.0f, SpriteSheet.FrameHeight / 32.0f);
             var pos = GlobalTransform.Translation;
             switch (OrientationType)
             {
                 case OrientMode.Spherical:
-                    {
-                        Matrix bill = Matrix.CreateScale(frameSize.X, frameSize.Y, 1.0f) * Matrix.CreateBillboard(pos, camera.Position, camera.UpVector, null) * Matrix.CreateTranslation(distortion);
-                        //Matrix noTransBill = bill;
-                        //noTransBill.Translation = Vector3.Zero;
-
-                        //Matrix worldRot = noTransBill;
-                        //worldRot.Translation = bill.Translation;// + VertexNoise.GetNoiseVectorFromRepeatingTexture(bill.Translation);
-                        return bill;
-                    }
+                    return Matrix.CreateScale(frameSize.X, frameSize.Y, 1.0f) * Matrix.CreateBillboard(pos, camera.Position, camera.UpVector, null);
                 case OrientMode.Fixed:
                     {
                         Matrix rotation = Matrix.CreateScale(frameSize.X, frameSize.Y, 1.0f) * GlobalTransform;
-                        rotation.Translation = pos + distortion;
+                        rotation.Translation = pos;
                         return rotation;
                     }
                 case OrientMode.YAxis:
-                    {
-                        Matrix worldRot = Matrix.CreateScale(frameSize.X, frameSize.Y, 1.0f) * Matrix.CreateConstrainedBillboard(pos, camera.Position, Vector3.UnitY, null, null);
-                        worldRot.Translation = worldRot.Translation + distortion;
-                        return worldRot;
-                    }
+                    return Matrix.CreateScale(frameSize.X, frameSize.Y, 1.0f) * Matrix.CreateConstrainedBillboard(pos, camera.Position, Vector3.UnitY, null, null);
                 default:
                     throw new InvalidProgramException();
             }

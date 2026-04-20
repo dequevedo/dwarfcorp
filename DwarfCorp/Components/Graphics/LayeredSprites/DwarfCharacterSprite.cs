@@ -25,7 +25,6 @@ namespace DwarfCorp.DwarfSprites
 
         public bool DrawSilhouette { get; set; }
         public Color SilhouetteColor { get; set; }
-        private Vector3 prevDistortion = Vector3.Zero;
 
         [JsonIgnore] public GraphicsDevice Graphics { get { return GameState.Game.GraphicsDevice; } }
 
@@ -102,12 +101,8 @@ namespace DwarfCorp.DwarfSprites
 
         public Matrix GetWorldMatrix(Camera camera)
         {
-            var currDistortion = VertexNoise.GetNoiseVectorFromRepeatingTexture(GlobalTransform.Translation);
-            var distortion = currDistortion * 0.1f + prevDistortion * 0.9f;
-            prevDistortion = distortion;
             var pos = GlobalTransform.Translation;
-            var bill = Matrix.CreateScale(SpriteSheet.FrameWidth / 32.0f, SpriteSheet.FrameHeight / 32.0f, 1.0f) * Matrix.CreateBillboard(pos, camera.Position, camera.UpVector, null) * Matrix.CreateTranslation(distortion);
-            return bill;
+            return Matrix.CreateScale(SpriteSheet.FrameWidth / 32.0f, SpriteSheet.FrameHeight / 32.0f, 1.0f) * Matrix.CreateBillboard(pos, camera.Position, camera.UpVector, null);
         }
 
         override public void Update(DwarfTime gameTime, ChunkManager chunks, Camera camera)

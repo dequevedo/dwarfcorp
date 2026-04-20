@@ -284,7 +284,6 @@ namespace DwarfCorp.Voxels
                     slopeOffset = new Vector3(0.0f, -0.5f, 0.0f);
 
                 var voxelPosition = Face.Mesh.Verticies[vertex].Position + slopeOffset + Voxel.WorldPosition;
-                voxelPosition += VertexNoise.GetNoiseVectorFromRepeatingTexture(voxelPosition);
                 voxelPosition += explodeOffset * OrientationHelper.GetFaceNeighborOffset(Face.Orientation).AsVector3();
 
                 if (ExploredVertexCount == 0)

@@ -156,12 +156,8 @@ namespace DwarfCorp
 
         public static int WriteLineSegment(Vector3 A, Vector3 B, Color Color, float Thickness, bool Warp, int start, VertexPositionColor[] buffer)
         {
-            if (Warp)
-            {
-                A += VertexNoise.GetNoiseVectorFromRepeatingTexture(A);
-                B += VertexNoise.GetNoiseVectorFromRepeatingTexture(B);
-            }
-
+            // `Warp` previously applied VertexNoise jitter; that feature was retired.
+            // Param kept for call-site compatibility and will go away in a sweep.
             var aRay = Vector3.Up;
             var bRay = A - B;
             if (Math.Abs(Vector3.Dot(aRay, bRay)) > 0.99)
@@ -178,12 +174,7 @@ namespace DwarfCorp
 
         public static int WriteLineSegment(Vector3 A, Vector3 B, Color Color, float Thickness, bool Warp, int start, ThickLineVertex[] buffer)
         {
-            if (Warp)
-            {
-                A += VertexNoise.GetNoiseVectorFromRepeatingTexture(A);
-                B += VertexNoise.GetNoiseVectorFromRepeatingTexture(B);
-            }
-
+            // Warp no-op: VertexNoise retired.
             var bRay = A - B;
             bRay.Normalize();
 
@@ -194,12 +185,7 @@ namespace DwarfCorp
 
         private static void _addLineSegment(Vector3 A, Vector3 B, Color Color, float Thickness, bool Warp)
         {
-            if (Warp)
-            {
-                A += VertexNoise.GetNoiseVectorFromRepeatingTexture(A);
-                B += VertexNoise.GetNoiseVectorFromRepeatingTexture(B);
-            }
-
+            // Warp no-op: VertexNoise retired.
             var aRay = A - Camera.Position;
             var bRay = A - B;
             var perp = Vector3.Cross(aRay, bRay);
@@ -274,14 +260,7 @@ namespace DwarfCorp
                 new Vector3(M.X + S.X, M.Y, M.Z + S.Z), new Vector3(M.X + S.X, M.Y + S.Y, M.Z + S.Z),
                 new Vector3(M.X, M.Y, M.Z + S.Z), new Vector3(M.X, M.Y + S.Y, M.Z + S.Z),
             };
-            if (Warp)
-            {
-                for (int i =0; i < verts.Length; i++)
-                {
-                    verts[i] += VertexNoise.GetNoiseVectorFromRepeatingTexture(verts[i]);
-                }
-            }
-
+            // Warp no-op: VertexNoise retired.
             for (int i = 0; i < verts.Length; i+=2)
             {
                 start = WriteLineSegment(verts[i] + boxOffsets[i], verts[i + 1] + boxOffsets[i + 1], C, T, false, start, buffer);
@@ -298,13 +277,7 @@ namespace DwarfCorp
             Vector3 B = M + new Vector3(S.X, S.Y, 0);
             Vector3 C = M + new Vector3(S.X, S.Y, S.Z);
             Vector3 D = M + new Vector3(0, S.Y, S.Z);
-            if (Warp)
-            {
-                A += VertexNoise.GetNoiseVectorFromRepeatingTexture(A);
-                B += VertexNoise.GetNoiseVectorFromRepeatingTexture(B);
-                C += VertexNoise.GetNoiseVectorFromRepeatingTexture(C);
-                D += VertexNoise.GetNoiseVectorFromRepeatingTexture(D);
-            }
+            // Warp no-op: VertexNoise retired.
             // Draw top loop.
             // A   1      B
             //   *+---+*

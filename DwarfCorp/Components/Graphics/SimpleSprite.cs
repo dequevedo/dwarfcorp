@@ -21,7 +21,6 @@ namespace DwarfCorp
         public OrientMode OrientationType = OrientMode.Spherical;
         public float WorldWidth = 1.0f;
         public float WorldHeight = 1.0f;
-        private Vector3 prevDistortion = Vector3.Zero;
         [JsonProperty]
         private SpriteSheet Sheet;
         [JsonProperty]
@@ -113,26 +112,14 @@ namespace DwarfCorp
 
         private Matrix GetWorldMatrix(Camera camera)
         {
-            var currDistortion = VertexNoise.GetNoiseVectorFromRepeatingTexture(GlobalTransform.Translation);
-            var distortion = currDistortion * 0.1f + prevDistortion * 0.9f;
-            prevDistortion = distortion;
-
             switch (OrientationType)
             {
                 case OrientMode.Spherical:
-                    return Matrix.CreateScale(WorldWidth, WorldHeight, 1.0f) * Matrix.CreateBillboard(GlobalTransform.Translation, camera.Position, camera.UpVector, null) * Matrix.CreateTranslation(distortion);
+                    return Matrix.CreateScale(WorldWidth, WorldHeight, 1.0f) * Matrix.CreateBillboard(GlobalTransform.Translation, camera.Position, camera.UpVector, null);
                 case OrientMode.Fixed:
-                    {
-                        Matrix rotation = GlobalTransform;
-                        rotation.Translation = rotation.Translation + distortion;
-                        return Matrix.CreateScale(WorldWidth, WorldHeight, 1.0f) * rotation;
-                    }
+                    return Matrix.CreateScale(WorldWidth, WorldHeight, 1.0f) * GlobalTransform;
                 case OrientMode.YAxis:
-                    {
-                        Matrix worldRot = Matrix.CreateConstrainedBillboard(GlobalTransform.Translation, camera.Position, Vector3.UnitY, null, null);
-                        worldRot.Translation = worldRot.Translation + distortion;
-                        return Matrix.CreateScale(WorldWidth, WorldHeight, 1.0f) * worldRot;
-                    }
+                    return Matrix.CreateScale(WorldWidth, WorldHeight, 1.0f) * Matrix.CreateConstrainedBillboard(GlobalTransform.Translation, camera.Position, Vector3.UnitY, null, null);
                 default:
                     throw new InvalidProgramException();
             }

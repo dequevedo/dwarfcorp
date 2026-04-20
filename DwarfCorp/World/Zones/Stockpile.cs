@@ -172,15 +172,13 @@ namespace DwarfCorp
             else if (Boxes.Count < desiredBoxes)
             {
                 for (int i = Boxes.Count; i < desiredBoxes; i++)
-                    CreateBox(Voxels[i].WorldPosition + VertexNoise.GetNoiseVectorFromRepeatingTexture(Voxels[i].WorldPosition + new Vector3(0.5f, 0, 0.5f)));
+                    CreateBox(Voxels[i].WorldPosition);
             }
 
             // Refresh positions after any death/removal so existing boxes stay lined up with
             // their tile.
             for (int i = 0; i < Boxes.Count && i < Voxels.Count; i++)
-                Boxes[i].LocalPosition = new Vector3(0.5f, 1.5f, 0.5f)
-                    + Voxels[i].WorldPosition
-                    + VertexNoise.GetNoiseVectorFromRepeatingTexture(Voxels[i].WorldPosition + new Vector3(0.5f, 0, 0.5f));
+                Boxes[i].LocalPosition = new Vector3(0.5f, 1.5f, 0.5f) + Voxels[i].WorldPosition;
         }
 
         private enum Direction

@@ -41,8 +41,6 @@ namespace DwarfCorp
 
             AddChild(new Health(Manager, "Hp", 10, 0, 10) { DebugColor = Color.Silver });
 
-            LocalPosition += VertexNoise.GetNoiseVectorFromRepeatingTexture(position);
-
             CreateCosmeticChildren(Manager);
             //PropogateTransforms();
         }

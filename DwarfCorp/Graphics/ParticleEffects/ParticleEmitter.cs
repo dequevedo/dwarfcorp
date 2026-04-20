@@ -376,7 +376,7 @@ namespace DwarfCorp
                                         float x = MathFunctions.Clamp(p.Position.X, vBox.Min.X + 0.1f, vBox.Max.X - 0.1f);
                                         float z = MathFunctions.Clamp(p.Position.Z, vBox.Min.Z + 0.1f, vBox.Max.Z - 0.1f);
                                         manager.Create(Data.SpatterType,
-                                            VertexNoise.Warp(new Vector3(x, v.RampType == RampType.None ? v.WorldPosition.Y + 1.02f : v.WorldPosition.Y + 0.6f, z)), Vector3.Zero, Color.White, Vector3.Up);
+                                            new Vector3(x, v.RampType == RampType.None ? v.WorldPosition.Y + 1.02f : v.WorldPosition.Y + 0.6f, z), Vector3.Zero, Color.White, Vector3.Up);
                                     }
                                     else
                                     {

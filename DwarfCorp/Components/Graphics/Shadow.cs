@@ -74,7 +74,6 @@ namespace DwarfCorp
                             var h = shadowTarget.Coordinate.Y + 1;
                             Vector3 pos = p.GlobalTransform.Translation;
                             pos.Y = h;
-                            pos += VertexNoise.GetNoiseVectorFromRepeatingTexture(pos);
                             float scaleFactor = GlobalScale / (Math.Max((p.GlobalTransform.Translation.Y - h) * 0.25f, 1));
                             Matrix newTrans = OriginalTransform;
                             newTrans *= Matrix.CreateScale(scaleFactor);

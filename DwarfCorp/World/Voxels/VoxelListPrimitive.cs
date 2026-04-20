@@ -446,9 +446,7 @@ namespace DwarfCorp
                 if (V.IsExplored && V.Type.CanRamp && ShouldRamp(voxelVertex, V.RampType))
                     rampOffset = new Vector3(0, -0.5f, 0);
 
-                var baseWorldPosition = V.WorldPosition + vertex.Position + rampOffset;
-                var noise = VertexNoise.GetNoiseVectorFromRepeatingTexture(baseWorldPosition);
-                var localPosition = Vector3.Transform(vertex.Position + rampOffset + noise, VertexTransform);
+                var localPosition = Vector3.Transform(vertex.Position + rampOffset, VertexTransform);
 
                 Into.AddVertex(new ExtendedVertex(
                     V.WorldPosition + localPosition,
@@ -592,7 +590,7 @@ namespace DwarfCorp
                     for (int faceVertex = 0; faceVertex < faceDescriptor.VertexCount; faceVertex++)
                     {
                         Into.AddVertex(new ExtendedVertex(
-                            vertexPositions[faceVertex] + VertexNoise.GetNoiseVectorFromRepeatingTexture(vertexPositions[faceVertex]),
+                            vertexPositions[faceVertex],
                             new Color(0, 0, 0, 255),
                             new Color(0, 0, 0, 255),
                             new Vector2(12.5f / 16.0f, 0.5f / 16.0f),
@@ -651,7 +649,7 @@ namespace DwarfCorp
                 AmbientScratchSpace[faceVertex] = VertexColors[faceVertex].AmbientColor;
 
                 Into.AddVertex(new ExtendedVertex(
-                    VertexPositions[faceVertex] + VertexNoise.GetNoiseVectorFromRepeatingTexture(VertexPositions[faceVertex]),
+                    VertexPositions[faceVertex],
                     VertexColors[faceVertex].AsColor(),
                     VertexTints[faceVertex],
                     UV + new Vector2(vertex.Position.X / 16.0f, vertex.Position.Z / 16.0f),
@@ -874,7 +872,7 @@ namespace DwarfCorp
                 AmbientScratchSpace[faceVertex] = VertexColors[faceVertex].AmbientColor;
 
                 Into.AddVertex(new ExtendedVertex(
-                    VertexPositions[faceVertex] + VertexNoise.GetNoiseVectorFromRepeatingTexture(VertexPositions[faceVertex]),
+                    VertexPositions[faceVertex],
                     VertexColors[faceVertex].AsColor(),
                     VertexTints[faceVertex],
                     UV + new Vector2(vertex.Position.X / 16.0f * UVScale.X, vertex.Position.Z / 16.0f * UVScale.Y),
@@ -913,7 +911,7 @@ namespace DwarfCorp
                 AmbientScratchSpace[faceVertex] = VertexColors[faceVertex].AmbientColor;
 
                 Into.AddVertex(new ExtendedVertex(
-                    VertexPositions[faceVertex] + VertexNoise.GetNoiseVectorFromRepeatingTexture(VertexPositions[faceVertex]),
+                    VertexPositions[faceVertex],
                     VertexColors[faceVertex].AsColor(),
                     VertexTints[faceVertex],
                     UV + new Vector2(vertex.Position.X / 16.0f, vertex.Position.Z / 16.0f),

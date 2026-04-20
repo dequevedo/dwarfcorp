@@ -405,9 +405,6 @@ namespace DwarfCorp
                             uv.Y -= 0.6f;
                         }*/
 
-                        pos += VertexNoise.GetNoiseVectorFromRepeatingTexture((voxel.WorldPosition +
-                            primitive.Vertices[vertOffset + faceDescriptor.VertexOffset].Position) / 2.0f);
-
                         /*
                         if (!belowFilled)
                         {

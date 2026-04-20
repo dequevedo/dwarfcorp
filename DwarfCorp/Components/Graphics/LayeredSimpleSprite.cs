@@ -24,7 +24,6 @@ namespace DwarfCorp
         public bool EnableWind = false;
         public float WorldWidth = 1.0f;
         public float WorldHeight = 1.0f;
-        private Vector3 prevDistortion = Vector3.Zero;
 
         public class Layer
         {
@@ -121,31 +120,17 @@ namespace DwarfCorp
             Color origTint = effect.VertexColorTint;  
             ApplyTintingToEffect(effect);            
 
-            var currDistortion = VertexNoise.GetNoiseVectorFromRepeatingTexture(GlobalTransform.Translation);
-            var distortion = currDistortion * 0.1f + prevDistortion * 0.9f;
-            prevDistortion = distortion;
             switch (OrientationType)
             {
                 case OrientMode.Spherical:
-                    {
-                        Matrix bill = Matrix.CreateBillboard(GlobalTransform.Translation, camera.Position, camera.UpVector, null) * Matrix.CreateTranslation(distortion);
-                        effect.World = bill;
-                        break;
-                    }
+                    effect.World = Matrix.CreateBillboard(GlobalTransform.Translation, camera.Position, camera.UpVector, null);
+                    break;
                 case OrientMode.Fixed:
-                    {
-                        Matrix rotation = GlobalTransform;
-                        rotation.Translation = rotation.Translation + distortion;
-                        effect.World = rotation;
-                        break;
-                    }
+                    effect.World = GlobalTransform;
+                    break;
                 case OrientMode.YAxis:
-                    {
-                        Matrix worldRot = Matrix.CreateConstrainedBillboard(GlobalTransform.Translation, camera.Position, Vector3.UnitY, null, null);
-                        worldRot.Translation = worldRot.Translation + distortion;
-                        effect.World = worldRot;
-                        break;
-                    }
+                    effect.World = Matrix.CreateConstrainedBillboard(GlobalTransform.Translation, camera.Position, Vector3.UnitY, null, null);
+                    break;
             }
 
             effect.EnableWind = EnableWind;

@@ -780,11 +780,7 @@ namespace DwarfCorp
             {
                 float heightOffset = crouched ? 0.0f : 0.5f;
                 HeightOffset = heightOffset * 0.1f + HeightOffset * 0.9f;
-                var undistorted = Position + Vector3.UnitY * heightOffset;
-                var distorted = VertexNoise.Warp(undistorted);
-                var noise = distorted - undistorted;
-                Noise = noise * 0.1f + Noise * 0.9f;
-                ViewMatrix = Matrix.CreateLookAt(Position + Vector3.UnitY * HeightOffset + Noise, FollowAutoTarget ? (AutoTarget * 0.5f + Target * 0.5f) : Target + Vector3.UnitY * HeightOffset + Noise, Vector3.UnitY);
+                ViewMatrix = Matrix.CreateLookAt(Position + Vector3.UnitY * HeightOffset, FollowAutoTarget ? (AutoTarget * 0.5f + Target * 0.5f) : Target + Vector3.UnitY * HeightOffset, Vector3.UnitY);
             }
             else
             {
