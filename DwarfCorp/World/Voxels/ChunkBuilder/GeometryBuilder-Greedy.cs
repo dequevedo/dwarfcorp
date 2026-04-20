@@ -180,31 +180,41 @@ namespace DwarfCorp.Voxels
             var tile = new Point(Key.TileX, Key.TileY);
             var tileBounds = TileSheet.GetTileBounds(tile);
 
-            // Corners in world space. Top face lies at y = basePos.Y + 1.
-            // Vertex ordering follows the cube template (see TemplateSolid.MakeCube): the
-            // top-face quad is (FrontTopLeft, BackTopLeft, FrontTopRight, BackTopRight),
-            // which in world layout is (X=i, Z=j+h), (X=i, Z=j), (X=i+w, Z=j+h),
-            // (X=i+w, Z=j). QuadIndicies = {0,1,2,3,0,2} form two CCW triangles.
+            // Vertex slots must match the ordering that TemplateMesh.QuadPart writes
+            // into `Verticies[0..3]`: slot 0 = "topLeft" param, slot 1 = "topRight",
+            // slot 2 = "bottomRight", slot 3 = "bottomLeft". For the TOP face the call
+            // site passes (FrontTopLeft, BackTopLeft, FrontTopRight, BackTopRight) as
+            // (bottomLeft, topLeft, bottomRight, topRight), so the stored order in
+            // world coords becomes:
+            //   [0] BackTopLeft    = (X=0,    Z=0)     ← "near-left"
+            //   [1] BackTopRight   = (X=w,    Z=0)     ← "near-right"
+            //   [2] FrontTopRight  = (X=w,    Z=h)     ← "far-right"
+            //   [3] FrontTopLeft   = (X=0,    Z=h)     ← "far-left"
+            // QuadIndicies = {0,1,2, 3,0,2} then forms two CCW triangles sharing the
+            // main diagonal [0]-[2] that cover the whole quad. Getting this ordering
+            // wrong leaves triangular gaps in the rendered mesh.
             float y = basePos.Y + 1.0f;
-            var p0 = new Vector3(basePos.X + 0, y, basePos.Z + H); // FrontTopLeft
-            var p1 = new Vector3(basePos.X + 0, y, basePos.Z + 0); // BackTopLeft
+            var p0 = new Vector3(basePos.X + 0, y, basePos.Z + 0); // BackTopLeft
+            var p1 = new Vector3(basePos.X + W, y, basePos.Z + 0); // BackTopRight
             var p2 = new Vector3(basePos.X + W, y, basePos.Z + H); // FrontTopRight
-            var p3 = new Vector3(basePos.X + W, y, basePos.Z + 0); // BackTopRight
+            var p3 = new Vector3(basePos.X + 0, y, basePos.Z + H); // FrontTopLeft
 
-            // Lighting: sample the anchor voxel's 4 top corners. Same key guarantees
-            // the merge predicate held; using the anchor's lighting for all 4 corners
-            // is deliberate (avoids per-voxel boundary seams inside a merged region).
+            // Lighting: sample from the 4 corners of the anchor voxel. Same FaceKey
+            // guarantees the merge predicate held; using the anchor's lighting for
+            // all merged corners avoids per-voxel seams inside a merged region.
+            // Verticies[i].LogicalVertex is already in the QuadPart-reordered slots,
+            // so these line up with p0..p3 above.
             var l0 = VertexLighting.CalculateVertexLight(anchor, topFace.Mesh.Verticies[0].LogicalVertex, World.ChunkManager, Cache);
             var l1 = VertexLighting.CalculateVertexLight(anchor, topFace.Mesh.Verticies[1].LogicalVertex, World.ChunkManager, Cache);
             var l2 = VertexLighting.CalculateVertexLight(anchor, topFace.Mesh.Verticies[2].LogicalVertex, World.ChunkManager, Cache);
             var l3 = VertexLighting.CalculateVertexLight(anchor, topFace.Mesh.Verticies[3].LogicalVertex, World.ChunkManager, Cache);
 
-            // UVs: each corner stretches the single tile across the rectangle. See the
-            // class-level comment about the shader ClampTexture limitation.
-            var uv0 = TileSheet.MapTileUVs(new Vector2(0, 1), tile);
-            var uv1 = TileSheet.MapTileUVs(new Vector2(0, 0), tile);
+            // UVs match QuadPart's UV pattern: [0]=(0,0), [1]=(1,0), [2]=(1,1), [3]=(0,1).
+            // Stretched across the merged rect (see class header re: shader limitation).
+            var uv0 = TileSheet.MapTileUVs(new Vector2(0, 0), tile);
+            var uv1 = TileSheet.MapTileUVs(new Vector2(1, 0), tile);
             var uv2 = TileSheet.MapTileUVs(new Vector2(1, 1), tile);
-            var uv3 = TileSheet.MapTileUVs(new Vector2(1, 0), tile);
+            var uv3 = TileSheet.MapTileUVs(new Vector2(0, 1), tile);
 
             var white = new Color(1.0f, 1.0f, 1.0f, 1.0f);
             Cache.FaceGeometry[0] = new ExtendedVertex
