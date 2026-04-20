@@ -7,41 +7,73 @@ namespace DwarfCorp.Voxels
     /// <summary>
     /// Fase B.2 live integration. Gated by <c>Debugger.Switches.UseGreedyMeshing</c>.
     ///
-    /// For each slice of a chunk, we scan the voxels and — for every TOP face that's
-    /// safely "uniform" (same voxel type, same atlas tile, fully explored, no grass
-    /// fringe, no decal, no slope, no transition textures) — drop it into a 2D
-    /// <see cref="GreedyMeshSlice.FaceKey"/> mask. Then <see cref="GreedyMeshSlice.GreedyMergeMask"/>
-    /// scans the mask and emits rectangles of contiguous matching cells. Each rectangle
-    /// becomes ONE merged quad instead of (w × h) per-voxel quads.
+    /// For each horizontal plane that a chunk slice exposes (the TOP face of every voxel
+    /// at Y, and the BOTTOM face of every voxel at Y) we scan the slice, build a 2D
+    /// <see cref="GreedyMeshSlice.FaceKey"/> mask over (X, Z), and run
+    /// <see cref="GreedyMeshSlice.GreedyMergeMask"/> to collapse contiguous matching
+    /// cells into a single merged quad. The per-voxel pass that follows skips the
+    /// faces already consumed by the greedy pass — tracked via a per-slice byte-mask
+    /// with one bit per <see cref="FaceOrientation"/>.
     ///
-    /// Voxels whose top face is NOT mask-eligible (grass, decal, slope, fog border,
-    /// transition tiles, side-only) fall back to the per-voxel path untouched — we
-    /// only skip the TOP face for cells the mask consumed. Everything else (side
-    /// faces, bottom faces, designations, decals) still runs per-voxel.
+    /// ### Scope limitation (side faces deferred)
+    /// Top and Bottom live cleanly inside the per-slice architecture: both lie on the
+    /// XZ plane at a fixed Y and a slice sees every cell of the plane. Side faces
+    /// (North/South on Z, East/West on X) sit on planes that extend across multiple
+    /// Y slices — to greedy-merge them in 2D we'd need a cross-slice pass, which is a
+    /// bigger architectural move. The 1D-per-slice variant (horizontal runs only) is
+    /// possible here but the ROI is much smaller than Top/Bottom 2D, so it's parked
+    /// until the payoff of Top+Bottom is measured.
     ///
-    /// ## Known limitation: stretched tile UVs
-    /// The shader's <c>ClampTexture</c> clamps to atlas tile bounds, so a merged quad
-    /// with UVs 0..1 stretches a single tile across the whole (w × h) rectangle rather
-    /// than tiling it w times × h times. Visually this produces "big flat tiles" on
-    /// merged floors. For DwarfCorp's low-poly pixelated aesthetic this is acceptable
-    /// as an initial pass; swapping to genuine tiling is a shader-side follow-up
-    /// (either change <c>ClampTexture</c> to wrap via <c>fmod</c>, or route merged
-    /// quads through the already-present <c>WrappedTextureSampler</c>).
+    /// ### Eligibility (any cell rejected falls back to per-voxel emit)
+    /// - Empty or not fully explored (fog-of-war per-vertex tint varies).
+    /// - Grass type set (fringe decals are per-voxel).
+    /// - Decal type set (overlay is per-voxel).
+    /// - Ramp (breaks the flat-plane assumption).
+    /// - Voxel type uses transition textures (atlas tile changes with neighbors).
+    /// - Face is culled (occluded by adjacent voxel).
+    ///
+    /// ### Known limitation: stretched tile UVs
+    /// <c>TexturedShaders.fx :: ClampTexture</c> clamps UVs to atlas tile bounds, so
+    /// a merged quad with UVs 0..1 stretches a single tile across the whole rectangle
+    /// rather than tiling it <c>w × h</c> times. Acceptable for DwarfCorp's low-poly
+    /// pixelated look as an initial pass; swapping to real tiling is TODO 33 in
+    /// <c>TODO_LIST.md</c> (shader <c>fmod</c> wrap or route merged quads through the
+    /// <c>WrappedTextureSampler</c> already present).
     /// </summary>
     public static partial class GeometryBuilder
     {
-        // Per-slice scratch. GenerateSliceGeometry is called from CreateFromChunk in a
-        // loop over localY, sequentially on the geometry-build thread, so a single
-        // reused 2D mask is safe without any thread-local tricks. Kept at module scope
-        // so consecutive slice builds don't re-allocate.
+        // Face bit flags — one bit per FaceOrientation value (Top=0, Bottom=1, etc.).
+        // Used in the per-slice `consumedFaces` byte-mask so the per-voxel fallback
+        // pass can skip each face that the greedy pass already emitted without
+        // needing a separate bool[,] per face.
+        private const byte FaceBit_Top    = 1 << (int)FaceOrientation.Top;
+        private const byte FaceBit_Bottom = 1 << (int)FaceOrientation.Bottom;
+
+        // Per-thread scratch. `CreateFromChunk` runs on the parallel chunk-rebuild
+        // workers, so these are ThreadStatic. Reused across slices of the same chunk
+        // and across chunks on the same worker — the clear loop below (O(ChunkSizeX *
+        // ChunkSizeZ)) is trivial compared to the meshgen itself.
         [ThreadStatic] private static GreedyMeshSlice.FaceKey?[,] _maskScratch;
-        [ThreadStatic] private static bool[,] _consumedTopScratch;
+        [ThreadStatic] private static byte[,] _consumedFacesScratch;
+
+        /// <summary>Scratch for the per-slice "face already emitted" bitmask.
+        /// Bit at <c>1 &lt;&lt; (int)FaceOrientation</c> is set when the greedy
+        /// pass for that orientation emitted a merged quad covering this (x, z)
+        /// cell. Caller owns the mutations for the slice.</summary>
+        private static byte[,] GetConsumedFacesScratch()
+        {
+            var s = _consumedFacesScratch ??= new byte[VoxelConstants.ChunkSizeX, VoxelConstants.ChunkSizeZ];
+            for (int x = 0; x < VoxelConstants.ChunkSizeX; x++)
+                for (int z = 0; z < VoxelConstants.ChunkSizeZ; z++)
+                    s[x, z] = 0;
+            return s;
+        }
 
         /// <summary>
-        /// Runs the greedy pass for this slice, filling <paramref name="ConsumedTopFace"/>
-        /// with true for every (x, z) whose top face was emitted as part of a merged
-        /// quad. Caller is expected to skip the TOP face for consumed cells in the
-        /// subsequent per-voxel pass so we don't double-emit.
+        /// Runs greedy passes for every face orientation that supports 2D merging on
+        /// a horizontal slice (currently Top and Bottom). Marks consumed cells in
+        /// <paramref name="ConsumedFaces"/>. The per-voxel pass that runs afterward
+        /// should skip each face whose bit is set.
         /// </summary>
         private static void GenerateSliceGeometryGreedy(
             RawPrimitive Into,
@@ -50,7 +82,28 @@ namespace DwarfCorp.Voxels
             TerrainTileSheet TileSheet,
             WorldManager World,
             SliceCache Cache,
-            bool[,] ConsumedTopFace)
+            byte[,] ConsumedFaces)
+        {
+            RunGreedyPass(FaceOrientation.Top, FaceBit_Top, Into, Chunk, LocalY, TileSheet, World, Cache, ConsumedFaces);
+            RunGreedyPass(FaceOrientation.Bottom, FaceBit_Bottom, Into, Chunk, LocalY, TileSheet, World, Cache, ConsumedFaces);
+        }
+
+        /// <summary>
+        /// One pass of the greedy merge for a single face orientation on the current
+        /// horizontal slice. Builds the FaceKey mask, runs <see cref="GreedyMeshSlice.GreedyMergeMask"/>,
+        /// emits each merged rectangle as one quad, and ORs the face bit into the
+        /// consumed-faces array for every covered cell.
+        /// </summary>
+        private static void RunGreedyPass(
+            FaceOrientation Orientation,
+            byte FaceBit,
+            RawPrimitive Into,
+            VoxelChunk Chunk,
+            int LocalY,
+            TerrainTileSheet TileSheet,
+            WorldManager World,
+            SliceCache Cache,
+            byte[,] ConsumedFaces)
         {
             var mask = _maskScratch ??= new GreedyMeshSlice.FaceKey?[VoxelConstants.ChunkSizeX, VoxelConstants.ChunkSizeZ];
             for (int x = 0; x < VoxelConstants.ChunkSizeX; x++)
@@ -61,7 +114,7 @@ namespace DwarfCorp.Voxels
                 for (int z = 0; z < VoxelConstants.ChunkSizeZ; z++)
                 {
                     var v = VoxelHandle.UnsafeCreateLocalHandle(Chunk, new LocalVoxelCoordinate(x, LocalY, z));
-                    if (TryMakeGreedyTopFaceKey(v, World, out var key))
+                    if (TryMakeGreedyFaceKey(v, Orientation, World, out var key))
                         mask[x, z] = key;
                 }
 
@@ -72,43 +125,22 @@ namespace DwarfCorp.Voxels
 
             int rectangles = GreedyMeshSlice.GreedyMergeMask(mask, (i, j, w, h, key) =>
             {
-                EmitMergedTopQuad(Into, Chunk, LocalY, i, j, w, h, key, TileSheet, World, Cache);
+                EmitMergedHorizontalQuad(Orientation, Into, Chunk, LocalY, i, j, w, h, key, TileSheet, World, Cache);
                 for (int dx = 0; dx < w; dx++)
                     for (int dz = 0; dz < h; dz++)
-                        ConsumedTopFace[i + dx, j + dz] = true;
+                        ConsumedFaces[i + dx, j + dz] |= FaceBit;
             });
 
-            // Accumulate session-wide stats so CSV captures the merge effectiveness.
             System.Threading.Interlocked.Add(ref PerfCounters.GreedyCellsMaskedThisFrame, maskedCells);
             System.Threading.Interlocked.Add(ref PerfCounters.GreedyRectanglesEmittedThisFrame, rectangles);
         }
 
         /// <summary>
-        /// Allocation-free scratch for the per-slice "top face already merged" flag.
-        /// Returned as-is; caller owns the mutations for the slice.
+        /// Eligibility check + key construction for a given face orientation. Returns
+        /// false and the caller falls back to the per-voxel emit path. See the class
+        /// doc-comment for the exclusion list.
         /// </summary>
-        private static bool[,] GetConsumedTopScratch()
-        {
-            var s = _consumedTopScratch ??= new bool[VoxelConstants.ChunkSizeX, VoxelConstants.ChunkSizeZ];
-            for (int x = 0; x < VoxelConstants.ChunkSizeX; x++)
-                for (int z = 0; z < VoxelConstants.ChunkSizeZ; z++)
-                    s[x, z] = false;
-            return s;
-        }
-
-        /// <summary>
-        /// Eligibility check + key construction. Returns false if the voxel's top face
-        /// shouldn't go through the greedy path for any reason; caller falls back to
-        /// per-voxel emit. Reasons to reject:
-        /// - Empty voxel (nothing to draw)
-        /// - Not fully explored (fog-of-war per-vertex tint varies, can't merge safely)
-        /// - Grass type set (fringe decals are per-voxel)
-        /// - Decal type set (overlay is per-voxel)
-        /// - Ramp (not a flat plane, breaks merge geometry)
-        /// - Voxel type uses transition textures (atlas tile changes with neighbors)
-        /// - Top face is culled (occluded by another voxel above)
-        /// </summary>
-        private static bool TryMakeGreedyTopFaceKey(VoxelHandle V, WorldManager World, out GreedyMeshSlice.FaceKey Key)
+        private static bool TryMakeGreedyFaceKey(VoxelHandle V, FaceOrientation Orientation, WorldManager World, out GreedyMeshSlice.FaceKey Key)
         {
             Key = default;
             if (V.IsEmpty) return false;
@@ -119,43 +151,43 @@ namespace DwarfCorp.Voxels
             if (V.Type.HasTransitionTextures) return false;
 
             var templateSolid = TemplateSolidLibrary.GetTemplateSolid(V.Type.TemplateSolid);
-            Geo.TemplateFace topFace = null;
+            Geo.TemplateFace face = null;
             for (int i = 0; i < templateSolid.Faces.Count; i++)
-                if (templateSolid.Faces[i].Orientation == FaceOrientation.Top)
+                if (templateSolid.Faces[i].Orientation == Orientation)
                 {
-                    topFace = templateSolid.Faces[i];
+                    face = templateSolid.Faces[i];
                     break;
                 }
-            if (topFace == null) return false;
+            if (face == null) return false;
 
-            if (topFace.CullType == Geo.FaceCullType.Cull && !IsFaceVisible(V, topFace, World.ChunkManager, out _))
+            if (face.CullType == Geo.FaceCullType.Cull && !IsFaceVisible(V, face, World.ChunkManager, out _))
                 return false;
 
-            var tile = SelectTile(V.Type, FaceOrientation.Top);
+            var tile = SelectTile(V.Type, Orientation);
 
             // LightHash: approximate by the voxel's own sunlight bit. Anything more
             // granular (per-vertex lighting) requires a VertexLighting call per voxel
-            // here, which doubles the cost and erases half the greedy win. The under-
-            // merge on lighting seams is worth the savings; shadows are gentle in this
-            // style.
+            // here, which doubles the cost and erases half the greedy win. The
+            // under-merge on lighting seams is worth the savings; shadows are gentle
+            // in this style.
             int lightHash = V.Sunlight ? 1 : 0;
 
             Key = new GreedyMeshSlice.FaceKey(
                 voxelType: V.Type.ID,
                 tileX: tile.X,
                 tileY: tile.Y,
-                exploredBits: 4, // all 4 vertices fully explored (gated by V.IsExplored above)
+                exploredBits: 4,
                 lightHash: lightHash);
             return true;
         }
 
         /// <summary>
         /// Emit one merged quad covering the (w × h) rectangle of voxels starting at
-        /// (<paramref name="I"/>, LocalY, <paramref name="J"/>). Four vertices at the
-        /// rectangle corners, UVs 0..1 stretched across the tile, lighting sampled
-        /// from the anchor voxel.
+        /// (<paramref name="I"/>, LocalY, <paramref name="J"/>). Dispatches to the
+        /// correct vertex layout based on orientation (Top or Bottom).
         /// </summary>
-        private static void EmitMergedTopQuad(
+        private static void EmitMergedHorizontalQuad(
+            FaceOrientation Orientation,
             RawPrimitive Into,
             VoxelChunk Chunk,
             int LocalY,
@@ -167,11 +199,11 @@ namespace DwarfCorp.Voxels
         {
             var anchor = VoxelHandle.UnsafeCreateLocalHandle(Chunk, new LocalVoxelCoordinate(I, LocalY, J));
             var templateSolid = TemplateSolidLibrary.GetTemplateSolid(anchor.Type.TemplateSolid);
-            Geo.TemplateFace topFace = null;
+            Geo.TemplateFace face = null;
             for (int k = 0; k < templateSolid.Faces.Count; k++)
-                if (templateSolid.Faces[k].Orientation == FaceOrientation.Top)
+                if (templateSolid.Faces[k].Orientation == Orientation)
                 {
-                    topFace = templateSolid.Faces[k];
+                    face = templateSolid.Faces[k];
                     break;
                 }
 
@@ -180,36 +212,54 @@ namespace DwarfCorp.Voxels
             var tileBounds = TileSheet.GetTileBounds(tile);
 
             // Vertex slots must match the ordering that TemplateMesh.QuadPart writes
-            // into `Verticies[0..3]`: slot 0 = "topLeft" param, slot 1 = "topRight",
-            // slot 2 = "bottomRight", slot 3 = "bottomLeft". For the TOP face the call
-            // site passes (FrontTopLeft, BackTopLeft, FrontTopRight, BackTopRight) as
-            // (bottomLeft, topLeft, bottomRight, topRight), so the stored order in
-            // world coords becomes:
-            //   [0] BackTopLeft    = (X=0,    Z=0)     ← "near-left"
-            //   [1] BackTopRight   = (X=w,    Z=0)     ← "near-right"
-            //   [2] FrontTopRight  = (X=w,    Z=h)     ← "far-right"
-            //   [3] FrontTopLeft   = (X=0,    Z=h)     ← "far-left"
-            // QuadIndicies = {0,1,2, 3,0,2} then forms two CCW triangles sharing the
-            // main diagonal [0]-[2] that cover the whole quad. Getting this ordering
-            // wrong leaves triangular gaps in the rendered mesh.
-            float y = basePos.Y + 1.0f;
-            var p0 = new Vector3(basePos.X + 0, y, basePos.Z + 0); // BackTopLeft
-            var p1 = new Vector3(basePos.X + W, y, basePos.Z + 0); // BackTopRight
-            var p2 = new Vector3(basePos.X + W, y, basePos.Z + H); // FrontTopRight
-            var p3 = new Vector3(basePos.X + 0, y, basePos.Z + H); // FrontTopLeft
+            // into Verticies[0..3]: slot 0 = "topLeft" param, slot 1 = "topRight",
+            // slot 2 = "bottomRight", slot 3 = "bottomLeft".
+            //
+            // For the TOP face the template passes (FrontTopLeft, BackTopLeft,
+            // FrontTopRight, BackTopRight) as (bottomLeft, topLeft, bottomRight,
+            // topRight), so the stored slots are BackTopLeft, BackTopRight,
+            // FrontTopRight, FrontTopLeft — that's the layout we reproduce for the
+            // merged quad.
+            //
+            // For the BOTTOM face the template passes (BackBottomRight,
+            // FrontBottomRight, BackBottomLeft, FrontBottomLeft), so the stored
+            // slots are FrontBottomRight, FrontBottomLeft, BackBottomLeft,
+            // BackBottomRight.
+            //
+            // QuadIndicies = {0,1,2, 3,0,2} then forms two triangles sharing the
+            // [0]-[2] diagonal that cover the entire quad — works for either
+            // winding since terrain renders with CullMode.None.
+            Vector3 p0, p1, p2, p3;
+            if (Orientation == FaceOrientation.Top)
+            {
+                float y = basePos.Y + 1.0f;
+                p0 = new Vector3(basePos.X + 0, y, basePos.Z + 0); // BackTopLeft
+                p1 = new Vector3(basePos.X + W, y, basePos.Z + 0); // BackTopRight
+                p2 = new Vector3(basePos.X + W, y, basePos.Z + H); // FrontTopRight
+                p3 = new Vector3(basePos.X + 0, y, basePos.Z + H); // FrontTopLeft
+            }
+            else // Bottom
+            {
+                float y = basePos.Y;
+                p0 = new Vector3(basePos.X + W, y, basePos.Z + H); // FrontBottomRight
+                p1 = new Vector3(basePos.X + 0, y, basePos.Z + H); // FrontBottomLeft
+                p2 = new Vector3(basePos.X + 0, y, basePos.Z + 0); // BackBottomLeft
+                p3 = new Vector3(basePos.X + W, y, basePos.Z + 0); // BackBottomRight
+            }
 
-            // Lighting: sample from the 4 corners of the anchor voxel. Same FaceKey
-            // guarantees the merge predicate held; using the anchor's lighting for
-            // all merged corners avoids per-voxel seams inside a merged region.
-            // Verticies[i].LogicalVertex is already in the QuadPart-reordered slots,
-            // so these line up with p0..p3 above.
-            var l0 = VertexLighting.CalculateVertexLight(anchor, topFace.Mesh.Verticies[0].LogicalVertex, World.ChunkManager, Cache);
-            var l1 = VertexLighting.CalculateVertexLight(anchor, topFace.Mesh.Verticies[1].LogicalVertex, World.ChunkManager, Cache);
-            var l2 = VertexLighting.CalculateVertexLight(anchor, topFace.Mesh.Verticies[2].LogicalVertex, World.ChunkManager, Cache);
-            var l3 = VertexLighting.CalculateVertexLight(anchor, topFace.Mesh.Verticies[3].LogicalVertex, World.ChunkManager, Cache);
+            // Lighting: sample anchor's 4 face corners. Same FaceKey across the
+            // merged region guarantees the merge predicate held — using the anchor's
+            // lighting for every merged corner avoids per-voxel seams inside the
+            // merged region. Verticies[i].LogicalVertex is already in QuadPart-
+            // reordered slots, so these line up 1:1 with p0..p3 above.
+            var l0 = VertexLighting.CalculateVertexLight(anchor, face.Mesh.Verticies[0].LogicalVertex, World.ChunkManager, Cache);
+            var l1 = VertexLighting.CalculateVertexLight(anchor, face.Mesh.Verticies[1].LogicalVertex, World.ChunkManager, Cache);
+            var l2 = VertexLighting.CalculateVertexLight(anchor, face.Mesh.Verticies[2].LogicalVertex, World.ChunkManager, Cache);
+            var l3 = VertexLighting.CalculateVertexLight(anchor, face.Mesh.Verticies[3].LogicalVertex, World.ChunkManager, Cache);
 
-            // UVs match QuadPart's UV pattern: [0]=(0,0), [1]=(1,0), [2]=(1,1), [3]=(0,1).
-            // Stretched across the merged rect (see class header re: shader limitation).
+            // UVs follow QuadPart's pattern: [0]=(0,0), [1]=(1,0), [2]=(1,1), [3]=(0,1).
+            // Stretched across the merged rect — see class-header note about the
+            // shader ClampTexture limitation.
             var uv0 = TileSheet.MapTileUVs(new Vector2(0, 0), tile);
             var uv1 = TileSheet.MapTileUVs(new Vector2(1, 0), tile);
             var uv2 = TileSheet.MapTileUVs(new Vector2(1, 1), tile);

@@ -82,22 +82,23 @@ namespace DwarfCorp.Voxels
             WorldManager World,
             SliceCache Cache)
         {
-            // Fase B.2 live: opt-in greedy pass for top faces. When the switch is off,
-            // behavior is bit-for-bit the original per-voxel emit. When on, eligible
-            // top faces merge into rectangles via the mask pass, and the per-voxel
-            // loop below skips the top face for cells the mask already consumed.
-            bool[,] consumedTopFace = null;
+            // Fase B.2 live: opt-in greedy pass for horizontal faces (Top + Bottom).
+            // When the switch is off, behavior is bit-for-bit the original per-voxel
+            // emit. When on, eligible top and bottom faces merge into rectangles via
+            // the mask pass, and the per-voxel loop below skips each face whose bit
+            // is set in the consumed-faces bitmask.
+            byte[,] consumedFaces = null;
             if (Debugger.Switches.UseGreedyMeshing)
             {
-                consumedTopFace = GetConsumedTopScratch();
-                GenerateSliceGeometryGreedy(Into, Chunk, LocalY, TileSheet, World, Cache, consumedTopFace);
+                consumedFaces = GetConsumedFacesScratch();
+                GenerateSliceGeometryGreedy(Into, Chunk, LocalY, TileSheet, World, Cache, consumedFaces);
             }
 
             for (var x = 0; x < VoxelConstants.ChunkSizeX; ++x)
                 for (var z = 0; z < VoxelConstants.ChunkSizeZ; ++z)
                 {
-                    bool skipTop = consumedTopFace != null && consumedTopFace[x, z];
-                    GenerateVoxelGeometry(Into, VoxelHandle.UnsafeCreateLocalHandle(Chunk, new LocalVoxelCoordinate(x, LocalY, z)), TileSheet, World, Cache, skipTop);
+                    byte skipBits = consumedFaces != null ? consumedFaces[x, z] : (byte)0;
+                    GenerateVoxelGeometry(Into, VoxelHandle.UnsafeCreateLocalHandle(Chunk, new LocalVoxelCoordinate(x, LocalY, z)), TileSheet, World, Cache, skipBits);
                 }
         }
 
@@ -108,7 +109,7 @@ namespace DwarfCorp.Voxels
             WorldManager World,
             SliceCache Cache)
         {
-            GenerateVoxelGeometry(Into, Voxel, TileSheet, World, Cache, skipTopFace: false);
+            GenerateVoxelGeometry(Into, Voxel, TileSheet, World, Cache, skipFaceBits: 0);
         }
 
         public static void GenerateVoxelGeometry(
@@ -117,7 +118,7 @@ namespace DwarfCorp.Voxels
             TerrainTileSheet TileSheet,
             WorldManager World,
             SliceCache Cache,
-            bool skipTopFace)
+            byte skipFaceBits)
         {
             BuildDesignationGeometry(Into, Voxel, Cache, TileSheet, World);
             if (Voxel.IsEmpty && Voxel.IsExplored) return;
@@ -126,7 +127,8 @@ namespace DwarfCorp.Voxels
 
             foreach (var face in templateSolid.Faces)
             {
-                if (skipTopFace && face.Orientation == FaceOrientation.Top)
+                byte faceBit = (byte)(1 << (int)face.Orientation);
+                if ((skipFaceBits & faceBit) != 0)
                     continue;
                 GenerateFaceGeometry(Into, Voxel, face, TileSheet, World, Cache);
             }
