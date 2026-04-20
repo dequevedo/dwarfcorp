@@ -32,6 +32,8 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DwarfCorp
@@ -74,14 +76,19 @@ namespace DwarfCorp
     {
         public PlanService() : base("Path Planner", GameSettings.Current.NumPathingThreads)
         {
-
+            // Wire up queue-depth sampler so PerfCounters.SnapshotIntoMetrics can
+            // read Requests.Count without a hard dependency from Tools/ → Planning/.
+            PerfCounters.PathfindingQueueDepthSampler = () => Requests.Count;
         }
 
         public override AStarPlanResponse HandleRequest(AstarPlanRequest req)
         {
+            Interlocked.Increment(ref PerfCounters.PlansStarted);
+
             // If there are no subscribers that want this request, it must be old. So remove it.
             if (Subscribers.Find(s => s.ID == req.Subscriber.ID) == null)
             {
+                Interlocked.Increment(ref PerfCounters.PlansCancelled);
                 return new AStarPlanResponse
                 {
                     Path = null,
@@ -92,8 +99,30 @@ namespace DwarfCorp
             }
 
             AStarPlanner.PlanResultCode result;
-            List<MoveAction> path = AStarPlanner.FindPath(req.Sender.Movement, req.Start, req.GoalRegion, req.Sender.Manager.World.ChunkManager, 
+            var sw = Stopwatch.StartNew();
+            List<MoveAction> path = AStarPlanner.FindPath(req.Sender.Movement, req.Start, req.GoalRegion, req.Sender.Manager.World.ChunkManager,
                 req.MaxExpansions, req.HeuristicWeight, Requests.Count, () => { return Subscribers.Find(s => s.ID == req.Subscriber.ID && s.CurrentRequestID == req.ID) != null; }, out result);
+            sw.Stop();
+            long micros = sw.ElapsedTicks * 1_000_000L / Stopwatch.Frequency;
+
+            // Attribute the result — worker threads bump atomic counters; main thread
+            // snapshots + averages once per frame via PerfCounters.SnapshotIntoMetrics.
+            Interlocked.Add(ref PerfCounters.PlansMicrosSum, micros);
+            Interlocked.Increment(ref PerfCounters.PlansCompletedThisAccum);
+            PerfCounters.UpdateMax(ref PerfCounters.PlansMaxMicrosSession, micros);
+            switch (result)
+            {
+                case AStarPlanner.PlanResultCode.Success:
+                    Interlocked.Increment(ref PerfCounters.PlansSucceeded);
+                    break;
+                case AStarPlanner.PlanResultCode.Cancelled:
+                    Interlocked.Increment(ref PerfCounters.PlansCancelled);
+                    break;
+                default:
+                    // Invalid, NoSolution, MaxExpansionsReached all count as "failed".
+                    Interlocked.Increment(ref PerfCounters.PlansFailed);
+                    break;
+            }
 
             AStarPlanResponse res = new AStarPlanResponse
             {
@@ -106,6 +135,11 @@ namespace DwarfCorp
             return res;
         }
 
+        public override bool AddRequest(AstarPlanRequest request, uint subscriberID)
+        {
+            Interlocked.Increment(ref PerfCounters.PlansQueued);
+            return base.AddRequest(request, subscriberID);
+        }
     }
 
 }

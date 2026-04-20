@@ -207,10 +207,17 @@ namespace DwarfCorp
         /// <param name="gameTime">The current time</param>
         public void Update(DwarfTime gameTime)
         {
+            // Per-frame main-thread tick for GC telemetry. Previously only sampled when
+            // the Render Inspector (F12) was open, which meant CSV exports from batch
+            // captures had no GC data at all. Cost: a few GC.CollectionCount reads.
+            Gui.Debug.GcTracker.Sample();
+
             IndicatorManager.Update(gameTime);
             HandleAmbientSound(gameTime);
 
+            PerformanceMonitor.PushFrame("Update.TaskManager");
             TaskManager.Update(PlayerFaction.Minions);
+            PerformanceMonitor.PopFrame();
 
             //if (Paused)
             //    Renderer.Camera.LastWheel = Mouse.GetState().ScrollWheelValue;
@@ -225,7 +232,9 @@ namespace DwarfCorp
             }
 
             GamblingState.Update(gameTime);
+            PerformanceMonitor.PushFrame("Update.EventScheduler");
             EventScheduler.Update(this, Time.CurrentDate);
+            PerformanceMonitor.PopFrame();
 
             Time.Update(gameTime);
                        
@@ -240,16 +249,26 @@ namespace DwarfCorp
                 EntityUpdateFrame += 1;
 
                 // Choose what entities to update.
+                PerformanceMonitor.PushFrame("Update.FindComponentsToUpdate");
                 ComponentUpdateSet.Clear();
                 ComponentManager.FindComponentsToUpdate(ComponentUpdateSet);
                 foreach (var component in ComponentUpdateSet)
                     component.UpdateFrame = EntityUpdateFrame;
+                PerformanceMonitor.PopFrame();
 
+                PerformanceMonitor.PushFrame("Update.ParticleManager");
                 ParticleManager.Update(gameTime, this);
+                PerformanceMonitor.PopFrame();
+                PerformanceMonitor.PushFrame("Update.TutorialManager");
                 TutorialManager.Update(UserInterface.Gui);
+                PerformanceMonitor.PopFrame();
 
+                PerformanceMonitor.PushFrame("Update.ModuleManager");
                 ModuleManager.Update(gameTime, this);
+                PerformanceMonitor.PopFrame();
+                PerformanceMonitor.PushFrame("Update.Zones");
                 UpdateZones(gameTime);
+                PerformanceMonitor.PopFrame();
 
                 #region Mourn dead minions
                 foreach (var deadMinion in PlayerFaction.Minions.Where(m => m.IsDead && m.Stats.CurrentClass.HasValue(out var c) && c.TriggersMourning))
@@ -317,7 +336,9 @@ namespace DwarfCorp
 
                 PersistentData.Designations.CleanupDesignations();
 
+                PerformanceMonitor.PushFrame("Update.Factions");
                 Factions.Update(gameTime);
+                PerformanceMonitor.PopFrame();
 
                 foreach (var applicant in PersistentData.NewArrivals)
                     if (Time.CurrentDate >= applicant.ArrivalTime)
@@ -332,8 +353,11 @@ namespace DwarfCorp
 
             // These things are updated even when the game is paused
 
+            PerformanceMonitor.PushFrame("Update.Splasher");
             Splasher.Splash(gameTime, ChunkManager.Water.GetSplashQueue());
+            PerformanceMonitor.PopFrame();
 
+            PerformanceMonitor.PushFrame("Update.VoxelChangedHandlers");
             var changedVoxels = GetAndClearVoxelEventQueue();
             foreach (var @event in changedVoxels)
             {
@@ -348,6 +372,7 @@ namespace DwarfCorp
             }
 
             ModuleManager.VoxelChange(changedVoxels, this);
+            PerformanceMonitor.PopFrame();
 
             SoundManager.Update(gameTime, Renderer.Camera, Time);
             Weather.Update(this.Time.CurrentDate, this);
@@ -370,6 +395,11 @@ namespace DwarfCorp
             if (Time.CurrentDate.Hour != _prevHour)
                 TrackStats();
             _prevHour = Time.CurrentDate.Hour;
+
+            // Publish cross-thread counters (water sim tick, pathfinding) + GC stats
+            // as metrics on the main thread — workers can't PushFrame because
+            // PerformanceMonitor is ThreadStatic.
+            PerfCounters.SnapshotIntoMetrics();
         }
 
         public void Quit()

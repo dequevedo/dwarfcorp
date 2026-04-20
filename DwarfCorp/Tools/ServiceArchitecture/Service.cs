@@ -90,7 +90,7 @@ namespace DwarfCorp
                     thread.Join();
         }
 
-        public bool AddRequest(TRequest request, uint subscriberID)
+        public virtual bool AddRequest(TRequest request, uint subscriberID)
         {
             Requests.Enqueue(new KeyValuePair<uint, TRequest>(subscriberID, request));
             return true;

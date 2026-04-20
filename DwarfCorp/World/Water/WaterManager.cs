@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using System.Collections.Concurrent;
@@ -106,6 +107,11 @@ namespace DwarfCorp
             if(Chunks.World.Paused || Debugger.Switches.DisableWaterUpdate)
                 return;
 
+            // Background thread — PerformanceMonitor.PushFrame is ThreadStatic and
+            // won't show up in the render-thread CSV. Record timing via PerfCounters
+            // atomic fields; main thread publishes them as "Water.*" metrics every frame.
+            var sw = Stopwatch.StartNew();
+
             ClearDirtyQueue();
 
             lock (DirtyChunks)
@@ -116,11 +122,16 @@ namespace DwarfCorp
                 DirtyChunkMembers.Clear();
             }
             var count = _dirtyChunkDrain.Count;
+            Interlocked.Add(ref PerfCounters.WaterDirtyChunksRebuilt, count);
             for (int i = 0; i < count; i++)
             {
                 var chunk = _dirtyChunkDrain[i];
                 if (chunk != null) chunk.RebuildLiquidGeometry();
             }
+
+            sw.Stop();
+            long micros = sw.ElapsedTicks * 1_000_000L / Stopwatch.Frequency;
+            Interlocked.Exchange(ref PerfCounters.WaterTickMicros, micros);
         }
 
         private class OpenSearchNode
@@ -232,6 +243,7 @@ namespace DwarfCorp
                 DirtyCellMembers.Clear();
             }
             var count = _dirtyCellDrain.Count;
+            Interlocked.Add(ref PerfCounters.WaterDirtyCellsProcessed, count);
             for (int i = 0; i < count; i++)
                 UpdateCell(Chunks, _dirtyCellDrain[i]);
         }

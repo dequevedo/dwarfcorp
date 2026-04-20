@@ -82,6 +82,8 @@ namespace DwarfCorp
 
             if (RenderList != null && !Debugger.Switches.HideTerrain)
             {
+                PerformanceMonitor.PushFrame("ChunkRenderer.Render.Terrain");
+                PerformanceMonitor.SetMetric("ChunkRenderList", RenderList.Count);
                 graphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
 
                 foreach (VoxelChunk chunk in RenderList)
@@ -106,7 +108,8 @@ namespace DwarfCorp
                     }
 
                     chunk.RenderMotes(GameState.Game.GraphicsDevice, effect, renderCamera);
-                }                
+                }
+                PerformanceMonitor.PopFrame(); // ChunkRenderer.Render.Terrain
             }
 
             effect.SelfIlluminationEnabled = false;

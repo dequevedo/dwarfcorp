@@ -112,17 +112,23 @@ namespace DwarfCorp
 
         public void Update(DwarfTime time, WorldManager world)
         {
+            PerformanceMonitor.PushFrame("ParticleManager.Update");
+            int alive = 0;
             foreach(var effect in Effects)
             {
                 foreach(var emitter in effect.Value.Emitters)
                 {
                     emitter.Update(this, time, world.ChunkManager, world.Renderer.Camera);
+                    if (emitter.Particles != null) alive += emitter.Particles.Count;
                 }
             }
+            PerformanceMonitor.SetMetric("Particles.Alive", alive);
+            PerformanceMonitor.PopFrame();
         }
 
         public void Render(WorldManager world, GraphicsDevice device)
         {
+            PerformanceMonitor.PushFrame("ParticleManager.Render");
             foreach (var effect in Effects)
             {
                 foreach (var emitter in effect.Value.Emitters)
@@ -130,6 +136,7 @@ namespace DwarfCorp
                     emitter.Render(world.Renderer.Camera, DwarfGame.SpriteBatch, device, world.Renderer.DefaultShader);
                 }
             }
+            PerformanceMonitor.PopFrame();
         }
     }
 }

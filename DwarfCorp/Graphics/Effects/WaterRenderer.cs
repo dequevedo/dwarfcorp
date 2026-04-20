@@ -127,11 +127,20 @@ namespace DwarfCorp
 
         public void DrawReflectionMap(List<GameComponent> Renderables, DwarfTime gameTime, WorldManager game, float waterHeight, Matrix reflectionViewMatrix, Shader effect, GraphicsDevice device)
         {
-            if (!DrawReflections) return;
+            if (!DrawReflections)
+            {
+                PerformanceMonitor.SetMetric("Water.ReflectionDrawnThisFrame", 0);
+                return;
+            }
             ValidateBuffers();
             reflectionTimer.Update(gameTime);
             if (!reflectionTimer.HasTriggered && (prevCameraPos - game.Renderer.Camera.Position).LengthSquared() < 0.001 && (prevCameraTarget - game.Renderer.Camera.Target).LengthSquared() < 0.001)
+            {
+                PerformanceMonitor.SetMetric("Water.ReflectionDrawnThisFrame", 0);
                 return;
+            }
+            PerformanceMonitor.SetMetric("Water.ReflectionDrawnThisFrame", 1);
+            PerformanceMonitor.PushFrame("WaterRenderer.DrawReflectionMap");
 
             prevCameraPos = game.Renderer.Camera.Position;
             prevCameraTarget = game.Renderer.Camera.Target;
@@ -175,6 +184,7 @@ namespace DwarfCorp
             device.SetRenderTarget(null);
 
             ReflectionMap = reflectionRenderTarget;
+            PerformanceMonitor.PopFrame(); // WaterRenderer.DrawReflectionMap
         }
 
         public void ValidateBuffers()
@@ -196,6 +206,7 @@ namespace DwarfCorp
             Camera camera,
             ChunkManager chunks)
         {
+            PerformanceMonitor.PushFrame("WaterRenderer.DrawWater");
             try
             {
                 ValidateBuffers();
@@ -265,6 +276,10 @@ namespace DwarfCorp
             {
                 Console.Out.WriteLine(exception);
                 return;
+            }
+            finally
+            {
+                PerformanceMonitor.PopFrame(); // WaterRenderer.DrawWater
             }
         }
 

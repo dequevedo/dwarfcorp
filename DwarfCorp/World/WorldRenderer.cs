@@ -384,13 +384,16 @@ namespace DwarfCorp
             lastWaterHeight = wHeight;
 
             // Draw reflection/refraction images
+            PerformanceMonitor.PushFrame("WorldRenderer.Reflection");
             WaterRenderer.DrawReflectionMap(renderables, gameTime, World, wHeight - 0.1f,
                 GetReflectedCameraMatrix(wHeight),
                 DefaultShader, GraphicsDevice);
+            PerformanceMonitor.PopFrame();
 
 
             #region Draw Selection Buffer.
 
+            PerformanceMonitor.PushFrame("WorldRenderer.SelectionBuffer");
             if (SelectionBuffer == null)
                 SelectionBuffer = new SelectionBuffer(8, GraphicsDevice);
 
@@ -430,6 +433,7 @@ namespace DwarfCorp
 
                 SelectionBuffer.End(GraphicsDevice);
             }
+            PerformanceMonitor.PopFrame(); // WorldRenderer.SelectionBuffer
 
 
             #endregion
@@ -458,7 +462,9 @@ namespace DwarfCorp
 
             // Draw the sky
             GraphicsDevice.Clear(DefaultShader.FogColor);
+            PerformanceMonitor.PushFrame("WorldRenderer.Sky");
             DrawSky(gameTime, Camera.ViewMatrix, 1.0f, DefaultShader.FogColor);
+            PerformanceMonitor.PopFrame();
 
 
 
@@ -473,7 +479,9 @@ namespace DwarfCorp
             DefaultShader.ClippingEnabled = true;
             //Blue ghost effect above the current slice.
             DefaultShader.GhostClippingEnabled = true;
+            PerformanceMonitor.PushFrame("WorldRenderer.Draw3DThings");
             Draw3DThings(gameTime, DefaultShader, Camera.ViewMatrix);
+            PerformanceMonitor.PopFrame();
 
 
             // Now we want to draw the water on top of everything else
@@ -490,19 +498,28 @@ namespace DwarfCorp
             DefaultShader.ClippingEnabled = true;
 
             // Render simple geometry (boxes, etc.)
+            PerformanceMonitor.PushFrame("WorldRenderer.Drawer3D");
             Drawer3D.Render(GraphicsDevice, DefaultShader, Camera, World.PersistentData.Designations, World);
+            PerformanceMonitor.PopFrame();
 
             DefaultShader.EnableShadows = false;
 
             DefaultShader.View = Camera.ViewMatrix;
 
+            PerformanceMonitor.PushFrame("WorldRenderer.ComponentRenderer");
             ComponentRenderer.Render(renderables, gameTime, World.ChunkManager,
                 Camera,
                 DwarfGame.SpriteBatch, GraphicsDevice, DefaultShader,
                 ComponentRenderer.WaterRenderType.None, lastWaterHeight);
+            PerformanceMonitor.PopFrame();
+            PerformanceMonitor.PushFrame("WorldRenderer.InstanceRenderer.Flush");
             InstanceRenderer.Flush(GraphicsDevice, DefaultShader, Camera, InstanceRenderMode.Normal);
+            PerformanceMonitor.PopFrame();
+            PerformanceMonitor.PushFrame("WorldRenderer.DwarfInstanceRenderer");
             DwarfInstanceRenderer.Render(GraphicsDevice, DefaultShader, Camera, InstanceRenderMode.Normal);
+            PerformanceMonitor.PopFrame();
 
+            PerformanceMonitor.PushFrame("WorldRenderer.Water");
             WaterRenderer.DrawWater(
                 GraphicsDevice,
                 (float)gameTime.TotalGameTime.TotalSeconds,
@@ -513,14 +530,21 @@ namespace DwarfCorp
                 new Vector3(0.1f, 0.0f, 0.1f),
                 Camera,
                 World.ChunkManager);
+            PerformanceMonitor.PopFrame();
+            PerformanceMonitor.PushFrame("WorldRenderer.Particles");
             World.ParticleManager.Render(World, GraphicsDevice);
+            PerformanceMonitor.PopFrame();
             DefaultShader.ClippingEnabled = false;
 
             // Flush the outline pass back to the previously-bound render target (typically
             // the backbuffer). Done before any subsequent UI/debug drawing so outlines only
             // affect the world, not the HUD.
             if (outlineActive && Outline != null)
+            {
+                PerformanceMonitor.PushFrame("WorldRenderer.Outline.End");
                 Outline.End(gameTime);
+                PerformanceMonitor.PopFrame();
+            }
 
             if (UseFXAA && fxaa == null)
             {
@@ -528,6 +552,7 @@ namespace DwarfCorp
                 fxaa.Initialize();
             }
 
+            if (UseFXAA) PerformanceMonitor.PushFrame("WorldRenderer.FXAA");
             if (GameSettings.Current.EnableGlow)
             {
                 if (UseFXAA)
@@ -544,10 +569,12 @@ namespace DwarfCorp
             {
                 fxaa.End(DwarfTime.LastTimeX);
             }
+            if (UseFXAA) PerformanceMonitor.PopFrame();
 
             if (Debugger.Switches.DrawSelectionBuffer)
                 SelectionBuffer.DebugDraw(GraphicsDevice.Viewport.Bounds);
 
+            PerformanceMonitor.PushFrame("WorldRenderer.HUD.2D");
             try
             {
                 DwarfGame.SafeSpriteBatchBegin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, Drawer2D.PointMagLinearMin,
@@ -572,6 +599,7 @@ namespace DwarfCorp
                 {
                     DwarfGame.SpriteBatch = new SpriteBatch(GraphicsDevice);
                 }
+                PerformanceMonitor.PopFrame(); // WorldRenderer.HUD.2D
             }
 
             if (Debugger.Switches.DrawTiledInstanceAtlas)

@@ -122,5 +122,25 @@ namespace DwarfCorp.Gui.Debug
             foreach (var t in q) newest = t;
             return newest;
         }
+
+        /// <summary>
+        /// Push the current GC snapshot as <see cref="PerformanceMonitor"/> metrics so
+        /// it shows up in CSV exports even when the Render Inspector (F12) isn't open.
+        /// Called once per frame from <see cref="PerfCounters.SnapshotIntoMetrics"/>
+        /// on the main thread. <see cref="Sample"/> must have been called this frame;
+        /// the main-thread tick in <c>WorldManager.Update</c> does that.
+        /// </summary>
+        public static void PublishMetrics()
+        {
+            PerformanceMonitor.SetMetric("GC.Gen0", Gen0Count);
+            PerformanceMonitor.SetMetric("GC.Gen1", Gen1Count);
+            PerformanceMonitor.SetMetric("GC.Gen2", Gen2Count);
+            PerformanceMonitor.SetMetric("GC.Gen0DeltaThisFrame", Gen0Delta);
+            PerformanceMonitor.SetMetric("GC.Gen2DeltaThisFrame", Gen2Delta);
+            PerformanceMonitor.SetMetric("GC.Gen0PerSecond", Gen0PerSecond().ToString("F1"));
+            PerformanceMonitor.SetMetric("GC.HeapMB", (TotalMemoryBytes / (1024.0 * 1024.0)).ToString("F1"));
+            double secs = SecondsSinceLastGen2();
+            PerformanceMonitor.SetMetric("GC.SecondsSinceLastGen2", secs < 0 ? "-1" : secs.ToString("F1"));
+        }
     }
 }

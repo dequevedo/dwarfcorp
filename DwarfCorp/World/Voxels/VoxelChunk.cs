@@ -105,6 +105,7 @@ namespace DwarfCorp
 
         public void RebuildLiquidGeometry()
         {
+            System.Threading.Interlocked.Increment(ref PerfCounters.LiquidGeomRebuilds);
             var toInit = new List<LiquidPrimitive>();
             foreach (var primitive in Liquids)
                 toInit.Add(primitive.Value);
