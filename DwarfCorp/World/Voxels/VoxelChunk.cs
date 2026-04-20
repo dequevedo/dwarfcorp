@@ -82,6 +82,21 @@ namespace DwarfCorp
             IsInvalidated = true;
 
             PrimitiveMutex.ReleaseMutex();
+
+            // Eviction race fix. EnqueueDiscard is called on invisible chunks by the
+            // MaxLiveChunks eviction loop, but between enqueue and drain the camera
+            // can pan the chunk back into view. ChunkRenderer.Update's visibility
+            // transition check runs BEFORE MeshUploadQueue.DrainUpToBudget in the
+            // same frame — so the transition sees IsInvalidated=false and skips the
+            // rebuild queue, then drain nulls Primitive here, leaving the chunk
+            // visible-but-empty with no pending rebuild. Next frames Visible is
+            // already true, no transition fires, the chunk stays empty forever.
+            //
+            // Requeuing here from DiscardPrimitive catches exactly that race: if the
+            // chunk is now visible at discard time, the rebuild queue gets the chunk
+            // and the next rebuild cycle refills Primitive.
+            if (Visible)
+                Manager.InvalidateChunk(this);
         }
 
         public VoxelChunk(ChunkManager manager, GlobalChunkCoordinate id)
