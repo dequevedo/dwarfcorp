@@ -47,6 +47,8 @@ using EcsFixture = DwarfCorp.ECS.Components.Fixture;
 using EcsBanner = DwarfCorp.ECS.Components.Banner;
 using EcsMagicalObject = DwarfCorp.ECS.Components.MagicalObject;
 using EcsElevatorShaft = DwarfCorp.ECS.Components.ElevatorShaft;
+using EcsPipeNetworkObject = DwarfCorp.ECS.Components.PipeNetworkObject;
+using EcsBuildBuff = DwarfCorp.ECS.Components.BuildBuff;
 
 namespace DwarfCorp.Saving
 {
@@ -148,6 +150,7 @@ namespace DwarfCorp.Saving
             MigrateMonsterAndAnimalAIs(legacy, ref created, ref skipped);     // #18
             MigrateResourceEntities(legacy, ref created, ref skipped);        // #19
             MigrateFixtures(legacy, ref created, ref skipped);                // #20
+            MigratePipeNetwork(legacy, ref created, ref skipped);             // #21
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped");
@@ -639,6 +642,25 @@ namespace DwarfCorp.Saving
                     TrackAbove = s.TrackAbove,
                     TrackBelow = s.TrackBelow,
                 });
+            }, ref created, ref skipped);
+        }
+
+        private void MigratePipeNetwork(ComponentManager.ComponentSaveData legacy, ref int created, ref int skipped)
+        {
+            ForEachMatching<DwarfCorp.SteamPipes.PipeNetworkObject>(legacy, (p, entity) =>
+            {
+                if (_target.World.Has<EcsPipeNetworkObject>(entity)) return;
+                _target.World.Add(entity, new EcsPipeNetworkObject
+                {
+                    LiquidType = p.LiquidType,
+                    DrawPipes = p.DrawPipes,
+                    Orientation = (byte)p.Orientation,
+                });
+            }, ref created, ref skipped);
+
+            ForEachMatching<DwarfCorp.SteamPipes.BuildBuff>(legacy, (b, entity) =>
+            {
+                _target.World.Add(entity, new EcsBuildBuff { BuffMultiplier = b.BuffMultiplier });
             }, ref created, ref skipped);
         }
 
