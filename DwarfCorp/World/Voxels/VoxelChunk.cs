@@ -31,6 +31,21 @@ namespace DwarfCorp
         public int UpdateDitherPattern = 0;
         public int LiquidUpdateDitherPattern = 0;
 
+        /// <summary>
+        /// True whenever the chunk has geometry changes pending that a Rebuild hasn't
+        /// processed yet. Set by any call that nulls a slice (<see cref="InvalidateSlice"/>,
+        /// <see cref="InvalidateAllSlices"/>, <see cref="DiscardPrimitive"/>) and cleared
+        /// at the end of <see cref="Rebuild"/>. Defaults true so freshly-created chunks
+        /// trigger their initial build the first time they enter the frustum.
+        ///
+        /// Used by <see cref="ChunkRenderer"/> on the invisible→visible transition to
+        /// decide whether an <see cref="ChunkManager.InvalidateChunk"/> call is needed.
+        /// Without this flag the renderer unconditionally re-queued every chunk on
+        /// frustum entry, triggering a full Concat + GPU re-upload even when the
+        /// geometry was identical — very expensive during camera panning.
+        /// </summary>
+        public volatile bool IsInvalidated = true;
+
         public void InvalidateSlice(int LocalY)
         {
             if (LocalY < 0 || LocalY >= VoxelConstants.ChunkSizeY) throw new InvalidOperationException();
@@ -38,6 +53,7 @@ namespace DwarfCorp
             lock (Data.SliceCache)
             {
                 Data.SliceCache[LocalY] = null;
+                IsInvalidated = true;
                 Manager.InvalidateChunk(this);
             }
         }
@@ -47,6 +63,7 @@ namespace DwarfCorp
             lock (Data.SliceCache)
             {
                 Data.SliceCache = new RawPrimitive[VoxelConstants.ChunkSizeY];
+                IsInvalidated = true;
                 Manager.InvalidateChunk(this);
             }
         }
@@ -62,7 +79,8 @@ namespace DwarfCorp
                 Data.SliceCache[y] = null;
                 MoteRecords[y] = null;
             }
-           
+            IsInvalidated = true;
+
             PrimitiveMutex.ReleaseMutex();
         }
 
@@ -131,6 +149,13 @@ namespace DwarfCorp
         {
             if (g == null || g.IsDisposed)
                 return;
+
+            // Mark that we're consuming the current invalidation up-front. Any
+            // InvalidateSlice that races this method after this point will set the
+            // flag back to true and re-queue the chunk, guaranteeing a subsequent
+            // rebuild catches the mid-flight change. If we cleared at the end we'd
+            // lose that race.
+            IsInvalidated = false;
 
             GeometricPrimitive primitive;
 

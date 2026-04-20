@@ -189,7 +189,15 @@ namespace DwarfCorp
                 if (chunk.Visible == false)
                 {
                     chunk.Visible = true;
-                    chunk.Manager.InvalidateChunk(chunk);
+                    // Only re-queue if there's a real pending invalidation. Previously
+                    // this was unconditional, which meant every camera pan that brought
+                    // a chunk back into the frustum triggered a full Rebuild (Concat +
+                    // GPU upload) even with no geometry change. The IsInvalidated flag
+                    // persists across visibility transitions: real slice/primitive
+                    // invalidations set it, Rebuild consumes it, and an unchanged chunk
+                    // returning to view now costs zero.
+                    if (chunk.IsInvalidated)
+                        chunk.Manager.InvalidateChunk(chunk);
                 }
 
                 chunk.RenderCycleWhenLastVisible = RenderCycle;
