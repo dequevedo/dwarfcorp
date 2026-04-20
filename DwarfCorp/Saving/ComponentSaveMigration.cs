@@ -26,6 +26,8 @@ using EcsSpawnOnExplored = DwarfCorp.ECS.Components.SpawnOnExplored;
 using EcsVoxelListenerTag = DwarfCorp.ECS.Components.VoxelListenerTag;
 using EcsFlammable = DwarfCorp.ECS.Components.Flammable;
 using EcsFire = DwarfCorp.ECS.Components.Fire;
+using EcsFollower = DwarfCorp.ECS.Components.Follower;
+using EcsBobber = DwarfCorp.ECS.Components.Bobber;
 
 namespace DwarfCorp.Saving
 {
@@ -120,6 +122,7 @@ namespace DwarfCorp.Saving
             MigrateSensors(legacy, ref created, ref skipped);                 // #10
             MigrateVoxelListeners(legacy, ref created, ref skipped);          // #11
             MigrateFire(legacy, ref created, ref skipped);                    // #12
+            MigrateMotion(legacy, ref created, ref skipped);                  // #13
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped");
@@ -397,6 +400,30 @@ namespace DwarfCorp.Saving
                 {
                     LifeTimerRemaining = f.LifeTimer == null ? 0f
                         : System.MathF.Max(0f, f.LifeTimer.TargetTimeSeconds - f.LifeTimer.CurrentTimeSeconds),
+                });
+            }, ref created, ref skipped);
+        }
+
+        private void MigrateMotion(ComponentManager.ComponentSaveData legacy, ref int created, ref int skipped)
+        {
+            ForEachMatching<DwarfCorp.Follower>(legacy, (f, entity) =>
+            {
+                _target.World.Add(entity, new EcsFollower
+                {
+                    FollowRadius = f.FollowRadius,
+                    TargetPos = f.TargetPos,
+                    FollowRate = f.FollowRate,
+                });
+            }, ref created, ref skipped);
+
+            ForEachMatching<DwarfCorp.Bobber>(legacy, (b, entity) =>
+            {
+                _target.World.Add(entity, new EcsBobber
+                {
+                    Magnitude = b.Magnitude,
+                    Rate = b.Rate,
+                    Offset = b.Offset,
+                    OrigY = b.OrigY,
                 });
             }, ref created, ref skipped);
         }

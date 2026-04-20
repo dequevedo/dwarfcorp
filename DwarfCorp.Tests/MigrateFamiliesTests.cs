@@ -26,6 +26,8 @@ using EcsEnemySensor = DwarfCorp.ECS.Components.EnemySensor;
 using EcsSpawnOnExplored = DwarfCorp.ECS.Components.SpawnOnExplored;
 using EcsFlammable = DwarfCorp.ECS.Components.Flammable;
 using EcsFire = DwarfCorp.ECS.Components.Fire;
+using EcsFollower = DwarfCorp.ECS.Components.Follower;
+using EcsBobber = DwarfCorp.ECS.Components.Bobber;
 
 namespace DwarfCorp.Tests;
 
@@ -312,6 +314,31 @@ public class MigrateFamiliesTests
         var entity = shim.LegacyIdToEntity[2];
         Assert.True(ecs.World.Has<EcsFlammable>(entity));
         Assert.Equal(12.5f, ecs.World.Get<EcsFlammable>(entity).Heat);
+    }
+
+    [Fact]
+    public void Follower_Migrates_RadiusAndTarget()
+    {
+        var (ecs, shim) = FreshShim();
+        var root = SynthRoot(1); var host = SynthHost(2, 1);
+        var f = Synth<DwarfCorp.Follower>(3, parent: 2);
+        f.FollowRadius = 5f; f.FollowRate = 0.8f; f.TargetPos = new Vector3(10, 0, 10);
+        shim.Migrate(Save(1, root, host, f));
+        Assert.True(ecs.World.Has<EcsFollower>(shim.LegacyIdToEntity[2]));
+        Assert.Equal(5f, ecs.World.Get<EcsFollower>(shim.LegacyIdToEntity[2]).FollowRadius);
+    }
+
+    [Fact]
+    public void Bobber_Migrates_SineParams()
+    {
+        var (ecs, shim) = FreshShim();
+        var root = SynthRoot(1); var host = SynthHost(2, 1);
+        var b = Synth<DwarfCorp.Bobber>(3, parent: 2);
+        b.Magnitude = 0.2f; b.Rate = 2f; b.Offset = 1f; b.OrigY = 5f;
+        shim.Migrate(Save(1, root, host, b));
+        var eb = ecs.World.Get<EcsBobber>(shim.LegacyIdToEntity[2]);
+        Assert.Equal(0.2f, eb.Magnitude);
+        Assert.Equal(5f, eb.OrigY);
     }
 
     [Fact]

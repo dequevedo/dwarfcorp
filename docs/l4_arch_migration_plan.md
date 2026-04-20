@@ -122,7 +122,7 @@ worth of scope:
 | 10 | **Sensor family** (Radius, Enemy, SpawnOnExplored) | Sensor component + SensorSystem | Transform | ✅ 3 struct variants. Runtime-only fields deferred. |
 | 11 | **VoxelListener family** | VoxelListener component + VoxelEventSystem | Transform | ✅ marker tag (legacy handlers are runtime-only, explicitly unserializable). |
 | 12 | **Fire / Flammable** | Fire + Flammable components + FireSystem | Physics | ✅ Flammable (Heat/Flashpoint/Damage) + Fire (LifeTimer remaining). |
-| 13 | **Follower / Bobber** | Follow + Bob components + animation systems | Transform |
+| 13 | **Follower / Bobber** | Follow + Bob components + animation systems | Transform | ✅ Follower (radius/target/rate) + Bobber (magnitude/rate/offset/origY). |
 | 14 | **MinimapIcon** | MinimapIcon component + MinimapRenderSystem | Transform |
 | 15 | **DwarfThoughts / Egg** | Memory / lifetime components | — |
 | 16 | **CreatureAI core** | AI state machine + AISystem | Many — see DAG |
