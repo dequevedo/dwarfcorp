@@ -703,8 +703,14 @@ namespace DwarfCorp.Gui
             
             mesh.Render(RenderData.Device);
 
-            foreach(var widget in RootItem.EnumerateTree()) // Todo: Should probably use a registration system. But, hasn't been a performance issue thus far.
-                widget.PostDraw(GameStates.GameState.Game.GraphicsDevice);
+            // Fase C.3: was `foreach (var widget in RootItem.EnumerateTree()) widget.PostDraw(...)`.
+            // EnumerateTree is a recursive yield-iterator — every frame it allocated N compiler-generated
+            // enumerators (one per widget) to walk a tree where 99%+ of widgets have an empty base PostDraw.
+            // The registration system (RegisterForPostdraw / PostdrawItems) already existed for exactly this;
+            // we just weren't using it on the main draw path. Widgets that override PostDraw now register
+            // themselves at Construct time (see TutorialIcon, the composite-texture debug panels).
+            for (int i = 0; i < PostdrawItems.Count; i++)
+                PostdrawItems[i].PostDraw(GameStates.GameState.Game.GraphicsDevice);
 
             if (Mouse) DrawMouse();
         }

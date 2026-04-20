@@ -20,8 +20,13 @@ namespace DwarfCorp
             None
         }
 
+        // Fase C.3: signature moved from IEnumerable<GameComponent> to the concrete
+        // List<GameComponent> so foreach uses the struct enumerator (zero alloc) and
+        // callers can reuse a single scratch list across frames. The previous
+        // IEnumerable-based calls forced a boxed enumerator per foreach plus a full
+        // LINQ chain re-run every invocation.
         public static void RenderSelectionBuffer(
-            IEnumerable<GameComponent> Renderables,
+            List<GameComponent> Renderables,
             DwarfTime time,
             ChunkManager chunks,
             Camera camera,
@@ -30,19 +35,19 @@ namespace DwarfCorp
             Shader effect)
         {
             effect.CurrentTechnique = effect.Techniques["Selection"];
-            foreach (var bodyToDraw in Renderables.OfType<GameComponent>()) // Why does RenderSelectionBuffer belong to Body and not IRenderable?
-                bodyToDraw.RenderSelectionBuffer(time, chunks, camera, spriteBatch, graphics, effect);
+            for (int i = 0; i < Renderables.Count; i++)
+                Renderables[i].RenderSelectionBuffer(time, chunks, camera, spriteBatch, graphics, effect);
         }
 
         public static void Render(
-            IEnumerable<GameComponent> Renderables,
+            List<GameComponent> Renderables,
             DwarfTime gameTime,
             ChunkManager chunks,
             Camera Camera,
             SpriteBatch spriteBatch,
             GraphicsDevice graphicsDevice,
             Shader effect,
-            WaterRenderType waterRenderMode, 
+            WaterRenderType waterRenderMode,
             float waterLevel)
         {
             effect.EnableLighting = GameSettings.Current.CursorLightEnabled;
@@ -50,8 +55,9 @@ namespace DwarfCorp
 
             if (waterRenderMode == WaterRenderType.Reflective)
             {
-                foreach (var bodyToDraw in Renderables)
+                for (int i = 0; i < Renderables.Count; i++)
                 {
+                    var bodyToDraw = Renderables[i];
                     if (!(bodyToDraw.GetBoundingBox().Min.Y > waterLevel - 2))
                         continue;
 
@@ -60,8 +66,8 @@ namespace DwarfCorp
             }
             else
             {
-                foreach (var bodyToDraw in Renderables)
-                    bodyToDraw.Render(gameTime, chunks, Camera, spriteBatch, graphicsDevice, effect, false);
+                for (int i = 0; i < Renderables.Count; i++)
+                    Renderables[i].Render(gameTime, chunks, Camera, spriteBatch, graphicsDevice, effect, false);
             }
 
             effect.EnableLighting = false;

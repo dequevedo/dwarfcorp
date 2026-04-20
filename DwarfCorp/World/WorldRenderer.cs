@@ -48,6 +48,27 @@ namespace DwarfCorp
             float db = (b - _lightSortOrigin).LengthSquared();
             return da.CompareTo(db);
         }
+
+        // Fase C.3: scratch buffers reused by Render() every frame. Used to be a big LINQ
+        // chain (HashSet alloc inside EnumerateIntersectingRootObjectsLoose + SelectMany
+        // iterator + Where iterator + predicate closure) enumerated three times per frame
+        // (selection buffer, reflection map, main render). Recursive yield-based
+        // GameComponent.EnumerateAll made it worse: each walk allocated one enumerator
+        // per component in the subtree. Now we fill a HashSet via the fill-overload, walk
+        // each root via EnumerateAllInto, filter in place, and pass the single resulting
+        // List to every consumer as the concrete type so foreach is struct-enumerator.
+        private readonly HashSet<GameComponent> _renderableRoots = new HashSet<GameComponent>();
+        private readonly List<GameComponent> _renderableScratch = new List<GameComponent>();
+        private readonly List<GameComponent> _renderables = new List<GameComponent>();
+
+        // Fase C.3: scissor RasterizerState used by the 2D post-SpriteBatch pass was being
+        // `new`'d every frame. MonoGame tracks state objects on the GPU side; allocating
+        // a fresh one every frame leaks into the finalizer queue and the render-state
+        // cache. One reused instance is equivalent in behaviour and free of allocation.
+        private static readonly RasterizerState _scissorRasterizerState = new RasterizerState
+        {
+            ScissorTestEnable = true
+        };
         public static int MultiSamples
         {
             get { return GameSettings.Current.AntiAliasing; }
@@ -111,8 +132,18 @@ namespace DwarfCorp
                         SurfaceFormat.Color, DepthFormat.Depth24))
                 {
                     var frustum = Camera.GetDrawFrustum();
-                    var renderables = World.EnumerateIntersectingRootObjectsLoose(frustum).SelectMany(r => r.EnumerateAll())
-                        .Where(r => r.IsVisible && !World.ChunkManager.IsAboveCullPlane(r.GetBoundingBox()));
+                    // One-shot call; per-frame allocator concerns don't apply here.
+                    var roots = new HashSet<GameComponent>();
+                    World.EnumerateIntersectingRootObjectsLoose(frustum, roots);
+                    var renderables = new List<GameComponent>();
+                    foreach (var root in roots)
+                    {
+                        var scratch = new List<GameComponent>();
+                        root.EnumerateAllInto(scratch);
+                        foreach (var r in scratch)
+                            if (r.IsVisible && !World.ChunkManager.IsAboveCullPlane(r.GetBoundingBox()))
+                                renderables.Add(r);
+                    }
 
                     var oldProjection = Camera.ProjectionMatrix;
                     Matrix projectionMatrix = Matrix.CreatePerspectiveFieldOfView(Camera.FOV, ((float)resolution.X) / resolution.Y, Camera.NearPlane, Camera.FarPlane);
@@ -306,8 +337,25 @@ namespace DwarfCorp
             }
             ValidateShader();
             var frustum = Camera.GetDrawFrustum();
-            var renderables = World.EnumerateIntersectingRootObjectsLoose(frustum).SelectMany(r => r.EnumerateAll()).Where(
-                r => (Debugger.Switches.DrawInvisible || r.IsVisible) && !World.ChunkManager.IsAboveCullPlane(r.GetBoundingBox()));
+
+            // Fase C.3: materialize once per frame into reusable scratch structures.
+            // See the `_renderables` field comment for the allocation history.
+            _renderableRoots.Clear();
+            World.EnumerateIntersectingRootObjectsLoose(frustum, _renderableRoots);
+            _renderableScratch.Clear();
+            foreach (var root in _renderableRoots)
+                root.EnumerateAllInto(_renderableScratch);
+            _renderables.Clear();
+            bool drawInvisible = Debugger.Switches.DrawInvisible;
+            var chunkManager = World.ChunkManager;
+            for (int i = 0; i < _renderableScratch.Count; i++)
+            {
+                var r = _renderableScratch[i];
+                if (!drawInvisible && !r.IsVisible) continue;
+                if (chunkManager.IsAboveCullPlane(r.GetBoundingBox())) continue;
+                _renderables.Add(r);
+            }
+            var renderables = _renderables;
 
             // Controls the sky fog
             float x = (1.0f - Sky.TimeOfDay);
@@ -495,19 +543,13 @@ namespace DwarfCorp
                 fxaa.End(DwarfTime.LastTimeX);
             }
 
-            RasterizerState rasterizerState = new RasterizerState()
-            {
-                ScissorTestEnable = true
-            };
-
-
             if (Debugger.Switches.DrawSelectionBuffer)
                 SelectionBuffer.DebugDraw(GraphicsDevice.Viewport.Bounds);
 
             try
             {
                 DwarfGame.SafeSpriteBatchBegin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, Drawer2D.PointMagLinearMin,
-                    null, rasterizerState, null, Matrix.Identity);
+                    null, _scissorRasterizerState, null, Matrix.Identity);
                 //DwarfGame.SpriteBatch.Draw(Shadows.ShadowTexture, Vector2.Zero, Color.White);
                 if (IsCameraUnderwater())
                 {

@@ -12,7 +12,16 @@ namespace DwarfCorp.GameStates
     public class TutorialIcon : Widget
     {
         public string ImageSource;
-        
+
+        public override void Construct()
+        {
+            base.Construct();
+            // PostDraw used to be invoked by Root.Draw walking the whole widget tree
+            // every frame (big per-frame enumerator-alloc source). Now Root only calls
+            // PostDraw on widgets that register here.
+            Root.RegisterForPostdraw(this);
+        }
+
         public override void PostDraw(GraphicsDevice device)
         {
             if (IsAnyParentHidden())

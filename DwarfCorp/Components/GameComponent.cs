@@ -395,6 +395,21 @@ namespace DwarfCorp
                     yield return grandChild;
         }
 
+        // Fase C.3: allocation-free alternative to EnumerateAll for hot render paths.
+        // EnumerateAll is a recursive yield-return: every call allocates one compiler-
+        // generated enumerator per node in the subtree. In WorldRenderer.Render that
+        // walked the full component tree three times per frame and dominated Gen 0
+        // pressure even in idle scenes. This variant does the same walk iteratively
+        // with a plain stack so the caller just pays N list-Add's into a reused list.
+        public void EnumerateAllInto(List<GameComponent> into)
+        {
+            into.Add(this);
+            var children = Children;
+            if (children == null) return;
+            for (int i = 0; i < children.Count; i++)
+                children[i].EnumerateAllInto(into);
+        }
+
         public IEnumerable<GameComponent> EnumerateChildren()
         {
             foreach (var child in Children)

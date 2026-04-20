@@ -109,6 +109,20 @@ namespace DwarfCorp
             return hash;
         }
 
+        // Fase C.3: fill-into-caller overload so WorldRenderer.Render can reuse a single
+        // HashSet across frames instead of allocating a fresh one every draw.
+        public void EnumerateIntersectingRootObjectsLoose(BoundingFrustum Frustum, HashSet<GameComponent> Into)
+        {
+            PerformanceMonitor.PushFrame("EnumRootLFrus");
+            foreach (var chunk in EnumerateChunksInBounds(Frustum))
+                lock (chunk)
+                {
+                    foreach (var entity in chunk.RootEntities)
+                        Into.Add(entity);
+                }
+            PerformanceMonitor.PopFrame();
+        }
+
         public IEnumerable<GameComponent> EnumerateIntersectingRootObjects(BoundingBox box, Func<GameComponent, bool> Filter = null)
         {
             PerformanceMonitor.PushFrame("CollisionManager.EnumerateIntersectingRootObjects w/ Filter");
