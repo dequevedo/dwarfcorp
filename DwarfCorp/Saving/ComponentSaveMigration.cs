@@ -33,6 +33,15 @@ using EcsDwarfThoughts = DwarfCorp.ECS.Components.DwarfThoughts;
 using EcsEgg = DwarfCorp.ECS.Components.Egg;
 using EcsCreatureAI = DwarfCorp.ECS.Components.CreatureAI;
 using EcsDwarfAI = DwarfCorp.ECS.Components.DwarfAI;
+using EcsKoboldAI = DwarfCorp.ECS.Components.KoboldAI;
+using EcsGremlinAI = DwarfCorp.ECS.Components.GremlinAI;
+using EcsNecromancerAI = DwarfCorp.ECS.Components.NecromancerAI;
+using EcsFairyAITag = DwarfCorp.ECS.Components.FairyAITag;
+using EcsBirdAITag = DwarfCorp.ECS.Components.BirdAITag;
+using EcsBatAITag = DwarfCorp.ECS.Components.BatAITag;
+using EcsSnakeAITag = DwarfCorp.ECS.Components.SnakeAITag;
+using EcsGolemAITag = DwarfCorp.ECS.Components.GolemAITag;
+using EcsPacingCreatureAITag = DwarfCorp.ECS.Components.PacingCreatureAITag;
 
 namespace DwarfCorp.Saving
 {
@@ -131,6 +140,7 @@ namespace DwarfCorp.Saving
             MigrateMinimapIcons(legacy, ref created, ref skipped);            // #14
             MigrateThoughtsAndEggs(legacy, ref created, ref skipped);         // #15
             MigrateCreatureAIs(legacy, ref created, ref skipped);             // #16 + #17
+            MigrateMonsterAndAnimalAIs(legacy, ref created, ref skipped);     // #18
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped");
@@ -520,6 +530,52 @@ namespace DwarfCorp.Saving
                 });
             }, ref created, ref skipped);
         }
+
+        private void MigrateMonsterAndAnimalAIs(ComponentManager.ComponentSaveData legacy, ref int created, ref int skipped)
+        {
+            // Tags for AIs that carry no persistent state beyond CreatureAI.
+            ForEachMatching<DwarfCorp.FairyAI>(legacy, (_, entity) => _target.World.Add(entity, new EcsFairyAITag()), ref created, ref skipped);
+            ForEachMatching<DwarfCorp.BirdAI>(legacy, (_, entity) => _target.World.Add(entity, new EcsBirdAITag()), ref created, ref skipped);
+            ForEachMatching<DwarfCorp.BatAI>(legacy, (_, entity) => _target.World.Add(entity, new EcsBatAITag()), ref created, ref skipped);
+            ForEachMatching<DwarfCorp.SnakeAI>(legacy, (_, entity) => _target.World.Add(entity, new EcsSnakeAITag()), ref created, ref skipped);
+            ForEachMatching<DwarfCorp.GolemAI>(legacy, (_, entity) => _target.World.Add(entity, new EcsGolemAITag()), ref created, ref skipped);
+            ForEachMatching<DwarfCorp.PacingCreatureAI>(legacy, (_, entity) => _target.World.Add(entity, new EcsPacingCreatureAITag()), ref created, ref skipped);
+
+            // AIs with actual persistent knobs.
+            ForEachMatching<DwarfCorp.KoboldAI>(legacy, (k, entity) =>
+            {
+                _target.World.Add(entity, new EcsKoboldAI
+                {
+                    StealFromPlayerProbability = k.StealFromPlayerProbability,
+                    LeaveWorldTimerRemaining = TimerRemaining(k.LeaveWorldTimer),
+                });
+            }, ref created, ref skipped);
+
+            ForEachMatching<DwarfCorp.GremlinAI>(legacy, (g, entity) =>
+            {
+                _target.World.Add(entity, new EcsGremlinAI
+                {
+                    DestroyPlayerObjectProbability = g.DestroyPlayerObjectProbability,
+                    PlantBomb = g.PlantBomb,
+                    LeaveWorldTimerRemaining = TimerRemaining(g.LeaveWorldTimer),
+                });
+            }, ref created, ref skipped);
+
+            ForEachMatching<DwarfCorp.NecromancerAI>(legacy, (n, entity) =>
+            {
+                _target.World.Add(entity, new EcsNecromancerAI
+                {
+                    Skeletons = n.Skeletons ?? new System.Collections.Generic.List<Skeleton>(),
+                    MaxSkeletons = n.MaxSkeletons,
+                    SummonTimerRemaining = TimerRemaining(n.SummonTimer),
+                    AttackTimerRemaining = TimerRemaining(n.AttackTimer),
+                    AttackRange = n.AttackRange,
+                });
+            }, ref created, ref skipped);
+        }
+
+        private static float TimerRemaining(Timer t) =>
+            t == null ? 0f : System.MathF.Max(0f, t.TargetTimeSeconds - t.CurrentTimeSeconds);
 
         // ──────────────────────────────────────────────────────────────────────
         // Helpers

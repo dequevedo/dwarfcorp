@@ -32,6 +32,8 @@ using EcsMinimapIcon = DwarfCorp.ECS.Components.MinimapIcon;
 using EcsDwarfThoughts = DwarfCorp.ECS.Components.DwarfThoughts;
 using EcsEgg = DwarfCorp.ECS.Components.Egg;
 using EcsCreatureAI = DwarfCorp.ECS.Components.CreatureAI;
+using EcsKoboldAI = DwarfCorp.ECS.Components.KoboldAI;
+using EcsFairyAITag = DwarfCorp.ECS.Components.FairyAITag;
 
 namespace DwarfCorp.Tests;
 
@@ -381,6 +383,27 @@ public class MigrateFamiliesTests
         var a = ecs.World.Get<EcsCreatureAI>(shim.LegacyIdToEntity[2]);
         Assert.Equal("Likes mushrooms.", a.Biography);
         Assert.True(a.MinecartActive);
+    }
+
+    [Fact]
+    public void KoboldAI_Migrates_StealProbability()
+    {
+        var (ecs, shim) = FreshShim();
+        var root = SynthRoot(1); var host = SynthHost(2, 1);
+        var k = Synth<DwarfCorp.KoboldAI>(3, parent: 2);
+        k.StealFromPlayerProbability = 0.3f;
+        shim.Migrate(Save(1, root, host, k));
+        Assert.Equal(0.3f, ecs.World.Get<EcsKoboldAI>(shim.LegacyIdToEntity[2]).StealFromPlayerProbability);
+    }
+
+    [Fact]
+    public void FairyAI_GetsTagOnly()
+    {
+        var (ecs, shim) = FreshShim();
+        var root = SynthRoot(1); var host = SynthHost(2, 1);
+        var f = Synth<DwarfCorp.FairyAI>(3, parent: 2);
+        shim.Migrate(Save(1, root, host, f));
+        Assert.True(ecs.World.Has<EcsFairyAITag>(shim.LegacyIdToEntity[2]));
     }
 
     [Fact]
