@@ -123,7 +123,7 @@ worth of scope:
 | 11 | **VoxelListener family** | VoxelListener component + VoxelEventSystem | Transform | ✅ marker tag (legacy handlers are runtime-only, explicitly unserializable). |
 | 12 | **Fire / Flammable** | Fire + Flammable components + FireSystem | Physics | ✅ Flammable (Heat/Flashpoint/Damage) + Fire (LifeTimer remaining). |
 | 13 | **Follower / Bobber** | Follow + Bob components + animation systems | Transform | ✅ Follower (radius/target/rate) + Bobber (magnitude/rate/offset/origY). |
-| 14 | **MinimapIcon** | MinimapIcon component + MinimapRenderSystem | Transform |
+| 14 | **MinimapIcon** | MinimapIcon component + MinimapRenderSystem | Transform | ✅ Icon + IconScale. |
 | 15 | **DwarfThoughts / Egg** | Memory / lifetime components | — |
 | 16 | **CreatureAI core** | AI state machine + AISystem | Many — see DAG |
 | 17 | **Dwarf archetype** | DwarfAI + composition | CreatureAI core |

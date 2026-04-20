@@ -28,6 +28,7 @@ using EcsFlammable = DwarfCorp.ECS.Components.Flammable;
 using EcsFire = DwarfCorp.ECS.Components.Fire;
 using EcsFollower = DwarfCorp.ECS.Components.Follower;
 using EcsBobber = DwarfCorp.ECS.Components.Bobber;
+using EcsMinimapIcon = DwarfCorp.ECS.Components.MinimapIcon;
 
 namespace DwarfCorp.Tests;
 
@@ -339,6 +340,17 @@ public class MigrateFamiliesTests
         var eb = ecs.World.Get<EcsBobber>(shim.LegacyIdToEntity[2]);
         Assert.Equal(0.2f, eb.Magnitude);
         Assert.Equal(5f, eb.OrigY);
+    }
+
+    [Fact]
+    public void MinimapIcon_Migrates_Scale()
+    {
+        var (ecs, shim) = FreshShim();
+        var root = SynthRoot(1); var host = SynthHost(2, 1);
+        var m = Synth<DwarfCorp.MinimapIcon>(3, parent: 2);
+        m.IconScale = 1.5f;
+        shim.Migrate(Save(1, root, host, m));
+        Assert.Equal(1.5f, ecs.World.Get<EcsMinimapIcon>(shim.LegacyIdToEntity[2]).IconScale);
     }
 
     [Fact]

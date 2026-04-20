@@ -28,6 +28,7 @@ using EcsFlammable = DwarfCorp.ECS.Components.Flammable;
 using EcsFire = DwarfCorp.ECS.Components.Fire;
 using EcsFollower = DwarfCorp.ECS.Components.Follower;
 using EcsBobber = DwarfCorp.ECS.Components.Bobber;
+using EcsMinimapIcon = DwarfCorp.ECS.Components.MinimapIcon;
 
 namespace DwarfCorp.Saving
 {
@@ -123,6 +124,7 @@ namespace DwarfCorp.Saving
             MigrateVoxelListeners(legacy, ref created, ref skipped);          // #11
             MigrateFire(legacy, ref created, ref skipped);                    // #12
             MigrateMotion(legacy, ref created, ref skipped);                  // #13
+            MigrateMinimapIcons(legacy, ref created, ref skipped);            // #14
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped");
@@ -424,6 +426,18 @@ namespace DwarfCorp.Saving
                     Rate = b.Rate,
                     Offset = b.Offset,
                     OrigY = b.OrigY,
+                });
+            }, ref created, ref skipped);
+        }
+
+        private void MigrateMinimapIcons(ComponentManager.ComponentSaveData legacy, ref int created, ref int skipped)
+        {
+            ForEachMatching<DwarfCorp.MinimapIcon>(legacy, (m, entity) =>
+            {
+                _target.World.Add(entity, new EcsMinimapIcon
+                {
+                    Icon = m.Icon,
+                    IconScale = m.IconScale,
                 });
             }, ref created, ref skipped);
         }
