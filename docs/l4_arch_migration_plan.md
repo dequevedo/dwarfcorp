@@ -125,8 +125,8 @@ worth of scope:
 | 13 | **Follower / Bobber** | Follow + Bob components + animation systems | Transform | ✅ Follower (radius/target/rate) + Bobber (magnitude/rate/offset/origY). |
 | 14 | **MinimapIcon** | MinimapIcon component + MinimapRenderSystem | Transform | ✅ Icon + IconScale. |
 | 15 | **DwarfThoughts / Egg** | Memory / lifetime components | — | ✅ DwarfThoughts (Thoughts list) + Egg (Adult/Birthday/ParentBody/Hatched). |
-| 16 | **CreatureAI core** | AI state machine + AISystem | Many — see DAG |
-| 17 | **Dwarf archetype** | DwarfAI + composition | CreatureAI core |
+| 16 | **CreatureAI core** | AI state machine + AISystem | Many — see DAG | ✅ Biography + LastFailedAct + LastTaskFailureReason + MinecartActive. Tasks/Blackboard/Sensor deferred (each is its own family or system). |
+| 17 | **Dwarf archetype** | DwarfAI + composition | CreatureAI core | ✅ private [JsonProperty] bookkeeping (XP / pay / idle time). |
 | 18 | **Animal / monster AIs** | per-species AI components | CreatureAI core |
 | 19 | **Projectile / ResourceEntity** | Physics-derived archetypes | Physics |
 | 20 | **Fixture family** (Crate, Banner, MagicalObject, Plant, ElevatorShaft, …) | Archetypes | Transform + Inventory + Sprite |

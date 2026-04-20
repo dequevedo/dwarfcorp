@@ -31,6 +31,7 @@ using EcsBobber = DwarfCorp.ECS.Components.Bobber;
 using EcsMinimapIcon = DwarfCorp.ECS.Components.MinimapIcon;
 using EcsDwarfThoughts = DwarfCorp.ECS.Components.DwarfThoughts;
 using EcsEgg = DwarfCorp.ECS.Components.Egg;
+using EcsCreatureAI = DwarfCorp.ECS.Components.CreatureAI;
 
 namespace DwarfCorp.Tests;
 
@@ -366,6 +367,20 @@ public class MigrateFamiliesTests
         var egg = ecs.World.Get<EcsEgg>(shim.LegacyIdToEntity[2]);
         Assert.Equal("Chicken", egg.Adult);
         Assert.False(egg.Hatched);
+    }
+
+    [Fact]
+    public void CreatureAI_Migrates_BaseFields()
+    {
+        var (ecs, shim) = FreshShim();
+        var root = SynthRoot(1); var host = SynthHost(2, 1);
+        var ai = Synth<DwarfCorp.CreatureAI>(3, parent: 2);
+        ai.Biography = "Likes mushrooms.";
+        ai.MinecartActive = true;
+        shim.Migrate(Save(1, root, host, ai));
+        var a = ecs.World.Get<EcsCreatureAI>(shim.LegacyIdToEntity[2]);
+        Assert.Equal("Likes mushrooms.", a.Biography);
+        Assert.True(a.MinecartActive);
     }
 
     [Fact]

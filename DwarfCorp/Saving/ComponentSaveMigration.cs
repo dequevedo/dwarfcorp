@@ -31,6 +31,8 @@ using EcsBobber = DwarfCorp.ECS.Components.Bobber;
 using EcsMinimapIcon = DwarfCorp.ECS.Components.MinimapIcon;
 using EcsDwarfThoughts = DwarfCorp.ECS.Components.DwarfThoughts;
 using EcsEgg = DwarfCorp.ECS.Components.Egg;
+using EcsCreatureAI = DwarfCorp.ECS.Components.CreatureAI;
+using EcsDwarfAI = DwarfCorp.ECS.Components.DwarfAI;
 
 namespace DwarfCorp.Saving
 {
@@ -128,6 +130,7 @@ namespace DwarfCorp.Saving
             MigrateMotion(legacy, ref created, ref skipped);                  // #13
             MigrateMinimapIcons(legacy, ref created, ref skipped);            // #14
             MigrateThoughtsAndEggs(legacy, ref created, ref skipped);         // #15
+            MigrateCreatureAIs(legacy, ref created, ref skipped);             // #16 + #17
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped");
@@ -465,6 +468,55 @@ namespace DwarfCorp.Saving
                     Birthday = e.Birthday,
                     ParentBody = e.ParentBody,
                     Hatched = e.Hatched,
+                });
+            }, ref created, ref skipped);
+        }
+
+        private void MigrateCreatureAIs(ComponentManager.ComponentSaveData legacy, ref int created, ref int skipped)
+        {
+            // #16 CreatureAI base. Every AI (Dwarf, monster, animal) IS-a CreatureAI,
+            // so a single pass here covers every variant's base fields. Legacy
+            // LastTaskFailureReason is private [JsonProperty] — reflect to read it.
+            var failureReasonField = typeof(DwarfCorp.CreatureAI).GetField("LastTaskFailureReason",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            ForEachMatching<DwarfCorp.CreatureAI>(legacy, (ai, entity) =>
+            {
+                // Don't stack if multiple CreatureAIs landed on same entity (shouldn't
+                // happen but cheap to guard).
+                if (_target.World.Has<EcsCreatureAI>(entity)) return;
+                _target.World.Add(entity, new EcsCreatureAI
+                {
+                    Biography = ai.Biography ?? "",
+                    LastFailedAct = ai.LastFailedAct,
+                    LastTaskFailureReason = (string)(failureReasonField?.GetValue(ai) ?? ""),
+                    MinecartActive = ai.MinecartActive,
+                });
+            }, ref created, ref skipped);
+
+            // #17 DwarfAI delta — all bookkeeping is private [JsonProperty], so
+            // grab each via reflection.
+            var dwarfAiType = typeof(DwarfCorp.DwarfAI);
+            var fLastXp = dwarfAiType.GetField("lastXPAnnouncement",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var fLastXpStat = dwarfAiType.GetField("lastXPAnnouncementStat",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var fNotPaid = dwarfAiType.GetField("NumDaysNotPaid",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var fUnhappy = dwarfAiType.GetField("UnhappinessTime",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var fSinceTask = dwarfAiType.GetField("TimeSinceLastAssignedTask",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            ForEachMatching<DwarfCorp.DwarfAI>(legacy, (dai, entity) =>
+            {
+                _target.World.Add(entity, new EcsDwarfAI
+                {
+                    LastXpAnnouncement = (int)(fLastXp?.GetValue(dai) ?? -1),
+                    LastXpAnnouncementStat = (int)(fLastXpStat?.GetValue(dai) ?? -1),
+                    NumDaysNotPaid = (int)(fNotPaid?.GetValue(dai) ?? 0),
+                    UnhappinessTime = (double)(fUnhappy?.GetValue(dai) ?? 0.0),
+                    TimeSinceLastAssignedTask = (double)(fSinceTask?.GetValue(dai) ?? 0.0),
                 });
             }, ref created, ref skipped);
         }
