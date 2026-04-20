@@ -62,6 +62,12 @@ namespace DwarfCorp.Voxels
         [ThreadStatic] private static GreedyMeshSlice.FaceKey?[,] _maskScratch;
         [ThreadStatic] private static byte[,] _consumedFacesScratch;
 
+        // Fase B.3 — SIMD-built solidity bitmap for the current slice. Populated once
+        // per slice at the top of GenerateSliceGeometryGreedy, consulted by every
+        // TryMakeGreedyFaceKey call to fast-reject empty voxels without having to
+        // touch VoxelHandle.IsEmpty. See SliceSolidityBitmap.cs for the layout.
+        [ThreadStatic] private static ulong[] _sliceSolidityScratch;
+
         /// <summary>Scratch for the per-slice "face already emitted" bitmask.
         /// Bit at <c>1 &lt;&lt; (int)FaceOrientation</c> is set when the greedy
         /// pass for that orientation emitted a merged quad covering this (x, z)
@@ -90,6 +96,15 @@ namespace DwarfCorp.Voxels
             SliceCache Cache,
             byte[,] ConsumedFaces)
         {
+            // Fase B.3 SIMD fast-path: build a 256-bit solidity bitmap of the slice
+            // once, then every RunGreedyPass call (six of them) consults it via a
+            // single bit test to skip empty voxels instead of reading the type byte
+            // + rebuilding VoxelHandle state. Bitmap is ThreadStatic since multiple
+            // chunks rebuild in parallel.
+            var solidity = _sliceSolidityScratch ??= new ulong[SliceSolidityBitmap.BitmapUlongCount];
+            int sliceStart = LocalY * VoxelConstants.ChunkSizeX * VoxelConstants.ChunkSizeZ;
+            SliceSolidityBitmap.Build(Chunk.Data.Types, sliceStart, solidity);
+
             // Horizontal faces: full 2D merge across (X, Z).
             RunGreedyPass(FaceOrientation.Top, FaceBit_Top, Into, Chunk, LocalY, TileSheet, World, Cache, ConsumedFaces);
             RunGreedyPass(FaceOrientation.Bottom, FaceBit_Bottom, Into, Chunk, LocalY, TileSheet, World, Cache, ConsumedFaces);
@@ -126,9 +141,16 @@ namespace DwarfCorp.Voxels
                 for (int z = 0; z < VoxelConstants.ChunkSizeZ; z++)
                     mask[x, z] = null;
 
+            var solidity = _sliceSolidityScratch;
             for (int x = 0; x < VoxelConstants.ChunkSizeX; x++)
                 for (int z = 0; z < VoxelConstants.ChunkSizeZ; z++)
                 {
+                    // SIMD fast-path: the bitmap says the voxel is empty, nothing to
+                    // merge. Skips the rest of the eligibility check (ramps, grass,
+                    // decal, transition textures — all irrelevant for an empty cell)
+                    // and the VoxelHandle construction + IsFaceVisible call.
+                    if (!SliceSolidityBitmap.IsSolid(solidity, x, z)) continue;
+
                     var v = VoxelHandle.UnsafeCreateLocalHandle(Chunk, new LocalVoxelCoordinate(x, LocalY, z));
                     if (TryMakeGreedyFaceKey(v, Orientation, x, z, World, out var key))
                         mask[x, z] = key;
