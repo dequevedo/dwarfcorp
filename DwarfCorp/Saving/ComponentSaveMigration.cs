@@ -42,6 +42,7 @@ using EcsBatAITag = DwarfCorp.ECS.Components.BatAITag;
 using EcsSnakeAITag = DwarfCorp.ECS.Components.SnakeAITag;
 using EcsGolemAITag = DwarfCorp.ECS.Components.GolemAITag;
 using EcsPacingCreatureAITag = DwarfCorp.ECS.Components.PacingCreatureAITag;
+using EcsResourceEntity = DwarfCorp.ECS.Components.ResourceEntity;
 
 namespace DwarfCorp.Saving
 {
@@ -141,6 +142,7 @@ namespace DwarfCorp.Saving
             MigrateThoughtsAndEggs(legacy, ref created, ref skipped);         // #15
             MigrateCreatureAIs(legacy, ref created, ref skipped);             // #16 + #17
             MigrateMonsterAndAnimalAIs(legacy, ref created, ref skipped);     // #18
+            MigrateResourceEntities(legacy, ref created, ref skipped);        // #19
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped");
@@ -570,6 +572,18 @@ namespace DwarfCorp.Saving
                     SummonTimerRemaining = TimerRemaining(n.SummonTimer),
                     AttackTimerRemaining = TimerRemaining(n.AttackTimer),
                     AttackRange = n.AttackRange,
+                });
+            }, ref created, ref skipped);
+        }
+
+        private void MigrateResourceEntities(ComponentManager.ComponentSaveData legacy, ref int created, ref int skipped)
+        {
+            ForEachMatching<DwarfCorp.ResourceEntity>(legacy, (r, entity) =>
+            {
+                _target.World.Add(entity, new EcsResourceEntity
+                {
+                    Resource = r.Resource,
+                    LifeTimerRemaining = TimerRemaining(r.LifeTimer),
                 });
             }, ref created, ref skipped);
         }

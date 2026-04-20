@@ -128,7 +128,7 @@ worth of scope:
 | 16 | **CreatureAI core** | AI state machine + AISystem | Many — see DAG | ✅ Biography + LastFailedAct + LastTaskFailureReason + MinecartActive. Tasks/Blackboard/Sensor deferred (each is its own family or system). |
 | 17 | **Dwarf archetype** | DwarfAI + composition | CreatureAI core | ✅ private [JsonProperty] bookkeeping (XP / pay / idle time). |
 | 18 | **Animal / monster AIs** | per-species AI components | CreatureAI core | ✅ KoboldAI / GremlinAI / NecromancerAI têm structs com knobs; FairyAI / BirdAI / BatAI / SnakeAI / GolemAI / PacingCreatureAI são marker tags (sem campo novo vs CreatureAI). |
-| 19 | **Projectile / ResourceEntity** | Physics-derived archetypes | Physics |
+| 19 | **Projectile / ResourceEntity** | Physics-derived archetypes | Physics | ✅ ResourceEntity (Resource ref + LifeTimerRemaining). Projectile removido do codebase. |
 | 20 | **Fixture family** (Crate, Banner, MagicalObject, Plant, ElevatorShaft, …) | Archetypes | Transform + Inventory + Sprite |
 | 21 | **PipeNetworkObject / BuildBuff** | Hydraulic subsystem | Transform |
 | 22 | **Balloon / BalloonAI** | — | Transform + Physics + AI |
