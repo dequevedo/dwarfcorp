@@ -43,6 +43,10 @@ using EcsSnakeAITag = DwarfCorp.ECS.Components.SnakeAITag;
 using EcsGolemAITag = DwarfCorp.ECS.Components.GolemAITag;
 using EcsPacingCreatureAITag = DwarfCorp.ECS.Components.PacingCreatureAITag;
 using EcsResourceEntity = DwarfCorp.ECS.Components.ResourceEntity;
+using EcsFixture = DwarfCorp.ECS.Components.Fixture;
+using EcsBanner = DwarfCorp.ECS.Components.Banner;
+using EcsMagicalObject = DwarfCorp.ECS.Components.MagicalObject;
+using EcsElevatorShaft = DwarfCorp.ECS.Components.ElevatorShaft;
 
 namespace DwarfCorp.Saving
 {
@@ -143,6 +147,7 @@ namespace DwarfCorp.Saving
             MigrateCreatureAIs(legacy, ref created, ref skipped);             // #16 + #17
             MigrateMonsterAndAnimalAIs(legacy, ref created, ref skipped);     // #18
             MigrateResourceEntities(legacy, ref created, ref skipped);        // #19
+            MigrateFixtures(legacy, ref created, ref skipped);                // #20
 
             _log.ZLogInformation(
                 $"ComponentSaveMigration: {created} entities created, {skipped} components skipped");
@@ -584,6 +589,55 @@ namespace DwarfCorp.Saving
                 {
                     Resource = r.Resource,
                     LifeTimerRemaining = TimerRemaining(r.LifeTimer),
+                });
+            }, ref created, ref skipped);
+        }
+
+        private void MigrateFixtures(ComponentManager.ComponentSaveData legacy, ref int created, ref int skipped)
+        {
+            ForEachMatching<DwarfCorp.Fixture>(legacy, (f, entity) =>
+            {
+                if (_target.World.Has<EcsFixture>(entity)) return;
+                _target.World.Add(entity, new EcsFixture
+                {
+                    Asset = f.Asset,
+                    Frame = f.Frame,
+                    OrientMode = (byte)f.OrientMode,
+                });
+            }, ref created, ref skipped);
+
+            ForEachMatching<DwarfCorp.Banner>(legacy, (b, entity) =>
+            {
+                _target.World.Add(entity, new EcsBanner { Logo = b.Logo });
+            }, ref created, ref skipped);
+
+            // Flag is another Banner-like thing with a Logo — it extends Body not
+            // Banner legacy-side but uses the same persisted field name. Treat as
+            // the same family for migration purposes.
+            ForEachMatching<DwarfCorp.Flag>(legacy, (b, entity) =>
+            {
+                if (_target.World.Has<EcsBanner>(entity)) return;
+                _target.World.Add(entity, new EcsBanner { Logo = b.Logo });
+            }, ref created, ref skipped);
+
+            // MagicalObject uses a private _currentCharges backing field +
+            // public CurrentCharges property — read via the property to stay
+            // robust to field-name refactors.
+            ForEachMatching<DwarfCorp.MagicalObject>(legacy, (m, entity) =>
+            {
+                _target.World.Add(entity, new EcsMagicalObject
+                {
+                    MaxCharges = m.MaxCharges,
+                    CurrentCharges = m.CurrentCharges,
+                });
+            }, ref created, ref skipped);
+
+            ForEachMatching<DwarfCorp.Elevators.ElevatorShaft>(legacy, (s, entity) =>
+            {
+                _target.World.Add(entity, new EcsElevatorShaft
+                {
+                    TrackAbove = s.TrackAbove,
+                    TrackBelow = s.TrackBelow,
                 });
             }, ref created, ref skipped);
         }

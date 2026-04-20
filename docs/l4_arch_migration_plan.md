@@ -129,7 +129,7 @@ worth of scope:
 | 17 | **Dwarf archetype** | DwarfAI + composition | CreatureAI core | ✅ private [JsonProperty] bookkeeping (XP / pay / idle time). |
 | 18 | **Animal / monster AIs** | per-species AI components | CreatureAI core | ✅ KoboldAI / GremlinAI / NecromancerAI têm structs com knobs; FairyAI / BirdAI / BatAI / SnakeAI / GolemAI / PacingCreatureAI são marker tags (sem campo novo vs CreatureAI). |
 | 19 | **Projectile / ResourceEntity** | Physics-derived archetypes | Physics | ✅ ResourceEntity (Resource ref + LifeTimerRemaining). Projectile removido do codebase. |
-| 20 | **Fixture family** (Crate, Banner, MagicalObject, Plant, ElevatorShaft, …) | Archetypes | Transform + Inventory + Sprite |
+| 20 | **Fixture family** (Crate, Banner, MagicalObject, Plant, ElevatorShaft, …) | Archetypes | Transform + Inventory + Sprite | ✅ Fixture (Asset+Frame+OrientMode), Banner (Logo — Flag folded), MagicalObject (charges), ElevatorShaft (TrackAbove/Below). Crate/Plant/ElevatorPlatform são archetype-only. |
 | 21 | **PipeNetworkObject / BuildBuff** | Hydraulic subsystem | Transform |
 | 22 | **Balloon / BalloonAI** | — | Transform + Physics + AI |
 
