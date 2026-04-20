@@ -108,10 +108,10 @@ Archetypes (compositions, not their own Arch types):
 Work top-down through the dependency DAG. Each row below is one commit's
 worth of scope:
 
-| # | Family | Owns | Depends on |
-|---|---|---|---|
-| 1 | **Transform** | Transform component | — |
-| 2 | **Physics** | Physics component + PhysicsSystem | Transform |
+| # | Family | Owns | Depends on | Status |
+|---|---|---|---|---|
+| 1 | **Transform** | Transform component | — | ✅ `MigrateTransforms` + `LegacyIdToEntity` mapping + 4 tests |
+| 2 | **Physics** | Physics component + PhysicsSystem | Transform | ⬜ |
 | 3 | **Health** | Health component + DamageSystem | — (tested solo) |
 | 4 | **Tintable + SimpleSprite** | Tintable component + SpriteRenderSystem | Transform |
 | 5 | **AnimatedSprite / LayeredSprites** | Animation components | Tintable |

@@ -111,9 +111,8 @@ public class EcsFoundationTests
         int firstRun = shim.Migrate(empty);
         int secondRun = shim.Migrate(empty);
         Assert.Equal(firstRun, secondRun);
-        // HasAny<Transform> is false right now because MigrateTransforms isn't
-        // implemented yet — this assertion is the one that flips to `True` when
-        // the first per-family migration lands.
+        // Empty legacy has zero root-level components, so MigrateTransforms still
+        // creates zero Arch entities. HasAny<Transform> stays false.
         Assert.False(shim.HasAny<Transform>());
     }
 }
