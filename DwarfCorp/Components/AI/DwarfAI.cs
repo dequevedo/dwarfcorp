@@ -59,6 +59,12 @@ namespace DwarfCorp
 
     private static List<IdleTask> IdleTasks;
 
+        // Fase C.3: reusable scratch list for ChooseIdleTask. Was a
+        // `IdleTasks.Where(...)` Iterator enumerated twice (Sum + foreach) per call,
+        // plus a lambda capturing `this`, `IsBored`, and `World`. Fills the scratch
+        // with a plain loop and iterates by index (no closure, no state machine).
+        [ThreadStatic] private static List<IdleTask> _availableIdleScratch;
+
         private static void InitializeIdleTasks()
         {
             if (IdleTasks == null)
@@ -335,20 +341,22 @@ namespace DwarfCorp
         {
             InitializeIdleTasks();
 
-            var availableTasks = IdleTasks.Where(t =>
+            var available = _availableIdleScratch ??= new List<IdleTask>();
+            available.Clear();
+            float totalChance = 0f;
+            for (int i = 0; i < IdleTasks.Count; i++)
             {
-                if (IsBored)
-                    if (t.PreferWhenBored == false)
-                        return false;
+                var t = IdleTasks[i];
+                if (IsBored && !t.PreferWhenBored) continue;
+                if (!t.Available(this, World)) continue;
+                available.Add(t);
+                totalChance += t.Chance();
+            }
 
-                return t.Available(this, World);
-            });
-
-            var totalChance = availableTasks.Sum(t => t.Chance());
             var random = MathFunctions.Random.NextDouble() * totalChance;
-
-            foreach (var t in availableTasks)
+            for (int i = 0; i < available.Count; i++)
             {
+                var t = available[i];
                 if (random < t.Chance())
                     return t.Create(this);
                 random -= t.Chance();

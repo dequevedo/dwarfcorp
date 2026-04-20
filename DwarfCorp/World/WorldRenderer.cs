@@ -296,8 +296,10 @@ namespace DwarfCorp
             _lightPositionScratch.Clear();
             foreach (var l in DynamicLight.Lights)
                 _lightPositionScratch.Add(l.Position);
-            foreach (var l in DynamicLight.TempLights)
-                _lightPositionScratch.Add(l.Position);
+            // Fase C.3: transient lights now live in a pooled counter-backed array
+            // inside DynamicLight; iterate by index.
+            for (int i = 0; i < DynamicLight.TempLightCount; i++)
+                _lightPositionScratch.Add(DynamicLight.GetTempLight(i).Position);
 
             _lightSortOrigin = Camera.Position;
             _lightPositionScratch.Sort(CompareLightDistanceFromSortOrigin);
@@ -312,7 +314,7 @@ namespace DwarfCorp
 
             DefaultShader.CurrentNumLights = lightCount;
 
-            DynamicLight.TempLights.Clear();
+            DynamicLight.ClearTempLights();
         }
 
         public void ValidateShader()

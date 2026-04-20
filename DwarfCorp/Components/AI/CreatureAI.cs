@@ -264,13 +264,20 @@ namespace DwarfCorp
         public void DeleteBadTasks()
         {
             UpdateFailedTasks(World.Time.CurrentDate);
-            var badTasks = Tasks.Where(task => task.ShouldDelete(Creature)).ToList();
-            foreach (var task in badTasks)
+            // Fase C.3: was `Tasks.Where(...).ToList()` every frame per dwarf — one
+            // Where-iterator + one materialized List per call, at ~22 dwarfs × 60 fps
+            // = ~1300 allocs/sec just here. Iterate backwards and remove in place.
+            // OnUnAssign must run before RemoveAt because it inspects the task's
+            // current assignment state.
+            for (int i = Tasks.Count - 1; i >= 0; i--)
             {
-                task.OnUnAssign(this);
-                Tasks.Remove(task);
+                var task = Tasks[i];
+                if (task.ShouldDelete(Creature))
+                {
+                    task.OnUnAssign(this);
+                    Tasks.RemoveAt(i);
+                }
             }
-
         }
 
         public bool IsPositionConstrained()

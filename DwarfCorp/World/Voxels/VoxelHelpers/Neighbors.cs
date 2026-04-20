@@ -333,6 +333,15 @@ namespace DwarfCorp
             return new NeighborArrayEnumerator(ManhattanNeighbors, Coordinate);
         }
 
+        // Fase C.3: struct-enumerator variant of EnumerateManhattanCube. Physics.cs
+        // called the yield-return version every frame for every moving entity and then
+        // chained a `.Select(...)` on top, allocating two iterator state machines per
+        // entity per frame. This one returns a plain struct (zero-alloc).
+        public static NeighborArrayEnumerator EnumerateManhattanCubeFast(GlobalVoxelCoordinate Coordinate)
+        {
+            return new NeighborArrayEnumerator(ManhattanCubeNeighbors, Coordinate);
+        }
+
         public static IEnumerable<GlobalVoxelCoordinate> EnumerateManhattanNeighbors(
             GlobalVoxelCoordinate Coordinate)
         {

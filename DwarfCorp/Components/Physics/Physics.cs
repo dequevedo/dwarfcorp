@@ -300,10 +300,14 @@ namespace DwarfCorp
 
         private void UpdateNeighborhoodVoxels()
         {
+            // Fase C.3: was `EnumerateManhattanCube(...).Select(c => CreateVoxelHandle(c))`,
+            // two nested yield-return state machines allocated per frame per entity.
+            // Struct enumerator + inline handle construction is zero-alloc.
             var i = 0;
-            foreach (var v in VoxelHelpers.EnumerateManhattanCube(CurrentVoxel.Coordinate).Select(c => World.ChunkManager.CreateVoxelHandle(c)))
+            var chunkManager = World.ChunkManager;
+            foreach (var c in VoxelHelpers.EnumerateManhattanCubeFast(CurrentVoxel.Coordinate))
             {
-                NeighborhoodVoxels[i] = v;
+                NeighborhoodVoxels[i] = chunkManager.CreateVoxelHandle(c);
                 i += 1;
             }
         }
@@ -349,7 +353,9 @@ namespace DwarfCorp
             var p = Position;
             localGradient = Position - CurrentVoxel.Center;
             localGradient += Velocity; // Prefer to push in the direction we're already going.
-            foreach (var v in VoxelHelpers.EnumerateManhattanNeighbors(CurrentVoxel.Coordinate))
+            // Fase C.3: struct-enumerator variant. Yield-return version allocated one
+            // state machine per call, and this method runs per stuck-in-terrain tick.
+            foreach (var v in VoxelHelpers.EnumerateManhattanNeighborsFast(CurrentVoxel.Coordinate))
             {
                 var handle = new VoxelHandle(World.ChunkManager, v);
                 var sign = (handle.IsValid && handle.IsEmpty) ? -1 : 1;

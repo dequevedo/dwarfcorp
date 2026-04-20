@@ -21,14 +21,16 @@ namespace DwarfCorp
         {
             var physicsObject = 0;
             PerformanceMonitor.PushFrame("PhysicsSystem");
-            foreach (var physicsComponent in World.ComponentUpdateSet.OfType<Physics>())
+            // Fase C.3: was `foreach (var p in ComponentUpdateSet.OfType<Physics>())`,
+            // which allocated the OfType<> iterator state machine and boxed the HashSet
+            // enumerator every frame. Plain foreach + type check is zero-alloc.
+            foreach (var component in World.ComponentUpdateSet)
             {
-                physicsObject += 1;
-                if (physicsComponent is ResourceEntity)
+                if (component is Physics physicsComponent)
                 {
-                    var x = 5;
+                    physicsObject += 1;
+                    physicsComponent.PhysicsUpdate(GameTime, World.ChunkManager);
                 }
-                physicsComponent.PhysicsUpdate(GameTime, World.ChunkManager);
             }
             PerformanceMonitor.SetMetric("Physics Objects", physicsObject);
             PerformanceMonitor.PopFrame();

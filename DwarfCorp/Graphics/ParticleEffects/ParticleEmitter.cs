@@ -116,6 +116,11 @@ namespace DwarfCorp
         public Timer TriggerTimer { get; set; }
         private static Camera _camera = null;
 
+        // Fase C.3: reusable scratch list for per-frame particle removal. Was a
+        // fresh `new List<Particle>()` per Update() — one allocation per emitter per
+        // frame, adds up in scenes with many emitters.
+        private readonly List<Particle> _toRemoveScratch = new List<Particle>();
+
         public static void Cleanup()
         {
             _camera = null;
@@ -278,7 +283,8 @@ namespace DwarfCorp
         {
             ParticleEmitter._camera = camera;
 
-            List<Particle> toRemove = new List<Particle>();
+            var toRemove = _toRemoveScratch;
+            toRemove.Clear();
 
             TriggerTimer.Update(gameTime);
             if(TriggerTimer.HasTriggered && Data.ParticlesPerFrame > 0)
@@ -296,7 +302,7 @@ namespace DwarfCorp
                     float vel = p.Velocity.LengthSquared();
                     if (Data.EmitsLight && p.Scale > 0.1f)
                     {
-                        DynamicLight.TempLights.Add(new DynamicLight(10.0f, 255.0f, false) { Position = p.Position });
+                        DynamicLight.AddTempLight(10.0f, 255.0f, p.Position);
                     }
                     p.Position += p.Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
