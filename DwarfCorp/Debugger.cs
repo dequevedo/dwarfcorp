@@ -34,9 +34,12 @@ namespace DwarfCorp
             public static bool ShowEntityInfo = false;
             public static bool DrawTiledInstanceAtlas = false;
             public static bool UseNewVoxelGeoGen = false;
-            // Fase B.2: opt-in greedy meshing for chunk top faces. Default off until the
-            // rendered output is compared against the per-voxel baseline interactively.
-            public static bool UseGreedyMeshing = false;
+            // Fase B.2: opt-in greedy meshing for chunk top faces. Flipped to default ON
+            // after the integration commit landed — running live so the user can assess
+            // visual + merge ratio in a real capture without having to touch code. Flip
+            // back to false here (or toggle via F12 if the switch is exposed) if the
+            // stretched-tile look is unacceptable.
+            public static bool UseGreedyMeshing = true;
         }
 
         public class Switch
